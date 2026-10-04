@@ -24,6 +24,12 @@ npm run build
 php -d sendmail_path="tee -a /tmp/ip3-mail.txt" -S 127.0.0.1:8080 -t dist scripts/vorschau-router.php
 ```
 
+Offline-Fassung zum Weitergeben, ohne Server und ohne Installation:
+
+```bash
+npm run offline      # erzeugt vorschau-offline/: jede Seite als eigenständige HTML-Datei, index.html per Doppelklick öffnen
+```
+
 Ohne PHP genügt `npm run build && npm run preview`. Das Formular meldet dann ehrlich, dass der direkte Versand nicht möglich ist, und bietet die vorbereitete Nachricht für das E-Mail-Programm an.
 
 ## Aufbau
