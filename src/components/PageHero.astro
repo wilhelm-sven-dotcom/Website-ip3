@@ -109,6 +109,15 @@ const { kicker, title, lead, art = null, artTitle = '', crumbs = [], zeichen = t
     text-decoration: underline;
   }
 
+  @media (max-width: 760px) {
+    .page-hero__zeichen {
+      right: -44vmin;
+      top: calc(var(--header-h) + 9rem);
+      width: 300px;
+      opacity: 0.14;
+    }
+  }
+
   @media (max-width: 860px) {
     .page-hero--art .page-hero__inner {
       grid-template-columns: 1fr;
