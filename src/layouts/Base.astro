@@ -1,0 +1,91 @@
+---
+import '../styles/tokens.css';
+import '../styles/base.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { firma } from '../data/site.js';
+
+const {
+  title,
+  description = 'ip³ Energietechnik GmbH aus der Oberpfalz plant und baut Photovoltaikanlagen und Batteriespeicher: vom Hausdach über Gewerbe und Freifläche bis zum Großspeicher. Planung · Beratung · Umsetzung.',
+  headerTheme = 'dark',
+  footerCta = true,
+  ogImage = '/img/og-ip3.jpg',
+  noindex = false,
+  bodyClass = '',
+} = Astro.props;
+
+const fullTitle = title ? `${title} | ip³ Energietechnik` : 'ip³ Energietechnik GmbH | Photovoltaik und Batteriespeicher aus der Oberpfalz';
+const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', Astro.site).href;
+const ogUrl = new URL(ogImage, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#0c1a3d" />
+    <meta name="color-scheme" content="light" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:site_name" content={firma.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/brand/ip3-app-icon-blau.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <link rel="preload" href="/fonts/LibreFranklin-ExtraBold.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/LibreFranklin-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/SpaceGrotesk-Medium.woff2" as="font" type="font/woff2" crossorigin />
+
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!reduce) d.classList.add('js-motion');
+      })();
+    </script>
+    <slot name="head" />
+  </head>
+  <body class={bodyClass}>
+    <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
+    <Header theme={headerTheme} />
+    <main id="inhalt" tabindex="-1">
+      <slot />
+    </main>
+    <Footer cta={footerCta} />
+    <script>
+      import '../scripts/main.js';
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  /* Sicherheitsnetz: Falls das Skript nicht lädt, werden Inhalte nach kurzer Zeit sichtbar */
+  @keyframes reveal-failsafe {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  html.js-motion:not(.reveal-ready) [data-reveal] {
+    animation: reveal-failsafe 0.6s 2.5s both;
+  }
+
+  main:focus {
+    outline: none;
+  }
+</style>

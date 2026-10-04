@@ -1,0 +1,107 @@
+/* ip³ Designsystem: Farben, Schriften, Maße.
+   Farben ausschließlich aus dem Corporate Design. Keine Verläufe. */
+
+@font-face {
+  font-family: 'Libre Franklin';
+  src: url('/fonts/LibreFranklin-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Libre Franklin';
+  src: url('/fonts/LibreFranklin-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Libre Franklin';
+  src: url('/fonts/LibreFranklin-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Libre Franklin';
+  src: url('/fonts/LibreFranklin-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('/fonts/SpaceGrotesk-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('/fonts/SpaceGrotesk-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Markenfarben */
+  --navy: #0c1a3d;
+  --blau: #2f2482;
+  --rot: #8d0c07;
+  --akzent: #c83c30;
+  --weiss: #ffffff;
+  --hell: #e8e7ef;
+
+  /* Funktionsfarben hell */
+  --text: #1a1a1a;
+  --text-sec: #666666;
+  --linie: #e0e0e0;
+  --box: #f5f6f9;
+
+  /* Funktionsfarben auf Navy */
+  --on-navy: #ffffff;
+  --on-navy-sec: rgb(255 255 255 / 0.68);
+  --on-navy-line: rgb(232 231 239 / 0.18);
+  --on-navy-line-strong: rgb(232 231 239 / 0.34);
+
+  /* Schriften */
+  --font-head: 'Libre Franklin', Archivo, Arial, Helvetica, sans-serif;
+  --font-body: 'Libre Franklin', Archivo, Arial, Helvetica, sans-serif;
+  --font-tech: 'Space Grotesk', 'Libre Franklin', Arial, sans-serif;
+
+  /* Schriftgrößen, fluid */
+  --fs-mega: clamp(3.4rem, 1.2rem + 9.6vw, 12.5rem);
+  --fs-display: clamp(2.9rem, 1.3rem + 6.4vw, 8.75rem);
+  --fs-h1: clamp(2.6rem, 1.5rem + 4.6vw, 6.5rem);
+  --fs-h2: clamp(2.15rem, 1.35rem + 3.3vw, 4.75rem);
+  --fs-h3: clamp(1.45rem, 1.15rem + 1.2vw, 2.25rem);
+  --fs-h4: clamp(1.15rem, 1.05rem + 0.45vw, 1.45rem);
+  --fs-lead: clamp(1.15rem, 1.02rem + 0.55vw, 1.55rem);
+  --fs-body: clamp(1rem, 0.96rem + 0.18vw, 1.125rem);
+  --fs-small: 0.9rem;
+  --fs-label: 0.78rem;
+
+  /* Raster */
+  --page-max: 1640px;
+  --pad-x: clamp(1.15rem, 4.6vw, 5.5rem);
+  --gutter: clamp(1rem, 2.4vw, 2.5rem);
+  --section-y: clamp(5.5rem, 4rem + 7vw, 11rem);
+  --header-h: 76px;
+
+  /* Bewegung */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur: 420ms;
+  --dur-slow: 900ms;
+
+  /* Fokus */
+  --focus: var(--akzent);
+}
+
+@media (max-width: 760px) {
+  :root {
+    --header-h: 64px;
+  }
+}

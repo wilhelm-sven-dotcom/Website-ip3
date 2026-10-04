@@ -1,0 +1,587 @@
+/* Grundlagen: Reset, Typografie, Raster, Flächen, Buttons */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 1rem);
+  background: var(--navy);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--weiss);
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+img,
+svg,
+video,
+canvas,
+picture {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ul,
+ol {
+  margin: 0;
+}
+
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-head);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+h3,
+h4 {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.12;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+strong,
+b {
+  font-weight: 700;
+}
+
+sup {
+  line-height: 0;
+}
+
+::selection {
+  background: var(--akzent);
+  color: var(--weiss);
+}
+
+/* Fokus: immer sichtbar bei Tastaturbedienung */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+[data-theme='dark'] :focus-visible {
+  outline-color: var(--weiss);
+}
+
+/* Hilfsklassen */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 1000;
+  padding: 0.85rem 1.2rem;
+  background: var(--akzent);
+  color: var(--weiss);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--pad-x);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+/* Flächen */
+.section {
+  position: relative;
+  padding-block: var(--section-y);
+  isolation: isolate;
+}
+
+[data-theme='dark'] {
+  background: var(--navy);
+  color: var(--on-navy);
+}
+
+[data-theme='light'] {
+  background: var(--weiss);
+  color: var(--text);
+}
+
+[data-theme='hell'] {
+  background: var(--hell);
+  color: var(--text);
+}
+
+/* Typografie-Bausteine */
+.mega {
+  font-size: var(--fs-mega);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+}
+
+.display {
+  font-size: var(--fs-display);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+}
+
+.h1 {
+  font-size: var(--fs-h1);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.h2 {
+  font-size: var(--fs-h2);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+}
+
+.h3 {
+  font-size: var(--fs-h3);
+}
+
+.h4 {
+  font-size: var(--fs-h4);
+}
+
+[data-theme='light'] :is(.h1, .h2, .display, .mega),
+[data-theme='hell'] :is(.h1, .h2, .display, .mega) {
+  color: var(--blau);
+}
+
+/* Satzendpunkt in Akzent-Rot */
+.dot {
+  color: var(--akzent);
+}
+
+.lead {
+  font-size: var(--fs-lead);
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+
+.muted {
+  color: var(--text-sec);
+}
+
+[data-theme='dark'] .muted {
+  color: var(--on-navy-sec);
+}
+
+.tech {
+  font-family: var(--font-tech);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Kicker: Versalien, gesperrt, mit rotem Marker */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  font-family: var(--font-tech);
+  font-weight: 500;
+  font-size: var(--fs-label);
+  line-height: 1.2;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--akzent);
+}
+
+.kicker::before {
+  content: '';
+  width: 0.55em;
+  height: 0.55em;
+  flex: none;
+  background: var(--akzent);
+}
+
+[data-theme='dark'] .kicker {
+  color: var(--hell);
+}
+
+.kicker--plain::before {
+  display: none;
+}
+
+.kicker .num {
+  color: inherit;
+  opacity: 0.6;
+}
+
+/* Fließtext-Bausteine */
+.prose {
+  max-width: 68ch;
+}
+
+.prose > * + * {
+  margin-top: 1.1em;
+}
+
+.prose h2 {
+  font-size: var(--fs-h3);
+  margin-top: 2.2em;
+  color: var(--blau);
+}
+
+.prose h3 {
+  font-size: var(--fs-h4);
+  margin-top: 1.8em;
+  color: var(--blau);
+}
+
+[data-theme='dark'] .prose :is(h2, h3) {
+  color: var(--weiss);
+}
+
+.prose ul {
+  padding-left: 0;
+  list-style: none;
+}
+
+.prose ul li {
+  position: relative;
+  padding-left: 1.4em;
+}
+
+.prose ul li + li {
+  margin-top: 0.45em;
+}
+
+.prose ul li::before {
+  content: '';
+  position: absolute;
+  left: 0.15em;
+  top: 0.62em;
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 50%;
+  background: var(--akzent);
+}
+
+.prose a,
+.text-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition: text-decoration-color var(--dur-fast);
+}
+
+.prose a:hover,
+.text-link:hover {
+  text-decoration-color: var(--akzent);
+}
+
+/* Buttons */
+.btn {
+  --btn-bg: transparent;
+  --btn-fg: currentColor;
+  --btn-border: currentColor;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  min-height: 52px;
+  padding: 0.85rem 1.4rem 0.85rem 1.5rem;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.1;
+  letter-spacing: 0.005em;
+  text-decoration: none;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    color var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out),
+    background-color var(--dur) var(--ease-out);
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--btn-fill, var(--navy));
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.btn:hover::after,
+.btn:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.btn .arrow {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.btn:hover .arrow,
+.btn:focus-visible .arrow {
+  transform: translateX(4px);
+}
+
+.btn--primary {
+  --btn-bg: var(--akzent);
+  --btn-fg: var(--weiss);
+  --btn-border: var(--akzent);
+  --btn-fill: var(--rot);
+}
+
+.btn--primary:hover,
+.btn--primary:focus-visible {
+  --btn-border: var(--rot);
+}
+
+.btn--ghost {
+  --btn-fill: var(--navy);
+}
+
+.btn--ghost:hover,
+.btn--ghost:focus-visible {
+  color: var(--weiss);
+  border-color: var(--navy);
+}
+
+[data-theme='dark'] .btn--ghost {
+  --btn-border: var(--on-navy-line-strong);
+  --btn-fill: var(--weiss);
+}
+
+[data-theme='dark'] .btn--ghost:hover,
+[data-theme='dark'] .btn--ghost:focus-visible {
+  color: var(--navy);
+  border-color: var(--weiss);
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Pfeil-Link mit wachsender Linie */
+.arrow-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 44px;
+  font-weight: 600;
+  text-decoration: none;
+  color: inherit;
+}
+
+.arrow-link .line {
+  position: relative;
+  width: 2.4rem;
+  height: 1px;
+  background: currentColor;
+  transition: width var(--dur) var(--ease-out);
+}
+
+.arrow-link .line::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.arrow-link:hover .line,
+.arrow-link:focus-visible .line {
+  width: 3.6rem;
+}
+
+/* Bemaßungslinie: Abschnittsmarke im Stil einer technischen Zeichnung */
+.dim {
+  --dim-color: var(--blau);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font-tech);
+  font-weight: 500;
+  font-size: var(--fs-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim-color);
+}
+
+[data-theme='dark'] .dim {
+  --dim-color: var(--hell);
+}
+
+.dim__line {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--dim-color) 35%, transparent);
+  transform-origin: left center;
+}
+
+.dim__line::before,
+.dim__line::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  width: 1px;
+  height: 11px;
+  background: color-mix(in srgb, var(--dim-color) 60%, transparent);
+}
+
+.dim__line::before {
+  left: 0;
+}
+
+.dim__line::after {
+  right: 0;
+}
+
+.dim__num {
+  font-weight: 700;
+  color: var(--akzent);
+}
+
+[data-theme='dark'] .dim__num {
+  color: var(--weiss);
+}
+
+/* Zeichen 3 als großes, leises Hintergrundmotiv */
+.zeichen {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+  height: auto;
+}
+
+.zeichen--light {
+  opacity: 0.08;
+}
+
+.zeichen--dark {
+  opacity: 0.2;
+}
+
+/* Reveal-Grundzustände (nur wenn JS und Bewegung erlaubt) */
+.js-motion [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+}
+
+.js-motion [data-reveal='fade'] {
+  transform: none;
+}
+
+.js-motion .dim__line[data-draw] {
+  transform: scaleX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

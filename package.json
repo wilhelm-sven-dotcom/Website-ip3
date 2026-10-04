@@ -1,0 +1,21 @@
+{
+  "name": "ip3-website",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Website der ip³ Energietechnik GmbH",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check:links": "node scripts/check-links.mjs"
+  },
+  "dependencies": {
+    "astro": "^7.3.5",
+    "gsap": "3.15",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.5"
+  }
+}

@@ -1,0 +1,266 @@
+---
+import { firma, leistungenNav, rechtliches } from '../data/site.js';
+import Arrow from './Arrow.astro';
+
+const { cta = true } = Astro.props;
+const jahr = new Date().getFullYear();
+---
+
+<footer class="site-footer" data-theme="dark" data-header-zone="dark">
+  {
+    cta && (
+      <section class="footer-cta wrap" aria-labelledby="footer-cta-title">
+        <img class="zeichen zeichen--dark footer-cta__zeichen" src="/brand/zeichen-3-kontur-akzent.png" alt="" width="808" height="1052" loading="lazy" data-parallax="-12" />
+        <p class="kicker">Projektanfrage</p>
+        <h2 id="footer-cta-title" class="display footer-cta__title" data-split>
+          Lassen Sie uns über Ihr Projekt sprechen<span class="dot">.</span>
+        </h2>
+        <div class="footer-cta__row">
+          <p class="lead footer-cta__lead">
+            Dach, Halle, Freifläche oder Speicher: Schildern Sie uns Ihr Vorhaben. Wir melden uns mit einer ersten fachlichen Einschätzung.
+          </p>
+          <div class="footer-cta__actions">
+            <a class="btn btn--primary" href="/kontakt">
+              Projekt besprechen <Arrow />
+            </a>
+            <a class="footer-cta__phone tech" href={firma.telefonHref}>
+              <span class="label">Telefon</span>
+              {firma.telefon}
+            </a>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <div class="footer-main wrap">
+    <div class="footer-brand">
+      <a href="/" class="footer-brand__logo" aria-label="ip³ Energietechnik GmbH, zur Startseite">
+        <img src="/brand/ip3-energietechnik-weiss.svg" alt="" width="240" height="36" loading="lazy" />
+      </a>
+      <p class="footer-claim">Energie hoch drei<span class="dot">.</span></p>
+      <p class="footer-dreiklang">
+        {firma.dreiklang.map((w, i) => (i ? [<span class="dot"> · </span>, w] : w))}
+      </p>
+    </div>
+
+    <div class="footer-col">
+      <h2 class="footer-col__title">Kontakt</h2>
+      <address>
+        {firma.name}<br />
+        {firma.strasse}<br />
+        {firma.plz} {firma.ort}
+      </address>
+      <p class="tech footer-contact">
+        <a href={firma.telefonHref}>{firma.telefon}</a><br />
+        <a href={`mailto:${firma.email}`}>{firma.email}</a>
+      </p>
+    </div>
+
+    <nav class="footer-col" aria-label="Leistungen">
+      <h2 class="footer-col__title">Leistungen</h2>
+      <ul role="list">
+        <li><a href="/unsere-leistungen">Überblick</a></li>
+        {
+          leistungenNav.map((l) => (
+            <li>
+              <a href={l.href}>{l.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav class="footer-col" aria-label="Unternehmen">
+      <h2 class="footer-col__title">Unternehmen</h2>
+      <ul role="list">
+        <li><a href="/referenzen">Referenzen</a></li>
+        <li><a href="/ueber-uns">Über uns</a></li>
+        <li><a href="/kontakt">Kontakt</a></li>
+        {
+          rechtliches.map((l) => (
+            <li>
+              <a href={l.href}>{l.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+
+  <div class="footer-bottom wrap">
+    <p>{firma.name} · {firma.region} · {firma.email} · {firma.web}</p>
+    <p class="tech">© {jahr}</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .footer-cta {
+    position: relative;
+    padding-top: var(--section-y);
+    padding-bottom: clamp(4rem, 8vw, 8rem);
+    border-bottom: 1px solid var(--on-navy-line);
+  }
+
+  .footer-cta__zeichen {
+    right: -14vmin;
+    top: -4vmin;
+    width: clamp(320px, 62vmin, 760px);
+  }
+
+  .footer-cta__title {
+    margin-top: 1.5rem;
+    max-width: 14ch;
+  }
+
+  .footer-cta__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem 4rem;
+    align-items: end;
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
+  }
+
+  .footer-cta__lead {
+    max-width: 44ch;
+    color: var(--on-navy-sec);
+  }
+
+  .footer-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem 2rem;
+  }
+
+  .footer-cta__phone {
+    display: grid;
+    font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+    font-weight: 500;
+    text-decoration: none;
+    line-height: 1.1;
+  }
+
+  .footer-cta__phone .label {
+    font-size: var(--fs-label);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--on-navy-sec);
+    margin-bottom: 0.35rem;
+  }
+
+  .footer-cta__phone:hover {
+    color: var(--hell);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .footer-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+    gap: 3rem var(--gutter);
+    padding-top: clamp(3.5rem, 6vw, 5.5rem);
+    padding-bottom: clamp(3rem, 5vw, 4.5rem);
+  }
+
+  .footer-brand__logo {
+    display: inline-block;
+    width: clamp(190px, 16vw, 240px);
+  }
+
+  .footer-claim {
+    margin-top: 2rem;
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: clamp(1.8rem, 1.3rem + 1.6vw, 2.6rem);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .footer-dreiklang {
+    margin-top: 0.75rem;
+    color: var(--on-navy-sec);
+    letter-spacing: 0.02em;
+  }
+
+  .footer-col__title {
+    font-family: var(--font-tech);
+    font-weight: 500;
+    font-size: var(--fs-label);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--on-navy-sec);
+    margin-bottom: 1.1rem;
+  }
+
+  .footer-col address {
+    font-style: normal;
+    line-height: 1.7;
+  }
+
+  .footer-contact {
+    margin-top: 1rem;
+    line-height: 1.9;
+  }
+
+  .footer-col ul {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .footer-col a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0 1px;
+    background-repeat: no-repeat;
+    background-position: 0 85%;
+    transition: background-size var(--dur) var(--ease-out);
+  }
+
+  .footer-col a:hover,
+  .footer-col a:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  .footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.5rem;
+    border-top: 1px solid var(--on-navy-line);
+    font-size: 0.85rem;
+    color: var(--on-navy-sec);
+  }
+
+  @media (max-width: 960px) {
+    .footer-main {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+
+    .footer-cta__row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .footer-main {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

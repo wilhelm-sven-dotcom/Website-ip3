@@ -1,0 +1,537 @@
+---
+// Herzstück der Startseite: scrollgesteuerte Inszenierung vom Modul zum Energiesystem.
+// Alle Inhalte stehen als semantisches HTML im Dokument. Die Leinwand ist Dekoration.
+import Arrow from './Arrow.astro';
+
+const stills = {
+  modul: { d: '/img/story/modul-1600.webp', m: '/img/story/modul-900.webp' },
+  zelle: { d: '/img/story/zelle-1600.webp', m: '/img/story/zelle-900.webp' },
+  system: { d: '/img/story/system-1600.webp', m: '/img/story/system-900.webp' },
+};
+
+const labels = [
+  { key: 'licht', text: 'Lichteinfall', range: '0.49,0.535,0.625,0.66', side: 'left' },
+  { key: 'finger', text: 'Kontaktfinger', range: '0.505,0.55,0.625,0.66' },
+  { key: 'busbar', text: 'Busbar', range: '0.515,0.56,0.625,0.66', side: 'left' },
+  { key: 'generator', text: 'PV-Generator', range: '0.79,0.84,2,3' },
+  { key: 'inverter', text: 'Wechselrichter', range: '0.815,0.86,2,3', side: 'left' },
+  { key: 'trafo', text: 'Trafostation', range: '0.835,0.875,2,3', side: 'left' },
+  { key: 'bess', text: 'Batteriespeicher', range: '0.875,0.915,2,3' },
+  { key: 'nvp', text: 'Übergabestation · NVP', range: '0.9,0.935,2,3' },
+  { key: 'grid', text: '20-kV-Netz', range: '0.94,0.97,2,3', side: 'left' },
+];
+---
+
+<section class="story" data-story data-theme="dark" data-header-zone="dark" aria-labelledby="story-title">
+  <div class="story__stage" data-story-stage aria-hidden="true">
+    <picture class="story__poster">
+      <source media="(max-width: 759px)" srcset={stills.modul.m} />
+      <img src={stills.modul.d} alt="" width="1600" height="900" fetchpriority="high" decoding="async" />
+    </picture>
+    <canvas class="story__canvas" data-story-canvas></canvas>
+    <div class="story__labels" data-story-labels>
+      {
+        labels.map((l) => (
+          <div class={`story-label story-label--${l.side ?? 'right'}`} data-label={l.key} data-range={l.range} data-side={l.side ?? 'right'}>
+            <span class="story-label__dot" />
+            <svg class="story-label__leader" viewBox="0 0 48 32" preserveAspectRatio="none">
+              <path d="M0 32 L18 6 L48 6" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke" />
+            </svg>
+            <span class="story-label__text">{l.text}</span>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="story__flow">
+    <header class="story__intro wrap">
+      <p class="kicker story__kicker">Photovoltaik · Batteriespeicher · Netzanschluss</p>
+      <h1 id="story-title" class="mega story__title">
+        Energie <span class="story__nowrap">hoch drei<span class="dot">.</span></span>
+      </h1>
+      <p class="lead story__lead">
+        Wir planen und bauen Photovoltaikanlagen und Batteriespeicher. Vom Hausdach über Gewerbe und Freifläche bis zum Großspeicher im zweistelligen Megawattbereich.
+      </p>
+      <p class="story__dreiklang tech">Planung <span class="dot">·</span> Beratung <span class="dot">·</span> Umsetzung</p>
+      <div class="btn-row story__actions">
+        <a class="btn btn--primary" href="/kontakt">Projekt besprechen <Arrow /></a>
+        <a class="btn btn--ghost" href="/unsere-leistungen">Leistungen ansehen</a>
+      </div>
+      <p class="story__hint tech" aria-hidden="true"><span class="story__hint-line"></span>Vom Modul zum System</p>
+      <figure class="story__still story__still--intro">
+        <picture>
+          <source media="(max-width: 759px)" srcset={stills.modul.m} />
+          <img src={stills.modul.d} alt="Visualisierung eines PV-Moduls mit Halbzellen und Aluminiumrahmen" width="1600" height="900" loading="lazy" decoding="async" />
+        </picture>
+      </figure>
+    </header>
+
+    <article class="story__step story__step--1 wrap" aria-labelledby="step-1">
+      <div class="story__panel">
+        <p class="kicker"><span class="num">01</span>Erzeugung</p>
+        <h2 id="step-1" class="h2">Präzision beginnt beim Modul<span class="dot">.</span></h2>
+        <p>
+          Modul, Wechselrichter und Verschaltung legen wir auf Standort, Lastgang und Netzanschluss aus. Mit Verschattungsanalyse und Ertragsprognose, bevor ein Bauteil bestellt wird.
+        </p>
+      </div>
+    </article>
+
+    <article class="story__step story__step--2 wrap" aria-labelledby="step-2">
+      <figure class="story__still">
+        <picture>
+          <source media="(max-width: 759px)" srcset={stills.zelle.m} />
+          <img src={stills.zelle.d} alt="Visualisierung einer Solarzelle in Nahaufnahme mit Kontaktfingern und Busbars" width="1600" height="900" loading="lazy" decoding="async" />
+        </picture>
+      </figure>
+      <div class="story__panel">
+        <p class="kicker"><span class="num">02</span>Physik</p>
+        <h2 id="step-2" class="h2">Aus Licht wird Strom<span class="dot">.</span></h2>
+        <p>
+          In der Siliziumzelle setzt Licht Ladungsträger frei. Feine Kontaktfinger sammeln sie, Busbars führen den Strom zur nächsten Zelle. Jede Verbindung zählt, im Modul wie in der ganzen Anlage.
+        </p>
+      </div>
+    </article>
+
+    <article class="story__step story__step--3 wrap" aria-labelledby="step-3">
+      <figure class="story__still">
+        <picture>
+          <source media="(max-width: 759px)" srcset={stills.system.m} />
+          <img src={stills.system.d} alt="Visualisierung einer Freiflächenanlage mit Batteriespeicher, Trafostation, Übergabestation und Anschluss an das 20-kV-Netz" width="1600" height="900" loading="lazy" decoding="async" />
+        </picture>
+      </figure>
+      <div class="story__panel">
+        <p class="kicker"><span class="num">03</span>System</p>
+        <h2 id="step-3" class="h2">Erzeugen. Speichern. Einspeisen<span class="dot">.</span></h2>
+        <p>
+          PV-Generator, Batteriespeicher und Netzanschluss bilden ein System. Wir planen es als Ganzes: von der Auslegung über Netzanschlussverfahren und Anlagenzertifikat bis zur Inbetriebnahme.
+        </p>
+        <a class="arrow-link" href="#ablauf">So arbeiten wir <span class="line"></span></a>
+      </div>
+    </article>
+  </div>
+</section>
+
+<style>
+  .story {
+    --story-h: 560vh;
+    position: relative;
+    height: var(--story-h);
+    background: var(--navy);
+    color: var(--weiss);
+  }
+
+  .story__stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100lvh;
+    width: 100%;
+    overflow: hidden;
+    contain: strict;
+  }
+
+  .story__canvas,
+  .story__poster,
+  .story__poster img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .story__poster img {
+    object-fit: cover;
+    object-position: 70% 50%;
+  }
+
+  .story__canvas {
+    opacity: 0;
+    transition: opacity 900ms var(--ease-out);
+  }
+
+  .story.is-live .story__canvas {
+    opacity: 1;
+  }
+
+  .story.is-live .story__poster {
+    opacity: 0;
+    transition: opacity 900ms var(--ease-out) 200ms;
+  }
+
+  html:not(.js) .story__canvas {
+    display: none;
+  }
+
+  .story__flow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .story__flow a,
+  .story__flow button {
+    pointer-events: auto;
+  }
+
+  /* Einstieg */
+  .story__intro {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-top: calc(var(--header-h) + 3rem);
+    padding-bottom: clamp(2.5rem, 7vh, 5.5rem);
+  }
+
+  .story__title {
+    margin-top: 1.4rem;
+    max-width: 8.5ch;
+  }
+
+  .story__nowrap {
+    white-space: nowrap;
+  }
+
+  .story__lead {
+    margin-top: clamp(1.25rem, 2.5vh, 2rem);
+    max-width: 34ch;
+    color: var(--on-navy-sec);
+  }
+
+  .story__dreiklang {
+    margin-top: 1.1rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+  }
+
+  .story__actions {
+    margin-top: clamp(1.5rem, 3.4vh, 2.5rem);
+  }
+
+  .story__hint {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-top: clamp(2rem, 5vh, 3.5rem);
+    font-size: var(--fs-label);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--on-navy-sec);
+  }
+
+  .story__hint-line {
+    position: relative;
+    width: 56px;
+    height: 1px;
+    background: var(--on-navy-line-strong);
+    overflow: hidden;
+  }
+
+  .story__hint-line::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--akzent);
+    animation: hint 2.4s var(--ease-in-out) infinite;
+  }
+
+  @keyframes hint {
+    0% {
+      transform: translateX(-100%);
+    }
+    60%,
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Schritte */
+  .story__step {
+    position: absolute;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+  }
+
+  .story__step--1 {
+    top: 178vh;
+  }
+
+  .story__step--2 {
+    top: 314vh;
+  }
+
+  .story__step--3 {
+    top: 478vh;
+  }
+
+  .story__panel {
+    max-width: 30rem;
+    padding: clamp(1.4rem, 2.4vw, 2.2rem);
+    background: rgb(12 26 61 / 0.86);
+    border-top: 1px solid var(--on-navy-line-strong);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .story__panel .h2 {
+    margin-top: 1rem;
+    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.6rem);
+  }
+
+  .story__panel p:not(.kicker) {
+    margin-top: 1.1rem;
+    color: var(--on-navy-sec);
+  }
+
+  .story__panel .arrow-link {
+    margin-top: 1rem;
+  }
+
+  .story__panel .kicker .num {
+    margin-right: 0.35rem;
+  }
+
+  .story__still {
+    display: none;
+  }
+
+  /* Beschriftungen der 3D-Szene */
+  .story__labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .story-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    visibility: hidden;
+    color: var(--weiss);
+    will-change: transform, opacity;
+  }
+
+  .story-label__dot {
+    position: absolute;
+    left: -4px;
+    top: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--akzent);
+    box-shadow: 0 0 0 3px rgb(12 26 61 / 0.6);
+  }
+
+  .story-label__leader {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 64px;
+    height: 40px;
+    overflow: visible;
+    color: rgb(255 255 255 / 0.7);
+  }
+
+  .story-label__text {
+    position: absolute;
+    left: 66px;
+    top: -52px;
+    padding: 0.4rem 0.6rem;
+    white-space: nowrap;
+    font-family: var(--font-tech);
+    font-weight: 500;
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--navy);
+    border: 1px solid var(--on-navy-line-strong);
+  }
+
+  .story-label--left .story-label__leader {
+    left: auto;
+    right: 0;
+    transform: scaleX(-1);
+  }
+
+  .story-label--left .story-label__text {
+    left: auto;
+    right: 66px;
+  }
+
+  /* Statische Darstellung: ohne WebGL, mit reduzierter Bewegung oder auf schwacher Hardware */
+  .story.is-static {
+    height: auto;
+  }
+
+  .story.is-static .story__stage {
+    display: none;
+  }
+
+  .story.is-static .story__flow {
+    position: relative;
+    pointer-events: auto;
+  }
+
+  .story.is-static .story__step {
+    position: relative;
+    top: auto;
+    transform: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: var(--gutter);
+    align-items: center;
+    padding-block: clamp(3rem, 6vw, 6rem);
+  }
+
+  .story.is-static .story__step--1 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .story.is-static .story__step--3 .story__still {
+    order: 0;
+  }
+
+  .story.is-static .story__still {
+    display: block;
+    margin: 0;
+  }
+
+  .story.is-static .story__still img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .story.is-static .story__panel {
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding-inline: 0;
+  }
+
+  .story.is-static .story__intro {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    grid-template-rows: auto;
+    column-gap: var(--gutter);
+    align-items: end;
+    padding-top: calc(var(--header-h) + 4rem);
+  }
+
+  .story.is-static .story__intro > :not(.story__still) {
+    grid-column: 1;
+  }
+
+  .story.is-static .story__still--intro {
+    grid-column: 2;
+    grid-row: 1 / span 6;
+    align-self: center;
+  }
+
+  .story.is-static .story__hint {
+    display: none;
+  }
+
+  /* Ohne JavaScript: statisch */
+  html:not(.js) .story {
+    height: auto;
+  }
+
+  html:not(.js) .story__stage {
+    display: none;
+  }
+
+  html:not(.js) .story__flow {
+    position: relative;
+  }
+
+  html:not(.js) .story__step {
+    position: relative;
+    top: auto;
+    transform: none;
+    padding-block: 4rem;
+  }
+
+  html:not(.js) .story__still {
+    display: block;
+  }
+
+  @media (max-width: 759px) {
+    .story {
+      --story-h: 360vh;
+    }
+
+    .story__intro {
+      padding-bottom: 2rem;
+    }
+
+    .story__title {
+      max-width: none;
+    }
+
+    .story__lead {
+      font-size: 1.08rem;
+    }
+
+    .story__step--1 {
+      top: 123vh;
+    }
+
+    .story__step--2 {
+      top: 200vh;
+    }
+
+    .story__step--3 {
+      top: 292vh;
+    }
+
+    .story__panel {
+      max-width: none;
+      background: rgb(12 26 61 / 0.9);
+    }
+
+    .story-label__text {
+      font-size: 0.66rem;
+      left: 44px;
+      top: -40px;
+    }
+
+    .story-label--left .story-label__text {
+      right: 44px;
+    }
+
+    .story-label__leader {
+      width: 44px;
+      height: 30px;
+    }
+
+    .story.is-static .story__intro,
+    .story.is-static .story__step {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .story.is-static .story__still--intro {
+      grid-column: 1;
+      grid-row: auto;
+      margin-top: 2rem;
+    }
+  }
+
+  @media (min-width: 760px) and (max-width: 1080px) {
+    .story__title {
+      max-width: 9ch;
+    }
+  }
+</style>
+
+<script>
+  import { initStory } from '../scripts/story/index.js';
+  initStory();
+</script>

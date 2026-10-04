@@ -1,0 +1,9 @@
+---
+// Pfeil als Inline-SVG, erbt die Textfarbe
+const { class: cls = 'arrow', direction = 'right' } = Astro.props;
+const rot = { right: 0, down: 90, left: 180, up: -90, 'up-right': -45 }[direction] ?? 0;
+---
+
+<svg class={cls} viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" style={rot ? `rotate:${rot}deg` : undefined}>
+  <path d="M3 12h17M14 5.5 20.5 12 14 18.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"></path>
+</svg>
