@@ -1,17 +1,26 @@
-// Die gesamte Website als eine einzige HTML-Datei: alle Seiten der Offline-Fassung in einem
-// Rahmen, Navigation und Zurück-Taste innerhalb der Datei. Läuft ohne Server, auch dort, wo
-// sich nur eine einzelne Datei öffnen lässt. Gleiche Schriften, Bilder und Skripte stehen nur
-// einmal in der Datei und werden beim Seitenwechsel wieder eingesetzt.
-// Voraussetzung: node scripts/einzeldateien.mjs. Aufruf: node scripts/eine-datei.mjs [quellordner] [zieldatei]
+// Die gesamte Website als eine einzige HTML-Datei, in zwei Fassungen:
+//   ip3-website.html           bildschirmfüllend, zum Öffnen und Weitergeben
+//   ip3-handy-simulation.html  im Handy- oder Tablet-Rahmen in echter Darstellungsgröße,
+//                              zum Prüfen der mobilen Fassung am Rechner
+// Alle Seiten der Offline-Fassung liegen in der Datei, Navigation und Zurück-Taste funktionieren
+// darin. Jede Seite wird in einem frischen Rahmen aufgebaut. Gleiche Schriften, Bilder und
+// Skripte stehen nur einmal in der Datei und werden beim Seitenwechsel wieder eingesetzt.
+// Voraussetzung: node scripts/einzeldateien.mjs und der Build in dist/ (Logo, Schriften).
+// Aufruf: node scripts/eine-datei.mjs [quellordner] [zielordner]
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 
+const dist = 'dist';
 const quelle = process.argv[2] || 'vorschau-offline';
-const ziel = path.resolve(process.argv[3] || path.join(quelle, 'ip3-website.html'));
+const zielordner = process.argv[3] || quelle;
+const ziele = {
+  voll: path.resolve(zielordner, 'ip3-website.html'),
+  handy: path.resolve(zielordner, 'ip3-handy-simulation.html'),
+};
 const dateien = fs
   .readdirSync(quelle)
-  .filter((f) => f.endsWith('.html') && path.resolve(quelle, f) !== ziel)
+  .filter((f) => f.endsWith('.html') && !Object.values(ziele).includes(path.resolve(quelle, f)))
   .sort();
 
 // Gleiche Inhalte nur einmal ablegen, in den Seiten steht ein Platzhalter
@@ -23,8 +32,9 @@ const ablegen = (inhalt) => {
     nummer.set(h, daten.length);
     daten.push(inhalt);
   }
-  return `@@ip3:${nummer.get(h)}@@`;
+  return nummer.get(h);
 };
+const platzhalter = (inhalt) => `@@ip3:${ablegen(inhalt)}@@`;
 
 // Läuft in jeder Seite: Links auf andere Seiten meldet sie dem Rahmen. Anker innerhalb der
 // Seite springt sie selbst an, weil srcdoc-Dokumente #… sonst gegen die Rahmendatei auflösen.
@@ -60,32 +70,79 @@ for (const datei of dateien) {
   let html = fs.readFileSync(path.join(quelle, datei), 'utf8');
   if (datei === 'index.html') icons = (html.match(/<link rel="icon"[^>]*>/g) || []).join('');
   // große Skripte zuerst (sie können selbst Data-URLs enthalten), danach eingebettete Dateien
-  html = html.replace(/(<script>)([\s\S]*?)(<\/script>)/g, (m, a, code, b) => (code.length > 2000 ? a + ablegen(code) + b : m));
-  html = html.replace(/data:[a-z0-9.+/-]+;base64,[a-z0-9+/=]+/gi, (m) => (m.length > 1000 ? ablegen(m) : m));
+  html = html.replace(/(<script>)([\s\S]*?)(<\/script>)/g, (m, a, code, b) => (code.length > 2000 ? a + platzhalter(code) + b : m));
+  html = html.replace(/data:[a-z0-9.+/-]+;base64,[a-z0-9+/=]+/gi, (m) => (m.length > 1000 ? platzhalter(m) : m));
   const ende = html.lastIndexOf('</body>');
   seiten[datei] = html.slice(0, ende) + kind + html.slice(ende);
 }
 if (!seiten['index.html']) throw new Error(`Keine index.html in ${quelle}`);
 
+// Logo, Zeichen 3 und Schriften für die Bedienleiste der Simulation, meist schon in den Daten
+const mime = { '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png' };
+const eintrag = (p) => ablegen(`data:${mime[path.extname(p)]};base64,${fs.readFileSync(path.join(dist, p)).toString('base64')}`);
+const marke = eintrag('brand/ip3-energietechnik-weiss.svg');
+const zeichen = eintrag('brand/zeichen-3-kontur-akzent.png');
+const schriften = [
+  ['Libre Franklin', 400, 'fonts/LibreFranklin-Regular.woff2'],
+  ['Libre Franklin', 600, 'fonts/LibreFranklin-SemiBold.woff2'],
+  ['Space Grotesk', 500, 'fonts/SpaceGrotesk-Medium.woff2'],
+].map(([familie, gewicht, p]) => ({ familie, gewicht, i: eintrag(p) }));
+
+// Touch-Nachbildung für die Simulation: Medienabfragen wie auf einem Touchgerät, keine
+// Hover-Zustände, runder Fingerzeiger, Wischen mit gedrückter Maustaste samt Nachlauf
+const touchErsatz = [
+  ['\\(\\s*(?:any-)?hover\\s*:\\s*hover\\s*\\)', '(min-width:99999px)'],
+  ['\\(\\s*(?:any-)?hover\\s*\\)', '(min-width:99999px)'],
+  ['\\(\\s*(?:any-)?pointer\\s*:\\s*fine\\s*\\)', '(min-width:99999px)'],
+  ['\\(\\s*(?:any-)?hover\\s*:\\s*none\\s*\\)', '(min-width:0px)'],
+  ['\\(\\s*(?:any-)?pointer\\s*:\\s*coarse\\s*\\)', '(min-width:0px)'],
+];
+const finger = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='14' cy='14' r='11' fill='rgba(255,255,255,0.42)' stroke='rgba(12,26,61,0.6)' stroke-width='1.5'/%3E%3C/svg%3E`;
+const touch = {
+  ersatz: touchErsatz,
+  stil: `<style>*{scrollbar-width:none}*::-webkit-scrollbar{display:none}html,html *{cursor:url("${finger}") 14 14,auto!important}</style>`,
+  skript: `<script>(function(){
+var e=${JSON.stringify(touchErsatz)},m=window.matchMedia.bind(window);
+window.matchMedia=function(q){q=String(q);for(var i=0;i<e.length;i++)q=q.replace(new RegExp(e[i][0],'g'),e[i][1]);return m(q)};
+var start=null,letzt=0,zeit=0,v=0,zieht=false,sperre=false,raf=0;
+addEventListener('pointerdown',function(ev){
+  sperre=false;
+  if(ev.pointerType!=='mouse'||ev.button!==0)return;
+  if(ev.target.closest&&ev.target.closest('input,textarea,select,[contenteditable]'))return;
+  cancelAnimationFrame(raf);start=letzt=ev.clientY;zeit=ev.timeStamp;v=0;zieht=false;
+},true);
+addEventListener('pointermove',function(ev){
+  if(start===null||!(ev.buttons&1))return;
+  if(!zieht&&Math.abs(ev.clientY-start)>6){
+    zieht=true;document.documentElement.style.userSelect='none';
+    try{getSelection().removeAllRanges();document.documentElement.setPointerCapture(ev.pointerId)}catch(_){}
+  }
+  if(!zieht)return;
+  var dy=ev.clientY-letzt,dt=Math.max(8,ev.timeStamp-zeit);
+  scrollBy({top:-dy,behavior:'instant'});v=.7*(-dy/dt)+.3*v;letzt=ev.clientY;zeit=ev.timeStamp;ev.preventDefault();
+},true);
+addEventListener('pointerup',function(){
+  if(start===null)return;start=null;
+  if(!zieht)return;
+  sperre=true;document.documentElement.style.userSelect='';
+  (function lauf(){v*=.95;if(Math.abs(v)>.02){scrollBy({top:v*16,behavior:'instant'});raf=requestAnimationFrame(lauf)}})();
+},true);
+addEventListener('click',function(ev){if(sperre){sperre=false;ev.preventDefault();ev.stopPropagation()}},true);
+addEventListener('dragstart',function(ev){ev.preventDefault()},true);
+addEventListener('pointercancel',function(){start=null;zieht=false;document.documentElement.style.userSelect=''},true);
+})();<\/script>`.replace(/\n\s*/g, ''),
+};
+
 // Als JSON in ein Skript: jedes < maskieren, damit kein </script> oder <!-- den Block beendet
 const json = (wert) => JSON.stringify(wert).replace(/</g, '\\u003c');
+const datenSkript = `const DATEN = ${json(daten)};\nconst SEITEN = ${json(seiten)};`;
 
-const rahmen = `<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ip³ Energietechnik GmbH</title>
-${icons}
-<style>html,body{margin:0;height:100%;background:#0c1a3d}iframe{position:fixed;inset:0;width:100%;height:100%;border:0;display:block}</style>
-</head>
-<body>
-<script>
-const DATEN = ${json(daten)};
-const SEITEN = ${json(seiten)};
+// Seitenwechsel über den Verlauf des Hauptfensters: #seite oder #seite/anker
+const router = `
 let rahmen = null;
 let aktuell = '';
 let anker = '';
+let position = (history.state && history.state.ip3) || 0;
 
 function lesen() {
   let h = location.hash.slice(1);
@@ -109,33 +166,272 @@ function zeigen(neu) {
   aktuell = z.datei;
   const f = document.createElement('iframe');
   f.title = 'Website ip³ Energietechnik GmbH';
-  f.srcdoc = SEITEN[z.datei].replace(/@@ip3:(\\d+)@@/g, (_, i) => DATEN[+i]);
+  f.srcdoc = VORBEREITEN(SEITEN[z.datei]).replace(/@@ip3:(\\d+)@@/g, (_, i) => DATEN[+i]);
   f.addEventListener('load', () => {
     springen();
     f.contentWindow.focus();
   });
   if (rahmen) rahmen.replaceWith(f);
-  else document.body.append(f);
+  else BEHAELTER.append(f);
   rahmen = f;
+}
+
+function gehe(hash) {
+  if (location.hash === hash) return zeigen(true);
+  try {
+    history.pushState({ ip3: position + 1 }, '', hash);
+    position += 1;
+  } catch {
+    location.hash = hash;
+    return;
+  }
+  zeigen(false);
 }
 
 window.addEventListener('message', (e) => {
   if (!rahmen || e.source !== rahmen.contentWindow || !e.data) return;
-  if (e.data.ip3 === 'geladen') document.title = e.data.titel;
-  if (e.data.ip3 === 'seite') {
-    const hash = '#' + e.data.datei.replace(/\\.html$/, '') + (e.data.anker ? '/' + e.data.anker : '');
-    if (location.hash === hash) zeigen(true);
-    else location.hash = hash;
-  }
+  if (e.data.ip3 === 'geladen') TITEL(e.data.titel);
+  if (e.data.ip3 === 'seite') gehe('#' + e.data.datei.replace(/\\.html$/, '') + (e.data.anker ? '/' + e.data.anker : ''));
+});
+window.addEventListener('popstate', (e) => {
+  position = (e.state && e.state.ip3) || 0;
+  zeigen(false);
 });
 window.addEventListener('hashchange', () => zeigen(false));
+`;
+
+const voll = `<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ip³ Energietechnik GmbH</title>
+${icons}
+<style>html,body{margin:0;height:100%;background:#0c1a3d}iframe{position:fixed;inset:0;width:100%;height:100%;border:0;display:block}</style>
+</head>
+<body>
+<script>
+${datenSkript}
+const BEHAELTER = document.body;
+const VORBEREITEN = (html) => html;
+const TITEL = (titel) => (document.title = titel);
+${router}
 zeigen(true);
 </script>
 </body>
 </html>
 `;
 
-fs.writeFileSync(ziel, rahmen);
+const handy = `<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handy-Simulation | ip³ Energietechnik GmbH</title>
+${icons}
+<style>
+:root{--navy:#0c1a3d;--hell:#e8e7ef;--weiss:#fff;--akzent:#c83c30;--linie:rgb(232 231 239 / .34);--strich:rgb(232 231 239 / .6);--sek:rgb(232 231 239 / .72);--tech:'Space Grotesk','Libre Franklin',Arial,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{display:flex;flex-direction:column;overflow:hidden;background:var(--navy);color:var(--weiss);font:400 15px/1.45 'Libre Franklin',Archivo,Arial,Helvetica,sans-serif}
+img:not([src]){visibility:hidden}
+.zeichen{position:fixed;right:-26vmin;bottom:-24vmin;width:82vmin;opacity:.16;pointer-events:none;user-select:none}
+.leiste{position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;padding:16px 28px;border-bottom:1px solid var(--linie)}
+.marke{display:flex;align-items:center;gap:20px;margin-right:auto}
+.marke img{display:block;width:168px;height:auto}
+.titel{display:inline-flex;align-items:center;gap:10px;font:500 12px/1 var(--tech);letter-spacing:.16em;text-transform:uppercase}
+.titel::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--akzent)}
+.gruppe{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+button{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:7px 13px;border:1px solid var(--linie);border-radius:999px;background:transparent;color:var(--weiss);font:inherit;font-size:13.5px;cursor:pointer;transition:background-color .2s,border-color .2s,color .2s}
+button:hover{border-color:var(--hell)}
+button[aria-pressed=true]{background:var(--hell);border-color:var(--hell);color:var(--navy)}
+button:focus-visible{outline:2px solid var(--weiss);outline-offset:3px}
+.zahl{font-family:var(--tech);font-variant-numeric:tabular-nums}
+.buehne{position:relative;flex:1;min-height:0;display:grid;place-items:center}
+.huelle{position:relative}
+.geraet{position:absolute;left:0;top:0;padding:0 64px 64px;transform-origin:0 0}
+.rahmen{position:relative;padding:var(--rand);border:1.5px solid var(--strich);border-radius:var(--radius);background:var(--navy)}
+.bildschirm{position:relative;width:var(--b);height:var(--h);overflow:hidden;border-radius:calc(var(--radius) - var(--rand));background:var(--navy);box-shadow:0 0 0 1px rgb(232 231 239 / .2)}
+.bildschirm iframe{display:block;width:100%;height:100%;border:0}
+.kamera{position:absolute;left:50%;top:calc(var(--rand) / 2 + .75px);width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border:1px solid var(--strich);border-radius:50%}
+.geraet[data-quer=true] .kamera{left:calc(var(--rand) / 2 + .75px);top:50%}
+.taste{position:absolute;width:4px;border:1.5px solid var(--strich)}
+.taste--a{left:-5.5px;top:140px;height:30px;border-right:0;border-radius:3px 0 0 3px}
+.taste--b{left:-5.5px;top:186px;height:56px;border-right:0;border-radius:3px 0 0 3px}
+.taste--c{right:-5.5px;top:176px;height:84px;border-left:0;border-radius:0 3px 3px 0}
+.geraet[data-typ=tablet] .taste,.geraet[data-quer=true] .taste{display:none}
+.mass{position:absolute;background:var(--strich);color:var(--sek);font:500 12px/1 var(--tech);letter-spacing:.06em}
+.mass::before,.mass::after{content:'';position:absolute;background:var(--strich)}
+.mass span{position:absolute;left:50%;top:50%;padding:0 10px;background:var(--navy);white-space:nowrap}
+.mass--b{left:calc(64px + var(--rand) + 1.5px);bottom:22px;width:var(--b);height:1px}
+.mass--b::before,.mass--b::after{top:-6px;width:1px;height:13px}
+.mass--b::before{left:0}
+.mass--b::after{right:0}
+.mass--b span{transform:translate(-50%,-50%)}
+.mass--h{top:calc(var(--rand) + 1.5px);right:22px;width:1px;height:var(--h)}
+.mass--h::before,.mass--h::after{left:-6px;width:13px;height:1px}
+.mass--h::before{top:0}
+.mass--h::after{bottom:0}
+.mass--h span{transform:translate(-50%,-50%) rotate(-90deg)}
+.hinweis{position:absolute;left:28px;bottom:16px;margin:0;max-width:min(380px,calc(100% - 56px));color:var(--sek);font-size:13px}
+.hinweis strong{color:var(--weiss);font-weight:600}
+@media (max-width:900px){.leiste{padding:14px 18px}.hinweis{left:18px}}
+</style>
+</head>
+<body>
+<img class="zeichen" data-zeichen alt="">
+<header class="leiste">
+  <div class="marke">
+    <img data-marke alt="ip³ Energietechnik GmbH" width="168" height="25">
+    <span class="titel">Handy-Simulation</span>
+  </div>
+  <div class="gruppe" role="group" aria-label="Gerät">
+    <button type="button" data-geraet="kompakt">Kompakt <span class="zahl">360</span></button>
+    <button type="button" data-geraet="standard">Standard <span class="zahl">390</span></button>
+    <button type="button" data-geraet="gross">Groß <span class="zahl">430</span></button>
+    <button type="button" data-geraet="tablet">Tablet <span class="zahl">820</span></button>
+  </div>
+  <div class="gruppe">
+    <button type="button" data-drehen aria-pressed="false">Querformat</button>
+  </div>
+  <div class="gruppe" role="group" aria-label="Navigation in der Website">
+    <button type="button" data-zurueck>Zurück</button>
+    <button type="button" data-start>Startseite</button>
+    <button type="button" data-neu>Neu laden</button>
+  </div>
+</header>
+<main class="buehne" data-buehne>
+  <div class="huelle" data-huelle>
+    <div class="geraet" data-box>
+      <div class="rahmen">
+        <span class="kamera" aria-hidden="true"></span>
+        <span class="taste taste--a" aria-hidden="true"></span>
+        <span class="taste taste--b" aria-hidden="true"></span>
+        <span class="taste taste--c" aria-hidden="true"></span>
+        <div class="bildschirm" data-bildschirm></div>
+      </div>
+      <div class="mass mass--b" aria-hidden="true"><span data-mass-b></span></div>
+      <div class="mass mass--h" aria-hidden="true"><span data-mass-h></span></div>
+    </div>
+  </div>
+  <p class="hinweis"><strong data-seite>Startseite</strong><br><span class="zahl" data-groesse></span>&nbsp;px · Maßstab <span class="zahl" data-massstab></span>&nbsp;%<br>Scrollen mit Mausrad oder Touchpad oder durch Wischen mit gedrückter Maustaste. Darstellung wie auf dem Gerät, Rechenleistung vom Rechner.</p>
+</main>
+<script>
+${datenSkript}
+for (const s of ${JSON.stringify(schriften)}) {
+  try {
+    const f = new FontFace(s.familie, 'url(' + DATEN[s.i] + ')', { weight: String(s.gewicht) });
+    document.fonts.add(f);
+    f.load().catch(() => {});
+  } catch {}
+}
+document.querySelector('[data-marke]').src = DATEN[${marke}];
+document.querySelector('[data-zeichen]').src = DATEN[${zeichen}];
+
+const BEHAELTER = document.querySelector('[data-bildschirm]');
+// Die Seite verhält sich wie auf einem Touchgerät: Medienabfragen, kein Hover, Fingerzeiger,
+// Wischen. Rollbalken blenden Mobilgeräte über dem Inhalt ein, am Rechner kosten sie sonst Breite.
+const TOUCH = ${json(touch)};
+const alsTouch = (css) => TOUCH.ersatz.reduce((s, [re, neu]) => s.replace(new RegExp(re, 'g'), neu), css).replace(/:hover\\b/g, ':not(*)');
+const VORBEREITEN = (html) => {
+  html = html.replace(/<style([^>]*)>([\\s\\S]*?)<\\/style>/g, (m, a, css) => '<style' + a + '>' + alsTouch(css) + '</style>');
+  html = html.replace(/<head[^>]*>/, (kopf) => kopf + TOUCH.skript);
+  const i = html.indexOf('</head>');
+  return i < 0 ? html : html.slice(0, i) + TOUCH.stil + html.slice(i);
+};
+const TITEL = (titel) => {
+  const name = aktuell === 'index.html' ? 'Startseite' : titel.split(' | ')[0];
+  document.querySelector('[data-seite]').textContent = name;
+  document.title = name + ' · Handy-Simulation | ip³ Energietechnik GmbH';
+};
+${router}
+
+const GERAETE = {
+  kompakt: { b: 360, h: 780, typ: 'handy' },
+  standard: { b: 390, h: 844, typ: 'handy' },
+  gross: { b: 430, h: 932, typ: 'handy' },
+  tablet: { b: 820, h: 1180, typ: 'tablet' },
+};
+const FORM = { handy: { rand: 12, radius: 54 }, tablet: { rand: 20, radius: 34 } };
+const box = document.querySelector('[data-box]');
+const huelle = document.querySelector('[data-huelle]');
+const buehne = document.querySelector('[data-buehne]');
+const zahl = (n) => n.toLocaleString('de-DE');
+let wahl = 'standard';
+let quer = false;
+try {
+  const s = JSON.parse(localStorage.getItem('ip3-handy-simulation') || '{}');
+  if (GERAETE[s.wahl]) wahl = s.wahl;
+  quer = s.quer === true;
+} catch {}
+
+function masse() {
+  const g = GERAETE[wahl];
+  const { rand, radius } = FORM[g.typ];
+  const [b, h] = quer ? [g.h, g.b] : [g.b, g.h];
+  return { b, h, rand, radius, typ: g.typ, breite: 128 + 2 * rand + 3 + b, hoehe: 2 * rand + 3 + h + 64 };
+}
+
+// Gerät in echter Pixelgröße, bei kleinem Fenster als Ganzes verkleinert
+function einpassen() {
+  const m = masse();
+  const s = Math.min(1, (buehne.clientWidth - 32) / m.breite, (buehne.clientHeight - (buehne.clientWidth >= 1100 ? 24 : 80)) / m.hoehe);
+  box.style.transform = 'scale(' + s + ')';
+  huelle.style.width = m.breite * s + 'px';
+  huelle.style.height = m.hoehe * s + 'px';
+  document.querySelector('[data-massstab]').textContent = Math.round(s * 100);
+}
+
+function anwenden() {
+  const m = masse();
+  box.style.setProperty('--b', m.b + 'px');
+  box.style.setProperty('--h', m.h + 'px');
+  box.style.setProperty('--rand', m.rand + 'px');
+  box.style.setProperty('--radius', m.radius + 'px');
+  box.dataset.typ = m.typ;
+  box.dataset.quer = String(quer);
+  document.querySelector('[data-mass-b]').textContent = zahl(m.b) + ' px';
+  document.querySelector('[data-mass-h]').textContent = zahl(m.h) + ' px';
+  document.querySelector('[data-groesse]').textContent = zahl(m.b) + ' × ' + zahl(m.h);
+  for (const k of document.querySelectorAll('[data-geraet]')) k.setAttribute('aria-pressed', String(k.dataset.geraet === wahl));
+  document.querySelector('[data-drehen]').setAttribute('aria-pressed', String(quer));
+  try {
+    localStorage.setItem('ip3-handy-simulation', JSON.stringify({ wahl, quer }));
+  } catch {}
+  einpassen();
+}
+
+for (const k of document.querySelectorAll('[data-geraet]')) {
+  k.addEventListener('click', () => {
+    if (wahl === k.dataset.geraet) return;
+    wahl = k.dataset.geraet;
+    anwenden();
+    zeigen(true); // anderes Gerät: Seite neu aufbauen wie bei einem frischen Aufruf
+  });
+}
+// Drehen ohne Neuaufbau, wie bei einem echten Gerät
+document.querySelector('[data-drehen]').addEventListener('click', () => {
+  quer = !quer;
+  anwenden();
+});
+document.querySelector('[data-zurueck]').addEventListener('click', () => position > 0 && history.back());
+document.querySelector('[data-start]').addEventListener('click', () => (lesen().datei === 'index.html' ? zeigen(true) : gehe('#index')));
+document.querySelector('[data-neu]').addEventListener('click', () => zeigen(true));
+window.addEventListener('resize', einpassen);
+anwenden();
+zeigen(true);
+</script>
+</body>
+</html>
+`;
+
 const kb = (n) => Math.round(n / 1024).toLocaleString('de-DE');
 const einzeln = dateien.reduce((s, d) => s + fs.statSync(path.join(quelle, d)).size, 0);
-console.log(`${path.relative(process.cwd(), ziel)}  ${kb(Buffer.byteLength(rahmen))} KB (${dateien.length} Seiten, einzeln zusammen ${kb(einzeln)} KB)`);
+for (const [art, html] of [
+  ['voll', voll],
+  ['handy', handy],
+]) {
+  fs.writeFileSync(ziele[art], html);
+  console.log(`${path.relative(process.cwd(), ziele[art])}  ${kb(Buffer.byteLength(html))} KB`);
+}
+console.log(`${dateien.length} Seiten, einzeln zusammen ${kb(einzeln)} KB`);
