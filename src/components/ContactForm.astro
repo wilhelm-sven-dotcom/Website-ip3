@@ -426,6 +426,11 @@ const interessen = [
         status.textContent = 'Bitte prüfen Sie die markierten Felder.';
         return;
       }
+      // Offline-Fassung ohne Server: nichts verschicken, gleich die vorbereitete E-Mail anbieten
+      if (form.hasAttribute('data-ohne-versand')) {
+        showFallback('Diese Vorschau läuft ohne Server, deshalb ist hier kein direkter Versand möglich.');
+        return;
+      }
       submit.disabled = true;
       label.textContent = 'Wird gesendet …';
       try {

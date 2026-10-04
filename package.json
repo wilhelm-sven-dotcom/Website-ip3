@@ -10,7 +10,7 @@
     "preview": "astro preview",
     "vorschau": "npm run build && php -S 127.0.0.1:8080 -t dist scripts/vorschau-router.php",
     "bilder": "node scripts/render-stills.mjs && node scripts/render-icons.mjs",
-    "offline": "npm run build && node scripts/einzeldateien.mjs",
+    "offline": "npm run build && node scripts/einzeldateien.mjs && node scripts/eine-datei.mjs",
     "testumgebung": "npm run build && node scripts/testumgebung.mjs"
   },
   "dependencies": {

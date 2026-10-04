@@ -30,6 +30,8 @@ Offline-Fassung zum Weitergeben, ohne Server und ohne Installation:
 npm run offline      # erzeugt vorschau-offline/: jede Seite als eigenständige HTML-Datei, index.html per Doppelklick öffnen
 ```
 
+Zusätzlich entsteht `vorschau-offline/ip3-website.html`: die gesamte Website in einer einzigen Datei, mit Navigation zwischen allen Seiten. Sie lässt sich auch dort öffnen, wo nur eine einzelne Datei geht, etwa auf Android-Smartphones oder als E-Mail-Anhang. Das Formular verschickt in beiden Offline-Fassungen nichts und bietet stattdessen die vorbereitete E-Mail an.
+
 Ohne PHP genügt `npm run build && npm run preview`. Das Formular meldet dann ehrlich, dass der direkte Versand nicht möglich ist, und bietet die vorbereitete Nachricht für das E-Mail-Programm an.
 
 ## Aufbau

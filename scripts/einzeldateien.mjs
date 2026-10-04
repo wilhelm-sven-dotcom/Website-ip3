@@ -46,8 +46,8 @@ const assetPfad = /\/(?:fonts|brand|img)\/[^'")\s,]+|\/favicon-32\.png|\/apple-t
 const cssEinbetten = (css) =>
   css.replace(/url\((['"]?)(\/(?:fonts|brand|img)\/[^'")]+)\1\)/g, (_, q, p) => `url("${dataUrl(p)}")`);
 
-// Prefetch-Skript von Astro ist offline ohne Nutzen
-const istPrefetch = (code) => code.includes('data-astro-prefetch') || code.includes('astro-prefetch');
+// Prefetch-Skript von Astro ist offline ohne Nutzen und würde dort sogar tel:-Links vorladen
+const istPrefetch = (code) => /prefetchAll|data-astro-prefetch/.test(code);
 
 for (const [route, ziel] of Object.entries(seiten)) {
   let html = fs.readFileSync(path.join(dist, quelle(route)), 'utf8');
@@ -106,7 +106,8 @@ for (const [route, ziel] of Object.entries(seiten)) {
     const key = p.replace(/\/$/, '') || '/';
     return seiten[key] ? `href="${seiten[key]}${hash}"` : m;
   });
-  html = html.replace('action="/kontakt-senden.php"', 'action="kontakt-senden.php"');
+  // ohne Server kein Sendeversuch: das Formular bietet gleich die vorbereitete E-Mail an
+  html = html.replace('action="/kontakt-senden.php"', 'action="kontakt-senden.php" data-ohne-versand');
 
   fs.writeFileSync(path.join(out, ziel), html);
   console.log(`${ziel}  ${(Buffer.byteLength(html) / 1024).toFixed(0)} KB`);
