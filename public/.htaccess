@@ -21,6 +21,10 @@ ErrorDocument 404 /404.html
   RewriteCond %{REQUEST_URI} !^/$
   RewriteRule ^(.+)/$ /$1 [R=301,L]
 
+  # /index.html und /index auf die Startseite
+  RewriteCond %{THE_REQUEST} \s/index(\.html)?[\s?]
+  RewriteRule ^ / [R=301,L]
+
   # .html in der Adresse auf die saubere URL umleiten
   RewriteCond %{THE_REQUEST} \s/([^\s?]+)\.html[\s?]
   RewriteCond %{REQUEST_URI} !^/404\.html$
@@ -50,7 +54,7 @@ ErrorDocument 404 /404.html
 </IfModule>
 
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml application/xml text/plain
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript image/svg+xml application/xml text/plain
 </IfModule>
 
 AddType font/woff2 .woff2

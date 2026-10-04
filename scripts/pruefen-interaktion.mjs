@@ -4,6 +4,9 @@
 import { chromium } from 'playwright';
 
 const base = process.argv[2] || 'http://127.0.0.1:8080';
+// Geschützte Testumgebung: PRUEF_LOGIN=benutzer:passwort
+const [nutzer, ...pw] = (process.env.PRUEF_LOGIN || '').split(':');
+const zugang = nutzer ? { httpCredentials: { username: nutzer, password: pw.join(':') } } : {};
 const gl = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
 const ergebnisse = [];
 const note = (ok, text) => ergebnisse.push(`${ok ? 'OK  ' : 'FEHL'} ${text}`);
@@ -12,7 +15,7 @@ const browser = await chromium.launch({ args: gl });
 
 /* 1. Tastatur: Skip-Link und Mega-Menü (Desktop) */
 {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
   await page.goto(base + '/ueber-uns', { waitUntil: 'load' });
   await page.keyboard.press('Tab');
   await page.waitForTimeout(400);
@@ -41,7 +44,7 @@ const browser = await chromium.launch({ args: gl });
 
 /* 2. Mobile-Menü */
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const ctx = await browser.newContext({ ...zugang, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();
   await page.goto(base + '/referenzen', { waitUntil: 'load' });
   await page.click('[data-menu-toggle]');
@@ -58,7 +61,7 @@ const browser = await chromium.launch({ args: gl });
 
 /* 3. Referenzfilter */
 {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
   await page.goto(base + '/referenzen', { waitUntil: 'load' });
   await page.click('[data-filter="frei"]');
   const sichtbar = await page.$$eval('[data-tags]', (els) => els.filter((e) => !e.hidden).length);
@@ -71,7 +74,7 @@ const browser = await chromium.launch({ args: gl });
 
 /* 4. Schaltbild: Legende hebt Positionen hervor */
 {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
   await page.goto(base + '/unsere-leistungen', { waitUntil: 'load' });
   await page.hover('.legend__item[data-pos="4"]');
   const aktiv = await page.$$eval('.sld__svg--wide [data-pos="4"].is-active', (els) => els.length);
@@ -81,7 +84,7 @@ const browser = await chromium.launch({ args: gl });
 
 /* 5. Kontaktformular */
 {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
   await page.goto(base + '/kontakt', { waitUntil: 'load' });
   await page.click('[data-submit]');
   const fehlerAnzahl = await page.$$eval('[aria-invalid="true"]', (els) => els.length);
@@ -116,7 +119,7 @@ const browser = await chromium.launch({ args: gl });
 
 /* 6. Inszenierung: reduzierte Bewegung und fehlendes WebGL */
 {
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  const ctx = await browser.newContext({ ...zugang, viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
   const page = await ctx.newPage();
   await page.goto(base + '/', { waitUntil: 'load' });
   await page.waitForTimeout(800);
@@ -128,7 +131,7 @@ const browser = await chromium.launch({ args: gl });
 }
 {
   const b2 = await chromium.launch({ args: ['--disable-webgl', '--disable-3d-apis'] });
-  const page = await b2.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await b2.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
   await page.goto(base + '/', { waitUntil: 'load' });
   await page.waitForTimeout(800);
   const st = await page.evaluate(() => ({ cls: document.querySelector('.story').className, reason: document.querySelector('.story').dataset.staticReason }));
@@ -140,7 +143,7 @@ const browser = await chromium.launch({ args: gl });
 
 /* 7. Inszenierung live: Leinwand aktiv, Text als HTML vorhanden */
 {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
   await page.goto(base + '/', { waitUntil: 'load' });
   await page.waitForFunction(() => document.querySelector('.story.is-live'), null, { timeout: 60000 });
   const h = await page.evaluate(() => [...document.querySelectorAll('.story h1, .story h2')].map((e) => e.textContent.trim()));

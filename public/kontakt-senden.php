@@ -15,6 +15,7 @@ const ABSENDER = 'noreply@ip3-energie.de';
 const ABSENDER_NAME = 'Website ip3-energie.de';
 const MIN_SEKUNDEN = 3;          // Mindestzeit zwischen Seitenaufruf und Absenden
 const MAX_SEKUNDEN = 86400;      // Formular höchstens einen Tag alt
+const PRODUKTIV = ['www.ip3-energie.de', 'ip3-energie.de']; // auf allen anderen Adressen: Betreff mit [Test]
 const INTERESSEN = [
     'Private PV-Anlage',
     'PV-Anlage für Industrie und Gewerbe',
@@ -112,7 +113,10 @@ $text = "Neue Anfrage über das Kontaktformular der Website\n"
     . str_repeat('-', 52) . "\n"
     . 'Gesendet am ' . date('d.m.Y \u\m H:i') . " Uhr. Einwilligung Datenschutz: ja\n";
 
-$betreff = 'Projektanfrage über ip3-energie.de: ' . $interesse;
+$host = strtolower((string) preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
+$test = !in_array($host, PRODUKTIV, true);
+
+$betreff = ($test ? '[Test] ' : '') . 'Projektanfrage über ip3-energie.de: ' . $interesse;
 if (function_exists('mb_encode_mimeheader')) {
     $betreff = mb_encode_mimeheader($betreff, 'UTF-8', 'B', "\r\n");
     $absenderName = mb_encode_mimeheader(ABSENDER_NAME, 'UTF-8', 'B', "\r\n");

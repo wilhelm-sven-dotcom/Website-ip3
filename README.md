@@ -73,6 +73,16 @@ node scripts/pruefen.mjs         # Browserprüfung aller Seiten in drei Geräteg
 
 Geprüft werden Statuscodes, Konsole, fehlerhafte Ressourcen, horizontaler Überlauf, Überschriftenstruktur, Alternativtexte, Meta-Angaben und alle internen Links.
 
+## Testumgebung
+
+Geschützte Testadresse auf dem eigenen Webserver, zum Beispiel `test.ip3-energie.de`:
+
+```bash
+npm run testumgebung   # erzeugt testumgebung/ und gibt Benutzername und Passwort aus
+```
+
+Der Ordner enthält die komplette Website. Eine vorangestellte `.htaccess`-Sperre verlangt bei jedem Aufruf Benutzername und Passwort und schließt Suchmaschinen aus. Eigene Zugangsdaten über `TEST_BENUTZER` und `TEST_PASSWORT`. Den Inhalt einschließlich `.htaccess` direkt in das Verzeichnis der Testadresse hochladen. Beim ersten Aufruf muss die Passwortabfrage erscheinen, sonst wertet der Server die `.htaccess` nicht aus. Das Formular verschickt dort echte E-Mails, der Betreff beginnt mit `[Test]`. Browserprüfung gegen die Testadresse: `PRUEF_LOGIN=ip3:passwort node scripts/pruefen.mjs https://test.ip3-energie.de`.
+
 ## Veröffentlichung
 
 Der Ordner `dist/` nach `npm run build` ist die vollständige Website. Für Apache liegt eine `.htaccess` bei. Die Weiterleitungen auf https und www sind darin auskommentiert und erst auf der produktiven Domain zu aktivieren. Für nginx entspricht das `try_files $uri $uri.html $uri/ =404;`. Das Formular-Skript benötigt PHP mit funktionierender `mail()`-Funktion, alternativ lässt sich über `PUBLIC_FORM_ENDPOINT` beim Build ein anderer Empfänger-Endpunkt setzen.

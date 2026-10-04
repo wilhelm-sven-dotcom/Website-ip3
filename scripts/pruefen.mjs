@@ -5,6 +5,9 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 
 const base = process.argv[2] || 'http://127.0.0.1:8080';
+// Geschützte Testumgebung: PRUEF_LOGIN=benutzer:passwort
+const [nutzer, ...pw] = (process.env.PRUEF_LOGIN || '').split(':');
+const zugang = nutzer ? { httpCredentials: { username: nutzer, password: pw.join(':') } } : {};
 const out = process.argv[3] || 'pruefung';
 fs.mkdirSync(out, { recursive: true });
 
@@ -41,6 +44,7 @@ const linkZiele = new Set();
 
 for (const vp of viewports) {
   const ctx = await browser.newContext({
+    ...zugang,
     viewport: { width: vp.width, height: vp.height },
     deviceScaleFactor: 1,
     isMobile: vp.mobile,
@@ -118,7 +122,7 @@ for (const vp of viewports) {
 
 // Alle internen Linkziele erreichbar?
 for (const ziel of linkZiele) {
-  const r = await fetch(base + ziel, { redirect: 'manual' });
+  const r = await fetch(base + ziel, { redirect: 'manual', headers: nutzer ? { Authorization: 'Basic ' + Buffer.from(process.env.PRUEF_LOGIN).toString('base64') } : {} });
   note(r.status === 200, `Link ${ziel} → ${r.status}`);
 }
 
