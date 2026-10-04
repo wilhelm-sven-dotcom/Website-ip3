@@ -1,0 +1,57 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ServiceDetail from '../../components/ServiceDetail.astro';
+---
+
+<Base
+  title="PV-Anlagen auf Freiflächen"
+  description="Freiflächenanlagen von der baurechtlichen Fachplanung über Genehmigungs- und Detailplanung bis zur schlüsselfertigen Übergabe und Netzanbindung. ip³ Energietechnik GmbH."
+>
+  <PageHero
+    kicker="Leistungen · Freiflächen"
+    title={'Von der Fläche bis ans Netz<span class="dot">.</span>'}
+    lead="Unser Leistungsspektrum für Freiflächenanlagen reicht von der ersten Projekt- und Planungsvorbereitung bis zur Übergabe der Photovoltaikanlage."
+    art="freiflaeche"
+    crumbs={[{ label: 'Leistungen', href: '/unsere-leistungen' }, { label: 'Freiflächen' }]}
+  />
+  <ServiceDetail
+    slug="freiflaechen"
+    intro={[
+      'Eine Freiflächenanlage entsteht in Phasen, die aufeinander aufbauen. Wir begleiten alle davon: Baurecht, Technik, Netzanschluss und Bau.',
+      'Dabei arbeiten wir mit erfahrenen Realisierungspartnern zusammen und behalten als Projektverantwortliche die Ausführung im Blick, bis zur schlüsselfertigen Übergabe.',
+    ]}
+    umfang={[
+      'Projekt- und Planungsvorbereitung',
+      'Baurechtliche Fachplanung, Bauleitplanung oder Privilegierung nach § 35 BauGB',
+      'Genehmigungs- und Detailplanung bis zur Baureife',
+      'Netzanschlussbegehren und Anlagenzertifikat nach VDE-AR-N 4110 oder 4120',
+      'Bau, elektrischer Anschluss und Inbetriebnahme',
+      'Vergütung nach EEG, Ausschreibungen der Bundesnetzagentur oder Direktvermarktung',
+    ]}
+    phasenTitel={'In fünf Phasen zur laufenden Anlage<span class="dot">.</span>'}
+    phasen={[
+      {
+        titel: 'Baurechtliche Fachplanung',
+        text: 'Wir prüfen die Fläche und berücksichtigen alle relevanten Vorgaben wie Bauvorschriften und Umweltauflagen.',
+      },
+      {
+        titel: 'Genehmigungs- und Detailplanung',
+        text: 'Planung bis zur Baureife mit allen technischen Anforderungen, etwa der passenden Kombination aus Modul und Wechselrichter.',
+      },
+      {
+        titel: 'Netzanschluss',
+        text: 'Netzanschlussbegehren, Abstimmung mit dem Netzbetreiber und Nachweise nach VDE-AR-N 4110 oder 4120.',
+      },
+      {
+        titel: 'Bau und Inbetriebnahme',
+        text: 'Installation, elektrischer Anschluss und Inbetriebnahme begleiten wir gemeinsam mit unseren Realisierungspartnern.',
+      },
+      {
+        titel: 'Übergabe und Betrieb',
+        text: 'Schlüsselfertige Übergabe, Registrierung im Marktstammdatenregister und auf Wunsch Betriebsführung.',
+      },
+    ]}
+    refIds={['ff-vohenstrauss', 'ff-a6', 'ff-weiden']}
+  />
+</Base>

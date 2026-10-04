@@ -1,0 +1,166 @@
+---
+// Abschnitt "Wer wir sind" auf der Startseite
+---
+
+<section class="section about" data-theme="light" data-header-zone="light" aria-labelledby="about-title">
+  <img class="zeichen zeichen--light about__zeichen" src="/brand/zeichen-3-kontur-rot.png" alt="" width="607" height="864" loading="lazy" data-parallax="16" />
+  <div class="wrap">
+    <div class="dim"><span class="dim__num">01</span><span>Unternehmen</span><span class="dim__line" data-draw></span></div>
+
+    <div class="about__grid">
+      <h2 id="about-title" class="display about__title" data-split>Ingenieure, die bauen<span class="dot">.</span></h2>
+      <div class="about__text">
+        <p class="lead" data-reveal>
+          ip³ ist ein auf erneuerbare Energien spezialisiertes Fachunternehmen aus der Oberpfalz. 2009 als Ingenieurbüro gestartet, planen und bauen wir heute Photovoltaikanlagen und Batteriespeicher schlüsselfertig.
+        </p>
+        <p data-reveal>
+          Für private Bauherren, Gewerbe, Industrie und Freiflächen. Wir beraten ganzheitlich, kommunizieren transparent und entwickeln Lösungen, die zu Standort, Netzanschluss und Wirtschaftlichkeit passen. Planung, Beratung und Umsetzung kommen aus einer Hand.
+        </p>
+        <a class="arrow-link" href="/ueber-uns" data-reveal>Mehr über ip³ <span class="line"></span></a>
+      </div>
+    </div>
+
+    <dl class="facts">
+      <div class="fact" data-reveal>
+        <dt>Start als Ingenieurbüro</dt>
+        <dd class="tech">2009</dd>
+      </div>
+      <div class="fact" data-reveal>
+        <dt>Großspeicher im zweistelligen Megawattbereich</dt>
+        <dd class="tech">≥ 10 MW</dd>
+      </div>
+      <div class="fact" data-reveal>
+        <dt>VDE-AR-N für Netzanschluss und Anlagenzertifikat</dt>
+        <dd class="tech">4105 · 4110 · 4120</dd>
+      </div>
+      <div class="fact" data-reveal>
+        <dt>Theisseil bei Weiden, Projekte in der Region und darüber hinaus</dt>
+        <dd class="tech">Oberpfalz</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<style>
+  .about {
+    overflow: hidden;
+  }
+
+  .about__zeichen {
+    right: -12vmin;
+    top: 6%;
+    width: clamp(300px, 52vmin, 640px);
+  }
+
+  .about__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 2.5rem var(--gutter);
+    margin-top: clamp(2.5rem, 6vw, 5.5rem);
+    align-items: end;
+  }
+
+  .about__title {
+    max-width: 9ch;
+  }
+
+  .about__text {
+    display: grid;
+    gap: 1.25rem;
+    max-width: 36rem;
+  }
+
+  .about__text p:not(.lead) {
+    color: var(--text-sec);
+  }
+
+  .about__text .arrow-link {
+    color: var(--blau);
+    justify-self: start;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1.45fr) minmax(0, 1fr);
+    margin-top: clamp(4rem, 9vw, 8rem);
+    border-top: 1px solid var(--linie);
+  }
+
+  .fact {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 1.6rem 1.5rem 0.5rem 0;
+    border-right: 1px solid var(--linie);
+  }
+
+  .fact + .fact {
+    padding-left: 1.5rem;
+  }
+
+  .fact:last-child {
+    border-right: 0;
+  }
+
+  .fact dd {
+    margin: 0;
+    font-size: clamp(1.5rem, 1rem + 1.25vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--blau);
+    white-space: nowrap;
+  }
+
+  .fact dt {
+    font-size: 0.95rem;
+    color: var(--text-sec);
+    max-width: 22ch;
+  }
+
+  @media (max-width: 1080px) {
+    .facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .fact:nth-child(2) {
+      border-right: 0;
+    }
+
+    .fact:nth-child(3) {
+      padding-left: 0;
+    }
+
+    .fact:nth-child(n + 3) {
+      border-top: 1px solid var(--linie);
+    }
+  }
+
+  @media (max-width: 860px) {
+    .about__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .facts {
+      grid-template-columns: 1fr;
+    }
+
+    .fact,
+    .fact + .fact {
+      border-right: 0;
+      padding-left: 0;
+      border-top: 1px solid var(--linie);
+    }
+
+    .fact:first-child {
+      border-top: 0;
+    }
+
+    .fact dd {
+      white-space: normal;
+    }
+  }
+</style>

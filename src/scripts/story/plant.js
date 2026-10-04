@@ -623,7 +623,9 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
 
   const center = new THREE.Vector3((site.x0 + site.x1) / 2, 0, (site.z0 + site.z1) / 2);
   // Bildmitte der Systemansicht: zwischen Generator und Speicher
-  const focus = new THREE.Vector3(east + 2.6, 0, -(L.rows - 1) * L.pitch * 0.25);
+  const focus = quality.mobile
+    ? new THREE.Vector3(east - 8, 0, -(L.rows - 1) * L.pitch * 0.35)
+    : new THREE.Vector3(east + 2.6, 0, -(L.rows - 1) * L.pitch * 0.25);
 
   /* ---------- Aufbau-Animation, gesteuert über Fortschrittswerte ---------- */
   const m4 = new THREE.Matrix4();

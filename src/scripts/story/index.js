@@ -39,13 +39,15 @@ function pickQuality() {
     shiftX: [0.21, 0.21, 0.13, 0.05, 0, 0, 0, 0.02, 0.06, 0.04],
     shiftY: [0, 0, 0, 0, 0, 0, 0, 0, 0.03, 0.04],
   };
+  // Hochformat: Modul im oberen Bilddrittel, Anlage zum Schluss von Osten gesehen
   const mobileKeys = {
     ...desktopKeys,
-    dist: [5.6, 5.2, 2.8, 0.42, 0.07, 0.05, 0.06, 8.5, 92, 128],
+    dist: [9, 8.4, 3.2, 0.42, 0.07, 0.05, 0.06, 9, 100, 170],
+    az: [-46, -42, -14, -4, 6, 13, 10, 2, 40, 70],
+    el: [22, 24, 50, 54, 33, 27, 30, 58, 40, 36],
     fov: [30, 30, 34, 38, 44, 46, 46, 40, 38, 38],
-    shiftX: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02],
-    shiftY: [0.17, 0.17, 0.12, 0.08, 0.06, 0.06, 0.06, 0.08, 0.14, 0.15],
-    az: [-40, -36, -14, -4, 6, 13, 10, 2, -18, -24],
+    shiftX: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    shiftY: [0.22, 0.22, 0.14, 0.08, 0.06, 0.06, 0.06, 0.08, 0.12, 0.12],
   };
 
   return {
@@ -68,6 +70,8 @@ function setupLabels(root) {
     key: el.dataset.label,
     range: el.dataset.range.split(',').map(Number),
     side: el.dataset.side || 'right',
+    text: el.querySelector('.story-label__text'),
+    textW: 0,
   }));
   return items;
 }
@@ -132,7 +136,10 @@ export async function initStory() {
     story.resize(w, h, quality.maxDpr);
   };
   resize();
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', () => {
+    resize();
+    labels.forEach((l) => (l.textW = 0));
+  });
 
   const st = ScrollTrigger.create({
     trigger: section,
@@ -176,6 +183,13 @@ export async function initStory() {
       l.el.style.visibility = 'visible';
       l.el.style.opacity = String(o);
       l.el.style.transform = `translate3d(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px, 0)`;
+      // Text bleibt im Bild: bei Bedarf auf die andere Seite klappen
+      if (!l.textW) l.textW = l.text.offsetWidth + (quality.mobile ? 48 : 70);
+      let side = l.side;
+      if (side === 'right' && s.x + l.textW > width - 8) side = 'left';
+      else if (side === 'left' && s.x - l.textW < 8) side = 'right';
+      l.el.classList.toggle('story-label--left', side === 'left');
+      l.el.classList.toggle('story-label--right', side !== 'left');
     }
   }
 

@@ -8,7 +8,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check:links": "node scripts/check-links.mjs"
+    "check:links": "node scripts/check-links.mjs",
+    "vorschau": "npm run build && php -S 127.0.0.1:8080 -t dist scripts/vorschau-router.php",
+    "bilder": "node scripts/render-stills.mjs && node scripts/render-icons.mjs"
   },
   "dependencies": {
     "astro": "^7.3.5",

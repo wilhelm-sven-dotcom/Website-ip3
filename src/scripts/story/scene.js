@@ -47,7 +47,6 @@ function buildEnvironment(renderer, heroStrip) {
     m.rotateZ(roll);
     env.add(m);
   };
-  panel(10, 6, new THREE.Vector3(-20, 44, -30), 0.5);
   panel(3.0, 70, new THREE.Vector3(-46, 12, -4), 2.4);
   panel(14, 8, new THREE.Vector3(40, 14, 28), 0.6, '#e8e7ef');
   if (heroStrip) panel(heroStrip.w, heroStrip.h, heroStrip.pos, heroStrip.intensity, '#ffffff', heroStrip.roll);

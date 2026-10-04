@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ServiceDetail from '../../components/ServiceDetail.astro';
+---
+
+<Base
+  title="PV-Anlagen für Industrie und Gewerbe"
+  description="PV-Anlagen für Industrie und Gewerbe auf Basis eines lastgangoptimierten Energiekonzepts, mit Speicherintegration und Abstimmung mit dem Netzbetreiber. ip³ Energietechnik GmbH."
+>
+  <PageHero
+    kicker="Leistungen · Industrie & Gewerbe"
+    title={'Solarstrom, der zum Lastgang passt<span class="dot">.</span>'}
+    lead="Dächer von Gewerbe- und Industriegebäuden bieten großes Potenzial. Weil viele Betriebe tagsüber konstant Strom brauchen, lässt sich der Solarstrom dort besonders gut selbst nutzen."
+    art="halle"
+    crumbs={[{ label: 'Leistungen', href: '/unsere-leistungen' }, { label: 'Industrie & Gewerbe' }]}
+  />
+  <ServiceDetail
+    slug="industrie-gewerbe"
+    intro={[
+      'Die Planung und Umsetzung Ihrer PV-Anlage erfolgt auf Basis eines Energiekonzepts, das auf Ihren Lastgang optimiert ist.',
+      'So senken Sie Ihre Betriebskosten dauerhaft und sichern sich Wettbewerbsvorteile. Die Integration von Speicherlösungen und die Abstimmung mit dem Netzbetreiber berücksichtigen wir von Anfang an.',
+      'Für Ihre Investitionsentscheidung erstellen wir Wirtschaftlichkeitsberechnungen und die Unterlagen, die Ihre Bank für die Finanzierung braucht.',
+    ]}
+    umfang={[
+      'Lastganganalyse und Energiekonzept',
+      'Dimensionierung von PV-Anlage und Batteriespeicher',
+      'Wirtschaftlichkeitsberechnung und Unterlagen für die Finanzierung',
+      'Netzanschlussverfahren und Abstimmung mit dem Netzbetreiber',
+      'Anlagenzertifikat nach VDE-AR-N 4110 bei Anschluss an die Mittelspannung',
+      'Bau, Inbetriebnahme, Betriebsführung und Schulung Ihres Personals',
+    ]}
+    refIds={['industrie-muenchen', 'stall-300', 'carport-mitterteich']}
+  />
+</Base>

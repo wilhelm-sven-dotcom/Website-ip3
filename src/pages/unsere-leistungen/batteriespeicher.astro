@@ -1,0 +1,137 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ServiceDetail from '../../components/ServiceDetail.astro';
+import { drawing } from '../../lib/drawings.js';
+
+const massstaebe = [
+  {
+    nr: 'S',
+    titel: 'Heimspeicher',
+    text: 'Mehr Eigenverbrauch des eigenen Solarstroms. Installiert haben wir unter anderem Speicher von Tesla und BYD.',
+    art: 'heimspeicher',
+  },
+  {
+    nr: 'M',
+    titel: 'Gewerbe- und Industriespeicher',
+    text: 'Eingebunden in das Energiekonzept Ihres Betriebs und ausgelegt auf Ihren Lastgang.',
+    art: 'halle',
+  },
+  {
+    nr: 'L',
+    titel: 'Großspeicher',
+    text: 'Netzgekoppelte Batteriespeichersysteme (BESS) im zweistelligen Megawattbereich, vom Netzanschluss bis zur Inbetriebnahme.',
+    art: 'speicher',
+  },
+];
+---
+
+<Base
+  title="Batteriespeicher vom Heimspeicher bis zum Großspeicher"
+  description="Batteriespeicher für Eigenheim, Gewerbe und Industrie sowie netzgekoppelte Großspeicher (BESS) im zweistelligen Megawattbereich. Planung, Netzanschluss, Bau und Inbetriebnahme."
+>
+  <PageHero
+    kicker="Leistungen · Batteriespeicher"
+    title={'Speicher in jeder Größenordnung<span class="dot">.</span>'}
+    lead="Vom Heimspeicher über den Gewerbespeicher bis zum Großspeicher im zweistelligen Megawattbereich: Wir legen Batteriespeicher auf Ihren Einsatzzweck aus und binden sie technisch und regulatorisch sauber ein."
+    art="speicher"
+    crumbs={[{ label: 'Leistungen', href: '/unsere-leistungen' }, { label: 'Batteriespeicher' }]}
+  />
+
+  <section class="section scales" data-theme="hell" data-header-zone="hell" aria-labelledby="scales-title">
+    <div class="wrap">
+      <div class="dim"><span>Maßstab</span><span class="dim__line" data-draw></span></div>
+      <h2 id="scales-title" class="h2 scales__title" data-split>Drei Größen, ein Anspruch<span class="dot">.</span></h2>
+      <ol class="scales__list" role="list">
+        {
+          massstaebe.map((m) => (
+            <li class="scale" data-reveal>
+              <div class="scale__art" set:html={drawing(m.art)} />
+              <p class="scale__nr tech" aria-hidden="true">{m.nr}</p>
+              <h3 class="scale__titel">{m.titel}</h3>
+              <p class="scale__text">{m.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <ServiceDetail
+    slug="batteriespeicher"
+    intro={[
+      'Ein Batteriespeicher ist nur so gut wie seine Einbindung. Entscheidend sind Lastgang, Erzeugung, Netzanschluss und der Zweck, für den der Speicher arbeiten soll.',
+      'Beim Großspeicher stehen Netzanschlussverfahren und Anlagenzertifikat im Mittelpunkt. Wir begleiten das Projekt vom Netzanschlussbegehren bis zur Inbetriebnahme.',
+    ]}
+    umfang={[
+      'Auslegung nach Lastgang, Erzeugung und Einsatzzweck',
+      'Wirtschaftlichkeitsberechnung und Unterlagen für die Finanzierung',
+      'Netzanschlussverfahren und Abstimmung mit dem Netzbetreiber',
+      'Anlagenzertifikat nach VDE-AR-N 4110 oder 4120',
+      'Bau, Inbetriebnahme und Betriebsführung',
+    ]}
+    refIds={['industrie-muenchen', 'byd-weiden', 'powerwall-3']}
+  />
+</Base>
+
+<style>
+  .scales__title {
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .scales__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.5rem var(--gutter);
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    align-items: end;
+  }
+
+  .scale {
+    display: grid;
+    align-content: end;
+    border-top: 1px solid rgb(12 26 61 / 0.25);
+    padding-top: 1.25rem;
+  }
+
+  .scale:nth-child(1) .scale__art {
+    width: 52%;
+  }
+
+  .scale:nth-child(2) .scale__art {
+    width: 78%;
+  }
+
+  .scale__art {
+    order: -1;
+    margin-bottom: 1.5rem;
+  }
+
+  .scale__nr {
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--akzent);
+  }
+
+  .scale__titel {
+    margin-top: 0.75rem;
+    font-size: 1.5rem;
+    color: var(--blau);
+  }
+
+  .scale__text {
+    margin-top: 0.6rem;
+    color: var(--text-sec);
+  }
+
+  @media (max-width: 860px) {
+    .scales__list {
+      grid-template-columns: 1fr;
+    }
+
+    .scale .scale__art {
+      width: 70% !important;
+    }
+  }
+</style>

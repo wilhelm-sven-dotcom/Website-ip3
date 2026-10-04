@@ -1,0 +1,93 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ServiceIndex from '../../components/ServiceIndex.astro';
+import SystemDiagram from '../../components/SystemDiagram.astro';
+import Process from '../../components/Process.astro';
+import { weitereLeistungen } from '../../data/leistungen.js';
+---
+
+<Base
+  title="Unsere Leistungen"
+  description="Planung, Projektierung und Umsetzung von PV-Anlagen und Batteriespeichern, Betriebsführung, Gutachten und Analysen sowie Schulungen. Für Privat, Gewerbe, Industrie und Freiflächen."
+>
+  <PageHero
+    kicker="Leistungen"
+    title={'Planung, Beratung, Umsetzung<span class="dot">.</span>'}
+    lead="Wir realisieren schlüsselfertige Photovoltaikanlagen und Batteriespeicher für private, gewerbliche und industrielle Zwecke. Unser Leistungsspektrum umfasst den gesamten Projektzyklus: von der Ist-Analyse über Planung und Bauüberwachung bis zur Inbetriebnahme und Schulung Ihres Personals."
+    crumbs={[{ label: 'Leistungen' }]}
+  />
+
+  <ServiceIndex heading={false} theme="light" />
+
+  <section class="section extra" id="weitere" data-theme="hell" data-header-zone="hell" aria-labelledby="extra-title">
+    <div class="wrap">
+      <div class="dim"><span>Über den Bau hinaus</span><span class="dim__line" data-draw></span></div>
+      <div class="extra__grid">
+        <h2 id="extra-title" class="h2" data-split>Weitere Leistungen<span class="dot">.</span></h2>
+        <ul class="extra__list" role="list">
+          {
+            weitereLeistungen.map((w, i) => (
+              <li data-reveal>
+                <p class="tech extra__nr">{String(i + 1).padStart(2, '0')}</p>
+                <h3>{w.titel}</h3>
+                <p>{w.text}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <SystemDiagram nr="02" />
+  <Process nr="03" theme="light" />
+</Base>
+
+<style>
+  .extra__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: 2.5rem var(--gutter);
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .extra__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem var(--gutter);
+  }
+
+  .extra__list li {
+    border-top: 1px solid rgb(12 26 61 / 0.25);
+    padding-top: 1.25rem;
+  }
+
+  .extra__nr {
+    font-size: 0.85rem;
+    color: var(--akzent);
+  }
+
+  .extra__list h3 {
+    margin-top: 0.5rem;
+    font-size: 1.35rem;
+    color: var(--blau);
+  }
+
+  .extra__list p:not(.extra__nr) {
+    margin-top: 0.7rem;
+    color: var(--text-sec);
+  }
+
+  @media (max-width: 1080px) {
+    .extra__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .extra__list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

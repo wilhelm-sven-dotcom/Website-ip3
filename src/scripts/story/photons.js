@@ -101,7 +101,7 @@ export function createPhotons({ center, count = 90, spread = new THREE.Vector2(0
         vA = exp(-ph * 9.0);
         vec4 mv = modelViewMatrix * vec4(position + vec3(0.0, 0.0, 0.00005), 1.0);
         gl_Position = projectionMatrix * mv;
-        gl_PointSize = (2.0 + 9.0 * vA) * uPixelRatio * uScale / max(-mv.z * 30.0, 0.35);
+        gl_PointSize = clamp((1.5 + 5.0 * vA) * uPixelRatio * uScale / max(-mv.z * 30.0, 0.6), 0.0, 9.0 * uPixelRatio);
       }`,
     fragmentShader: /* glsl */ `
       uniform float uOpacity;
@@ -112,7 +112,7 @@ export function createPhotons({ center, count = 90, spread = new THREE.Vector2(0
         float r = length(c);
         float core = 1.0 - smoothstep(0.18, 0.5, r);
         float a = core * vA * uOpacity;
-        gl_FragColor = vec4(mix(uHitColor, vec3(1.0, 0.92, 0.88), smoothstep(0.25, 0.0, r) * vA) * a, a);
+        gl_FragColor = vec4(uHitColor * a * 1.4, a);
       }`,
     transparent: true,
     depthWrite: false,

@@ -1,0 +1,34 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ServiceDetail from '../../components/ServiceDetail.astro';
+---
+
+<Base
+  title="Photovoltaik für Privatkunden"
+  description="Photovoltaik und Batteriespeicher für Ihr Zuhause: Verschattungsanalyse, Ertragsprognose, Planung, Ausführungsüberwachung und Übergabe. ip³ Energietechnik aus der Oberpfalz."
+>
+  <PageHero
+    kicker="Leistungen · Privat"
+    title={'Photovoltaik für Ihr Zuhause<span class="dot">.</span>'}
+    lead="Wir planen Ihre Anlage so, dass sie zu Dach, Verbrauch und Haustechnik passt. Technisch durchdacht und mit Blick auf die Optik Ihres Hauses."
+    art="haus"
+    crumbs={[{ label: 'Leistungen', href: '/unsere-leistungen' }, { label: 'Privat' }]}
+  />
+  <ServiceDetail
+    slug="privat"
+    intro={[
+      'Bei privaten PV-Anlagen ist unser Leistungsspektrum darauf ausgerichtet, Ihnen eine maßgeschneiderte und technisch optimierte Lösung zu bieten.',
+      'Wir beginnen mit Verschattungsanalyse und Ertragsprognose, übernehmen alle notwendigen Planungsschritte bis zur Ausführungsüberwachung und schließen mit Abnahme und Übergabe der Anlage ab.',
+      'Ziel ist eine Anlage, die einen hohen Eigenverbrauch ermöglicht und sich in Ihr Smart-Home-System einfügt. Auf Wunsch mit Batteriespeicher und Wallbox.',
+    ]}
+    umfang={[
+      'Verschattungsanalyse und Ertragsprognose',
+      'Planung von Modulbelegung, Wechselrichter und Verschaltung',
+      'Auslegung auf hohen Eigenverbrauch, mit Batteriespeicher auf Wunsch',
+      'Einbindung in Ihr Smart-Home-System und Ladeinfrastruktur',
+      'Ausführungsüberwachung, Abnahme und Übergabe',
+    ]}
+    refIds={['allblack-altenstadt', 'powerwall-3', 'byd-weiden']}
+  />
+</Base>

@@ -1,0 +1,56 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { firma } from '../data/site.js';
+---
+
+<Base title="Impressum" description="Impressum der ip³ Energietechnik GmbH." footerCta={false}>
+  <PageHero kicker="Rechtliches" title={'Impressum<span class="dot">.</span>'} crumbs={[{ label: 'Impressum' }]} zeichen={false} />
+  <section class="section legal" data-theme="light" data-header-zone="light" aria-label="Angaben gemäß § 5 DDG">
+    <div class="wrap legal__grid">
+      <div class="prose">
+        <h2>Angaben gemäß § 5 DDG</h2>
+        <p>
+          {firma.nameRechtlich}<br />
+          {firma.strasse}<br />
+          {firma.plz} {firma.ort}
+        </p>
+        <p>
+          Sitz der Gesellschaft: {firma.sitz}<br />
+          Registergericht: {firma.registergericht}<br />
+          Registernummer: {firma.registernummer}
+        </p>
+
+        <h2>Vertreten durch die Geschäftsführer</h2>
+        <p>
+          {firma.geschaeftsfuehrer.map((g, i) => (i ? [<br />, g] : g))}
+        </p>
+
+        <h2>Kontakt</h2>
+        <p>
+          Telefon: <a href={firma.telefonHref}>+49 (0)961 40191360</a><br />
+          Telefax: +49 (0)961 40191369<br />
+          E-Mail: <a href={`mailto:${firma.email}`}>{firma.email}</a>
+        </p>
+
+        <h2>Umsatzsteuer-Identifikationsnummer</h2>
+        <p>Umsatzsteuer-Identifikationsnummer gemäß § 27a Umsatzsteuergesetz: {firma.ustId}</p>
+
+        <h2>Gestaltung und Bildnachweis</h2>
+        <p>
+          Visualisierungen und technische Zeichnungen auf dieser Website sind schematische Darstellungen der {firma.name}. Schriften: Libre Franklin und Space Grotesk, lizenziert unter der SIL Open Font License.
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .legal__grid {
+    max-width: 52rem;
+  }
+
+  .legal :global(.prose h2:first-child) {
+    margin-top: 0;
+  }
+</style>

@@ -25,7 +25,7 @@ const labels = [
 <section class="story" data-story data-theme="dark" data-header-zone="dark" aria-labelledby="story-title">
   <div class="story__stage" data-story-stage aria-hidden="true">
     <picture class="story__poster">
-      <source media="(max-width: 759px)" srcset={stills.modul.m} />
+      <source media="(orientation: portrait)" srcset={stills.modul.m} />
       <img src={stills.modul.d} alt="" width="1600" height="900" fetchpriority="high" decoding="async" />
     </picture>
     <canvas class="story__canvas" data-story-canvas></canvas>
@@ -147,7 +147,7 @@ const labels = [
 
   .story__canvas {
     opacity: 0;
-    transition: opacity 900ms var(--ease-out);
+    transition: opacity 500ms var(--ease-out);
   }
 
   .story.is-live .story__canvas {
@@ -156,7 +156,7 @@ const labels = [
 
   .story.is-live .story__poster {
     opacity: 0;
-    transition: opacity 900ms var(--ease-out) 200ms;
+    transition: opacity 350ms linear;
   }
 
   html:not(.js) .story__canvas {

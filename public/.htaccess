@@ -1,0 +1,57 @@
+# Apache-Konfiguration für den statischen Export (Astro, build.format "file").
+# Saubere URLs ohne .html und ohne Schrägstrich am Ende, wie auf der bisherigen Website:
+# /ueber-uns, /unsere-leistungen, /unsere-leistungen/privat
+
+Options -MultiViews -Indexes
+DirectorySlash Off
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Erst auf der produktiven Domain aktivieren: http -> https und ohne www -> www
+  # RewriteCond %{HTTPS} !=on
+  # RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  # RewriteRule ^ https://www.ip3-energie.de%{REQUEST_URI} [R=301,L]
+  # RewriteCond %{HTTP_HOST} ^ip3-energie\.de$ [NC]
+  # RewriteRule ^ https://www.ip3-energie.de%{REQUEST_URI} [R=301,L]
+
+  # Schrägstrich am Ende entfernen (außer Startseite)
+  RewriteCond %{REQUEST_URI} !^/$
+  RewriteRule ^(.+)/$ /$1 [R=301,L]
+
+  # .html in der Adresse auf die saubere URL umleiten
+  RewriteCond %{THE_REQUEST} \s/([^\s?]+)\.html[\s?]
+  RewriteCond %{REQUEST_URI} !^/404\.html$
+  RewriteRule ^ /%1 [R=301,L]
+
+  # Saubere URL auf die .html-Datei abbilden
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+)$ $1.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+  # Gehashte Build-Dateien und Schriften dauerhaft cachen
+  <FilesMatch "\.(js|css|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(webp|jpg|png|svg)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml application/xml text/plain
+</IfModule>
+
+AddType font/woff2 .woff2
+AddType image/webp .webp

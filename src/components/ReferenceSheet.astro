@@ -1,0 +1,234 @@
+---
+// Referenz als Planblatt: Zeichnung oder Foto, darunter ein Schriftfeld wie auf
+// einer technischen Zeichnung. Mit Foto (ref.bild) wird das Bild zum Hauptmotiv.
+import { drawing } from '../lib/drawings.js';
+
+const { ref, index = 1, total = 1, size = 'm', headingLevel = 3 } = Astro.props;
+const H = `h${headingLevel}`;
+const blatt = `${String(index).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
+const felder = [
+  { k: 'Kategorie', v: ref.kategorie },
+  { k: 'Ort', v: ref.ort },
+  { k: 'Leistung', v: ref.leistung },
+  { k: 'Komponenten', v: ref.komponenten },
+].filter((f) => f.v);
+---
+
+<article class:list={['sheet', `sheet--${size}`, { 'sheet--photo': ref.bild }]} data-reveal data-tilt="2.2">
+  <div class="sheet__plate">
+    <span class="sheet__crop sheet__crop--tl" aria-hidden="true"></span>
+    <span class="sheet__crop sheet__crop--tr" aria-hidden="true"></span>
+    <span class="sheet__crop sheet__crop--bl" aria-hidden="true"></span>
+    <span class="sheet__crop sheet__crop--br" aria-hidden="true"></span>
+    {
+      ref.bild ? (
+        <img class="sheet__photo" src={ref.bild} alt={`${ref.titel}${ref.ort ? ', ' + ref.ort : ''}`} loading="lazy" decoding="async" />
+      ) : (
+        <div class="sheet__drawing" set:html={drawing(ref.zeichnung, `${ref.titel}${ref.ort ? ', ' + ref.ort : ''} (schematische Darstellung)`)} />
+      )
+    }
+    <span class="sheet__sheetno tech" aria-hidden="true">Blatt {blatt}</span>
+  </div>
+  <div class="sheet__block">
+    <H class="sheet__title">{ref.titel}</H>
+    <dl class="sheet__fields">
+      {
+        felder.map((f) => (
+          <div class="sheet__field">
+            <dt>{f.k}</dt>
+            <dd>{f.v}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</article>
+
+<style>
+  .sheet {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--weiss);
+    border: 1px solid var(--linie);
+    transform-style: preserve-3d;
+    transition:
+      box-shadow 600ms var(--ease-out),
+      border-color 600ms var(--ease-out);
+  }
+
+  .sheet:hover {
+    border-color: rgb(47 36 130 / 0.35);
+    box-shadow: 0 40px 70px -40px rgb(12 26 61 / 0.35);
+  }
+
+  .sheet__plate {
+    position: relative;
+    flex: 1;
+    display: grid;
+    place-items: center;
+    padding: clamp(1.75rem, 4vw, 3.5rem);
+    background-color: var(--box);
+    background-image:
+      linear-gradient(rgb(47 36 130 / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(47 36 130 / 0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
+    overflow: hidden;
+    aspect-ratio: var(--sheet-ratio, 4 / 3);
+  }
+
+  .sheet--l .sheet__plate {
+    --sheet-ratio: 16 / 11;
+  }
+
+  .sheet--tall .sheet__plate {
+    --sheet-ratio: 4 / 4.6;
+  }
+
+  .sheet__drawing {
+    width: 100%;
+    max-width: 640px;
+    transition: transform 900ms var(--ease-out);
+  }
+
+  .sheet:hover .sheet__drawing {
+    transform: scale(1.035);
+  }
+
+  .sheet__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1200ms var(--ease-out);
+  }
+
+  .sheet--photo:hover .sheet__photo {
+    transform: scale(1.04);
+  }
+
+  .sheet__crop {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-color: var(--blau);
+    border-style: solid;
+    border-width: 0;
+    opacity: 0.55;
+    z-index: 1;
+    transition:
+      transform 600ms var(--ease-out),
+      opacity 600ms var(--ease-out);
+  }
+
+  .sheet__crop--tl {
+    left: 12px;
+    top: 12px;
+    border-left-width: 1px;
+    border-top-width: 1px;
+  }
+
+  .sheet__crop--tr {
+    right: 12px;
+    top: 12px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+  }
+
+  .sheet__crop--bl {
+    left: 12px;
+    bottom: 12px;
+    border-left-width: 1px;
+    border-bottom-width: 1px;
+  }
+
+  .sheet__crop--br {
+    right: 12px;
+    bottom: 12px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+  }
+
+  .sheet:hover .sheet__crop {
+    opacity: 1;
+  }
+
+  .sheet:hover .sheet__crop--tl {
+    transform: translate(-4px, -4px);
+  }
+
+  .sheet:hover .sheet__crop--tr {
+    transform: translate(4px, -4px);
+  }
+
+  .sheet:hover .sheet__crop--bl {
+    transform: translate(-4px, 4px);
+  }
+
+  .sheet:hover .sheet__crop--br {
+    transform: translate(4px, 4px);
+  }
+
+  .sheet--photo .sheet__crop {
+    border-color: var(--weiss);
+  }
+
+  .sheet__sheetno {
+    position: absolute;
+    right: 38px;
+    top: 14px;
+    z-index: 1;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--blau);
+    opacity: 0.7;
+  }
+
+  .sheet--photo .sheet__sheetno {
+    color: var(--weiss);
+  }
+
+  .sheet__block {
+    border-top: 1px solid var(--linie);
+  }
+
+  .sheet__title {
+    padding: 1.1rem 1.25rem 1rem;
+    font-size: clamp(1.25rem, 1.05rem + 0.6vw, 1.6rem);
+    color: var(--blau);
+    line-height: 1.15;
+  }
+
+  .sheet__fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--linie);
+  }
+
+  .sheet__field {
+    padding: 0.7rem 1.25rem 0.85rem;
+    border-right: 1px solid var(--linie);
+    margin-right: -1px;
+  }
+
+  .sheet__field dt {
+    font-family: var(--font-tech);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .sheet__field dd {
+    margin: 0.2rem 0 0;
+    font-family: var(--font-tech);
+    font-weight: 500;
+    font-size: 0.98rem;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

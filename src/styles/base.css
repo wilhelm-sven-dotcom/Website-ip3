@@ -585,3 +585,102 @@ sup {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Isometrische Linienzeichnungen */
+.iso {
+  --iso-line: var(--blau);
+  --iso-face: var(--weiss);
+  --iso-panel: var(--navy);
+  --iso-panel-line: rgb(232 231 239 / 0.75);
+  --iso-dark: rgb(47 36 130 / 0.14);
+  --iso-ground: var(--box);
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+[data-theme='hell'] .iso {
+  --iso-ground: rgb(255 255 255 / 0.55);
+}
+
+[data-theme='dark'] .iso,
+.iso--dark {
+  --iso-line: var(--hell);
+  --iso-face: var(--navy);
+  --iso-panel: var(--blau);
+  --iso-panel-line: rgb(232 231 239 / 0.6);
+  --iso-dark: rgb(232 231 239 / 0.12);
+  --iso-ground: rgb(232 231 239 / 0.05);
+}
+
+.iso path {
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.iso-face {
+  fill: var(--iso-face);
+  stroke: var(--iso-line);
+  stroke-width: var(--iso-stroke);
+}
+
+.iso-panel {
+  fill: var(--iso-panel);
+  stroke: var(--iso-line);
+  stroke-width: var(--iso-stroke);
+}
+
+.iso-detail {
+  fill: none;
+  stroke: var(--iso-line);
+  stroke-width: calc(var(--iso-stroke) * 0.7);
+}
+
+.iso-panel + .iso-detail,
+.iso-panel ~ .iso-detail {
+  stroke: var(--iso-panel-line);
+}
+
+.iso-fine {
+  stroke-width: calc(var(--iso-stroke) * 0.45);
+  opacity: 0.7;
+}
+
+.iso-dark {
+  fill: var(--iso-dark);
+  stroke: var(--iso-line);
+  stroke-width: calc(var(--iso-stroke) * 0.7);
+}
+
+.iso-ground {
+  fill: var(--iso-ground);
+  stroke: none;
+}
+
+.iso-line {
+  fill: none;
+  stroke: var(--iso-line);
+  stroke-width: var(--iso-stroke);
+}
+
+.iso-fence {
+  fill: none;
+  stroke: var(--iso-line);
+  stroke-width: calc(var(--iso-stroke) * 0.8);
+  stroke-dasharray: 3 5;
+  opacity: 0.6;
+}
+
+.iso-dot {
+  fill: var(--akzent);
+}
+
+/* Linienzeichnungen vor dem Zeichnen: Flächen und Fluss noch verborgen */
+.js-motion [data-draw-svg]:not(.is-drawn) .sld__flow {
+  opacity: 0;
+}
+
+[data-draw-svg] .sld__flow {
+  transition: opacity 600ms var(--ease-out);
+}

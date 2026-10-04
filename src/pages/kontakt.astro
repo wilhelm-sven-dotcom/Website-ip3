@@ -1,0 +1,150 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { firma } from '../data/site.js';
+
+const route = 'https://www.openstreetmap.org/search?query=' + encodeURIComponent(`${firma.strasse}, ${firma.plz} Weiden in der Oberpfalz`);
+---
+
+<Base
+  title="Kontakt"
+  description="Projekt besprechen mit ip³ Energietechnik: Telefon 0961 40191360, E-Mail info@ip3-energie.de oder über das Kontaktformular. Photovoltaik und Batteriespeicher aus der Oberpfalz."
+  footerCta={false}
+>
+  <PageHero
+    kicker="Kontakt"
+    title={'Projekt besprechen<span class="dot">.</span>'}
+    lead="Schildern Sie uns Ihr Vorhaben: Dach, Halle, Freifläche oder Speicher. Wir melden uns mit einer ersten fachlichen Einschätzung."
+    crumbs={[{ label: 'Kontakt' }]}
+  />
+
+  <section class="section contact" data-theme="light" data-header-zone="light" aria-label="Kontaktmöglichkeiten">
+    <div class="wrap contact__grid">
+      <aside class="contact__info" aria-labelledby="direkt-title">
+        <h2 id="direkt-title" class="kicker">Direkt</h2>
+        <a class="contact__big tech" href={firma.telefonHref}>
+          <span class="contact__label">Telefon</span>
+          {firma.telefon}
+        </a>
+        <a class="contact__big tech" href={`mailto:${firma.email}`}>
+          <span class="contact__label">E-Mail</span>
+          {firma.email}
+        </a>
+        <dl class="contact__list">
+          <div>
+            <dt>Anschrift</dt>
+            <dd>
+              {firma.name}<br />
+              {firma.strasse}<br />
+              {firma.plz} {firma.ort}
+              <br /><a class="text-link" href={route} rel="noopener" target="_blank">Route planen <span class="visually-hidden">(OpenStreetMap, neues Fenster)</span></a>
+            </dd>
+          </div>
+          <div>
+            <dt>Telefax</dt>
+            <dd class="tech">{firma.fax}</dd>
+          </div>
+          <div>
+            <dt>Geschäftsführung</dt>
+            <dd>{firma.geschaeftsfuehrer.join(' · ')}</dd>
+          </div>
+        </dl>
+      </aside>
+      <div class="contact__form">
+        <ContactForm />
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .contact__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 4.5fr) minmax(0, 7.5fr);
+    gap: 3.5rem clamp(2rem, 6vw, 6rem);
+    align-items: start;
+  }
+
+  .contact__info {
+    position: sticky;
+    top: calc(var(--header-h) + 2rem);
+    display: grid;
+    gap: 1.6rem;
+  }
+
+  .contact__big {
+    display: grid;
+    gap: 0.35rem;
+    font-size: clamp(1.5rem, 1.1rem + 1.3vw, 2.3rem);
+    font-weight: 500;
+    line-height: 1.1;
+    color: var(--blau);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .contact__big:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+
+  .contact__label {
+    font-size: var(--fs-label);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .contact__list {
+    margin: 0.5rem 0 0;
+    border-top: 1px solid var(--linie);
+  }
+
+  .contact__list > div {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--linie);
+  }
+
+  .contact__list dt {
+    font-family: var(--font-tech);
+    font-size: var(--fs-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+    padding-top: 0.2rem;
+  }
+
+  .contact__list dd {
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .contact__form {
+    padding: clamp(1.5rem, 3.5vw, 3rem);
+    background: var(--box);
+    border-top: 3px solid var(--blau);
+  }
+
+  @media (max-width: 960px) {
+    .contact__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .contact__info {
+      position: relative;
+      top: auto;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .contact__list > div {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+  }
+</style>

@@ -151,6 +151,7 @@ function initMobileMenu() {
 /* ---------- Scroll-Reveals ---------- */
 function initReveals() {
   if (reduceMotion.matches) {
+    document.querySelectorAll('[data-draw-svg]').forEach((svg) => svg.classList.add('is-drawn'));
     root.classList.add('reveal-ready');
     return;
   }
@@ -199,31 +200,60 @@ function initReveals() {
     });
   });
 
-  // SVG-Linienzeichnungen
+  // SVG-Linienzeichnungen: Strichlänge in Bildschirmeinheiten (non-scaling-stroke)
   document.querySelectorAll('[data-draw-svg]').forEach((svg) => {
-    const paths = svg.querySelectorAll('[data-stroke]');
-    paths.forEach((p) => {
-      const len = p.getTotalLength ? p.getTotalLength() : 0;
-      if (!len) return;
-      p.style.strokeDasharray = `${len}`;
-      p.style.strokeDashoffset = `${len}`;
-    });
-    gsap.to(paths, {
-      strokeDashoffset: 0,
-      duration: 1.8,
-      ease: 'power2.inOut',
-      stagger: { each: 0.012, from: 'start' },
-      scrollTrigger: { trigger: svg, start: 'top 85%', once: true },
-      onComplete: () => svg.classList.add('is-drawn'),
-    });
-    const fills = svg.querySelectorAll('[data-fill]');
-    gsap.from(fills, {
-      opacity: 0,
-      duration: 0.8,
-      ease: 'power1.out',
-      stagger: 0.03,
-      delay: 0.9,
-      scrollTrigger: { trigger: svg, start: 'top 85%', once: true },
+    const paths = [...svg.querySelectorAll('[data-stroke]')];
+    const rendered = () => svg.getBoundingClientRect().width > 0 && !!svg.getScreenCTM();
+    const prepare = () => {
+      const k = Math.abs(svg.getScreenCTM().a) || 1;
+      paths.forEach((p) => {
+        let len = 0;
+        try {
+          len = p.getTotalLength() * k + 2;
+        } catch {
+          len = 0;
+        }
+        if (!len) return;
+        p.style.strokeDasharray = `${len} ${len}`;
+        p.style.strokeDashoffset = `${len}`;
+      });
+    };
+    const done = () => {
+      paths.forEach((p) => {
+        p.style.strokeDasharray = '';
+        p.style.strokeDashoffset = '';
+      });
+      svg.classList.add('is-drawn');
+    };
+    if (!paths.length) {
+      svg.classList.add('is-drawn');
+      return;
+    }
+    // Ausgangszustand sofort setzen, damit nichts aufblitzt
+    if (rendered()) {
+      prepare();
+      gsap.set(svg.querySelectorAll('[data-fill]'), { fillOpacity: 0 });
+    }
+    ScrollTrigger.create({
+      trigger: svg,
+      start: 'top 85%',
+      once: true,
+      onEnter: () => {
+        if (!rendered()) {
+          done();
+          return;
+        }
+        prepare();
+        gsap.to(paths, {
+          strokeDashoffset: 0,
+          duration: 1.6,
+          ease: 'power2.inOut',
+          stagger: { amount: Math.min(1.2, paths.length * 0.012) },
+          onComplete: done,
+        });
+        const fills = svg.querySelectorAll('[data-fill]');
+        gsap.to(fills, { fillOpacity: 1, duration: 0.9, ease: 'power1.out', delay: 0.8, stagger: { amount: 0.4 }, clearProps: 'fillOpacity' });
+      },
     });
   });
 

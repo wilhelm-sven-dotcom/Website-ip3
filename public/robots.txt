@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /kontakt-senden.php
+
+Sitemap: https://www.ip3-energie.de/sitemap.xml

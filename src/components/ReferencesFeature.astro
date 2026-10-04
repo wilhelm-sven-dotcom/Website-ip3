@@ -1,0 +1,143 @@
+---
+// Auswahl realisierter Projekte als Planmappe auf der Startseite
+import { referenzen } from '../data/referenzen.js';
+import ReferenceSheet from './ReferenceSheet.astro';
+import Arrow from './Arrow.astro';
+
+const { nr = '04' } = Astro.props;
+const auswahl = ['stall-300', 'industrie-muenchen', 'ff-vohenstrauss', 'carport-mitterteich', 'allblack-altenstadt', 'byd-weiden']
+  .map((id) => referenzen.find((r) => r.id === id))
+  .filter(Boolean);
+const layout = [
+  { cls: 'r1', size: 'l' },
+  { cls: 'r2', size: 'tall' },
+  { cls: 'r3', size: 'm' },
+  { cls: 'r4', size: 'l' },
+  { cls: 'r5', size: 'm' },
+  { cls: 'r6', size: 'm' },
+];
+---
+
+<section class="section refs" data-theme="light" data-header-zone="light" aria-labelledby="refs-title">
+  <div class="wrap">
+    <div class="dim"><span class="dim__num">{nr}</span><span>Referenzen</span><span class="dim__line" data-draw></span></div>
+    <div class="refs__head">
+      <h2 id="refs-title" class="h1" data-split>Realisiert<span class="dot">.</span></h2>
+      <div class="refs__intro">
+        <p class="lead" data-reveal>
+          Ein Auszug aus unseren Projekten: vom landwirtschaftlichen Dach über Gewerbe mit Speicher bis zur Freiflächenanlage.
+        </p>
+        <a class="btn btn--ghost" href="/referenzen" data-reveal>Alle Referenzen <Arrow /></a>
+      </div>
+    </div>
+
+    <div class="refs__grid">
+      {
+        auswahl.map((ref, i) => (
+          <div class:list={['refs__cell', layout[i].cls]} data-parallax={i % 2 ? '6' : '0'}>
+            <ReferenceSheet ref={ref} index={i + 1} total={auswahl.length} size={layout[i].size} />
+          </div>
+        ))
+      }
+    </div>
+    <p class="refs__note muted">Schematische Darstellung der Anlagentypen.</p>
+  </div>
+</section>
+
+<style>
+  .refs__head {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    gap: 2rem var(--gutter);
+    align-items: end;
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
+  }
+
+  .refs__intro {
+    display: grid;
+    gap: 1.5rem;
+    justify-items: start;
+  }
+
+  .refs__intro .lead {
+    color: var(--text-sec);
+    max-width: 34rem;
+  }
+
+  .refs__grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: clamp(2.5rem, 5vw, 5rem);
+    margin-top: clamp(3rem, 6vw, 6rem);
+  }
+
+  .r1 {
+    grid-column: 1 / span 7;
+  }
+
+  .r2 {
+    grid-column: 9 / span 4;
+    margin-top: clamp(4rem, 10vw, 10rem);
+  }
+
+  .r3 {
+    grid-column: 2 / span 5;
+  }
+
+  .r4 {
+    grid-column: 7 / span 6;
+    margin-top: clamp(-6rem, -6vw, -2rem);
+  }
+
+  .r5 {
+    grid-column: 1 / span 5;
+  }
+
+  .r6 {
+    grid-column: 7 / span 5;
+    margin-top: clamp(2rem, 6vw, 6rem);
+  }
+
+  .refs__note {
+    margin-top: 2.5rem;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 960px) {
+    .refs__head {
+      grid-template-columns: 1fr;
+    }
+
+    .refs__grid > * {
+      grid-column: 1 / -1;
+      margin-top: 0;
+    }
+
+    .refs__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .refs__grid > .r1,
+    .refs__grid > .r4 {
+      grid-column: 1 / -1;
+    }
+
+    .refs__grid > .r2,
+    .refs__grid > .r3,
+    .refs__grid > .r5,
+    .refs__grid > .r6 {
+      grid-column: auto;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .refs__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .refs__grid > * {
+      grid-column: 1 / -1 !important;
+    }
+  }
+</style>

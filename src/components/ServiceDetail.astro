@@ -1,0 +1,312 @@
+---
+// Inhaltsbaustein der Leistungsseiten: Einleitung, Leistungsumfang als nummerierte
+// Liste, optional Phasen, passende Referenzen und Verweise auf die übrigen Bereiche.
+import { leistungen } from '../data/leistungen.js';
+import { referenzen } from '../data/referenzen.js';
+import ReferenceSheet from './ReferenceSheet.astro';
+import Arrow from './Arrow.astro';
+
+const { slug, intro = [], umfang = [], umfangTitel = 'Leistungsumfang', phasen = [], phasenTitel = '', refIds = [] } = Astro.props;
+const refs = refIds.map((id) => referenzen.find((r) => r.id === id)).filter(Boolean);
+const andere = leistungen.filter((l) => l.slug !== slug);
+---
+
+<section class="section sd-intro" data-theme="light" data-header-zone="light">
+  <img class="zeichen zeichen--light sd-intro__zeichen" src="/brand/zeichen-3-kontur-rot.png" alt="" width="607" height="864" loading="lazy" data-parallax="12" />
+  <div class="wrap sd-intro__grid">
+    <div class="sd-intro__text prose">
+      {intro.map((p, i) => <p class={i === 0 ? 'lead' : ''} data-reveal set:html={p} />)}
+    </div>
+    <div class="sd-umfang">
+      <h2 class="sd-umfang__title kicker">{umfangTitel}</h2>
+      <ol class="sd-umfang__list" role="list">
+        {
+          umfang.map((u, i) => (
+            <li data-reveal>
+              <span class="tech">{String(i + 1).padStart(2, '0')}</span>
+              <span set:html={u} />
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+{
+  phasen.length > 0 && (
+    <section class="section sd-phasen" data-theme="hell" data-header-zone="hell" aria-labelledby="phasen-title">
+      <div class="wrap">
+        <div class="dim">
+          <span>Ablauf</span>
+          <span class="dim__line" data-draw />
+        </div>
+        <h2 id="phasen-title" class="h2 sd-phasen__title" data-split set:html={phasenTitel} />
+        <ol class="sd-phasen__list" role="list">
+          {phasen.map((ph, i) => (
+            <li class="sd-phase" data-reveal>
+              <p class="sd-phase__nr tech">Phase {String(i + 1).padStart(2, '0')}</p>
+              <h3 class="sd-phase__title">{ph.titel}</h3>
+              <p class="sd-phase__text" set:html={ph.text} />
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}
+
+<slot />
+
+{
+  refs.length > 0 && (
+    <section class="section sd-refs" data-theme="light" data-header-zone="light" aria-labelledby="sd-refs-title">
+      <div class="wrap">
+        <div class="sd-refs__head">
+          <h2 id="sd-refs-title" class="h2" data-split>
+            Aus unseren Projekten<span class="dot">.</span>
+          </h2>
+          <a class="btn btn--ghost" href="/referenzen">
+            Alle Referenzen <Arrow />
+          </a>
+        </div>
+        <div class:list={['sd-refs__grid', `n${Math.min(refs.length, 3)}`]}>
+          {refs.map((r, i) => (
+            <ReferenceSheet ref={r} index={i + 1} total={refs.length} size="m" />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<section class="section sd-more" data-theme="hell" data-header-zone="hell" aria-labelledby="sd-more-title">
+  <div class="wrap">
+    <h2 id="sd-more-title" class="kicker">Weitere Leistungsbereiche</h2>
+    <ul class="sd-more__list" role="list">
+      {
+        andere.map((l) => (
+          <li>
+            <a href={l.href} class="sd-more__link">
+              <span class="tech">{l.nr}</span>
+              <span class="t">{l.titel}</span>
+              <span class="d">{l.untertitel}</span>
+              <Arrow />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .sd-intro {
+    overflow: hidden;
+  }
+
+  .sd-intro__zeichen {
+    right: -14vmin;
+    bottom: -18vmin;
+    width: clamp(280px, 48vmin, 600px);
+  }
+
+  .sd-intro__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    gap: 3rem var(--gutter);
+    align-items: start;
+  }
+
+  .sd-intro__text :global(p:not(.lead)) {
+    color: var(--text-sec);
+  }
+
+  .sd-umfang {
+    padding-top: 0.35rem;
+  }
+
+  .sd-umfang__list {
+    margin-top: 1.4rem;
+    border-top: 1px solid var(--linie);
+  }
+
+  .sd-umfang__list li {
+    display: grid;
+    grid-template-columns: 2.8rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--linie);
+    font-size: 1.08rem;
+    line-height: 1.45;
+  }
+
+  .sd-umfang__list .tech {
+    color: var(--akzent);
+    font-size: 0.9rem;
+    padding-top: 0.15rem;
+  }
+
+  .sd-phasen__title {
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+    max-width: 18ch;
+  }
+
+  .sd-phasen__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0 var(--gutter);
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    counter-reset: phase;
+  }
+
+  .sd-phase {
+    position: relative;
+    padding: 1.6rem 0 2rem;
+    border-top: 1px solid rgb(12 26 61 / 0.25);
+  }
+
+  .sd-phase::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -5px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--akzent);
+  }
+
+  .sd-phase__nr {
+    font-size: 0.85rem;
+    color: var(--akzent);
+  }
+
+  .sd-phase__title {
+    margin-top: 0.5rem;
+    font-size: 1.35rem;
+    color: var(--blau);
+  }
+
+  .sd-phase__text {
+    margin-top: 0.75rem;
+    color: var(--text-sec);
+  }
+
+  .sd-refs__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1.5rem;
+  }
+
+  .sd-refs__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gutter);
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .sd-refs__grid.n2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sd-refs__grid.n1 {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 760px;
+  }
+
+  .sd-more {
+    padding-block: clamp(3.5rem, 6vw, 5.5rem);
+  }
+
+  .sd-more__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 var(--gutter);
+    margin-top: 1.5rem;
+  }
+
+  .sd-more__link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+    column-gap: 0.5rem;
+    align-items: start;
+    padding: 1.25rem 0 1.4rem;
+    border-top: 1px solid rgb(12 26 61 / 0.2);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .sd-more__link .tech {
+    color: var(--akzent);
+    font-size: 0.85rem;
+    padding-top: 0.4rem;
+    grid-row: span 2;
+  }
+
+  .sd-more__link .t {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+    letter-spacing: -0.03em;
+    color: var(--blau);
+  }
+
+  .sd-more__link .d {
+    grid-column: 2;
+    font-size: 0.95rem;
+    color: var(--text-sec);
+  }
+
+  .sd-more__link :global(.arrow) {
+    grid-column: 3;
+    grid-row: 1;
+    width: 22px;
+    height: 22px;
+    margin-top: 0.5rem;
+    color: var(--blau);
+    transition: transform var(--dur) var(--ease-out);
+  }
+
+  .sd-more__link:hover :global(.arrow),
+  .sd-more__link:focus-visible :global(.arrow) {
+    transform: translateX(6px);
+  }
+
+  .sd-more__link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    height: 2px;
+    width: 100%;
+    background: var(--akzent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 520ms var(--ease-out);
+  }
+
+  .sd-more__link:hover::after,
+  .sd-more__link:focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  @media (max-width: 960px) {
+    .sd-intro__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .sd-refs__grid,
+    .sd-refs__grid.n2 {
+      grid-template-columns: 1fr;
+      max-width: 640px;
+    }
+
+    .sd-more__list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

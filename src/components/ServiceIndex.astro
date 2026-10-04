@@ -1,0 +1,342 @@
+---
+// Leistungsindex: große typografische Zeilen statt Kartenraster.
+// Hover und Tastaturfokus zeigen die zugehörige technische Zeichnung.
+import { leistungen, weitereLeistungen } from '../data/leistungen.js';
+import { drawing } from '../lib/drawings.js';
+import Arrow from './Arrow.astro';
+
+const { nr = '02', theme = 'hell', heading = true } = Astro.props;
+---
+
+<section class="section services" data-theme={theme} data-header-zone={theme} aria-labelledby="services-title">
+  <div class="wrap">
+    {
+      heading && (
+        <>
+          <div class="dim">
+            <span class="dim__num">{nr}</span>
+            <span>Leistungen</span>
+            <span class="dim__line" data-draw />
+          </div>
+          <div class="services__head">
+            <h2 id="services-title" class="h1" data-split>
+              Was wir umsetzen<span class="dot">.</span>
+            </h2>
+            <p class="lead" data-reveal>
+              Photovoltaik und Batteriespeicher in jeder Größenordnung. Jede Anlage wird für ihren Standort geplant: Dach oder Fläche, Verbrauch und Netzanschluss.
+            </p>
+          </div>
+        </>
+      )
+    }
+    {!heading && <h2 id="services-title" class="visually-hidden">Leistungsbereiche</h2>}
+
+    <ul class="svc-list" role="list">
+      {
+        leistungen.map((l) => (
+          <li class="svc" data-reveal>
+            <a class="svc__link" href={l.href}>
+              <span class="svc__nr tech">{l.nr}</span>
+              <span class="svc__body">
+                <span class="svc__title">{l.titel}</span>
+                <span class="svc__sub">{l.untertitel}</span>
+              </span>
+              <span class="svc__arrow" aria-hidden="true">
+                <Arrow />
+              </span>
+            </a>
+            <div class="svc__art" aria-hidden="true" set:html={drawing(l.zeichnung, '', { animate: false })} />
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="svc-more" data-reveal>
+      <p class="svc-more__label tech">Außerdem</p>
+      <ul role="list">
+        {
+          weitereLeistungen.map((w) => (
+            <li>
+              <a href="/unsere-leistungen#weitere">{w.titel}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .services__head {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 2rem var(--gutter);
+    align-items: end;
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
+    margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  }
+
+  .services__head .lead {
+    color: var(--text-sec);
+    max-width: 34rem;
+  }
+
+  .svc-list {
+    border-top: 1px solid rgb(12 26 61 / 0.18);
+  }
+
+  [data-theme='dark'] .svc-list {
+    border-top-color: var(--on-navy-line);
+  }
+
+  .svc {
+    position: relative;
+    border-bottom: 1px solid rgb(12 26 61 / 0.18);
+    isolation: isolate;
+  }
+
+  [data-theme='dark'] .svc {
+    border-bottom-color: var(--on-navy-line);
+  }
+
+  .svc::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--navy);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 620ms var(--ease-out);
+  }
+
+  .svc__link {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    min-height: clamp(7rem, 10vw, 10rem);
+    padding: 1.5rem 0;
+    text-decoration: none;
+    color: inherit;
+    transition: color 420ms var(--ease-out), padding 620ms var(--ease-out);
+  }
+
+  .svc__nr {
+    align-self: start;
+    padding-top: 0.9rem;
+    font-size: 0.95rem;
+    color: var(--akzent);
+  }
+
+  .svc__body {
+    display: grid;
+    gap: 0.4rem;
+    max-width: 58%;
+  }
+
+  .svc__title {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: clamp(2.1rem, 1.2rem + 3.4vw, 4.75rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    color: var(--blau);
+    transition: color 420ms var(--ease-out);
+  }
+
+  [data-theme='dark'] .svc__title {
+    color: var(--weiss);
+  }
+
+  .svc__sub {
+    font-size: 1.05rem;
+    color: var(--text-sec);
+    transition: color 420ms var(--ease-out);
+  }
+
+  .svc__arrow {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    color: var(--blau);
+    transition:
+      background-color 420ms var(--ease-out),
+      color 420ms var(--ease-out),
+      transform 620ms var(--ease-out),
+      border-color 420ms var(--ease-out);
+  }
+
+  [data-theme='dark'] .svc__arrow {
+    color: var(--weiss);
+  }
+
+  .svc__arrow :global(.arrow) {
+    width: 22px;
+    height: 22px;
+  }
+
+  .svc__art {
+    position: absolute;
+    z-index: 1;
+    right: calc(64px + 3rem);
+    top: 50%;
+    width: min(30%, 380px);
+    transform: translate3d(0, -50%, 0) scale(0.96);
+    opacity: 0;
+    pointer-events: none;
+    clip-path: inset(0 0 100% 0);
+    transition:
+      opacity 420ms var(--ease-out),
+      transform 720ms var(--ease-out),
+      clip-path 720ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .svc:hover::before,
+    .svc:focus-within::before {
+      transform: scaleY(1);
+      transform-origin: top;
+    }
+
+    .svc:hover .svc__link,
+    .svc:focus-within .svc__link {
+      color: var(--weiss);
+      padding-left: 1.5rem;
+    }
+
+    .svc:hover .svc__title,
+    .svc:focus-within .svc__title {
+      color: var(--weiss);
+    }
+
+    .svc:hover .svc__sub,
+    .svc:focus-within .svc__sub {
+      color: var(--on-navy-sec);
+    }
+
+    .svc:hover .svc__arrow,
+    .svc:focus-within .svc__arrow {
+      background: var(--akzent);
+      border-color: var(--akzent);
+      color: var(--weiss);
+      transform: translateX(-1.5rem) rotate(-45deg);
+    }
+
+    .svc:hover .svc__art,
+    .svc:focus-within .svc__art {
+      opacity: 1;
+      transform: translate3d(0, -50%, 0) scale(1);
+      clip-path: inset(0 0 0% 0);
+    }
+
+    .svc:hover .svc__art :global(.iso),
+    .svc:focus-within .svc__art :global(.iso) {
+      --iso-line: var(--hell);
+      --iso-face: var(--navy);
+      --iso-panel: var(--blau);
+      --iso-panel-line: rgb(232 231 239 / 0.6);
+      --iso-dark: rgb(232 231 239 / 0.12);
+      --iso-ground: rgb(232 231 239 / 0.06);
+    }
+  }
+
+  .svc__link:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .svc-more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.75rem 2rem;
+    margin-top: 2.5rem;
+  }
+
+  .svc-more__label {
+    font-size: var(--fs-label);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .svc-more ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+  }
+
+  .svc-more a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    font-weight: 600;
+    color: var(--blau);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--dur-fast);
+  }
+
+  .svc-more a::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    background: var(--akzent);
+  }
+
+  .svc-more a:hover {
+    border-bottom-color: currentColor;
+  }
+
+  /* Touch-Geräte: Zeichnung dauerhaft klein in der Zeile */
+  @media (hover: none), (pointer: coarse) {
+    .svc__art {
+      position: absolute;
+      right: 76px;
+      width: min(34%, 260px);
+      opacity: 0.95;
+      clip-path: none;
+      transform: translate3d(0, -50%, 0);
+    }
+  }
+
+  @media (max-width: 860px) {
+    .services__head {
+      grid-template-columns: 1fr;
+    }
+
+    .svc__link {
+      grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+      min-height: 0;
+      padding: 1.4rem 0 1.5rem;
+    }
+
+    .svc__body {
+      max-width: none;
+    }
+
+    .svc__arrow {
+      width: 48px;
+      height: 48px;
+      align-self: start;
+    }
+
+    .svc__art {
+      position: relative;
+      right: auto;
+      top: auto;
+      width: 72%;
+      max-width: 340px;
+      margin: -0.5rem 0 1.25rem 2.6rem;
+      transform: none;
+      opacity: 1;
+      clip-path: none;
+    }
+  }
+</style>

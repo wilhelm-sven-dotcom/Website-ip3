@@ -1,0 +1,183 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import ReferenceSheet from '../components/ReferenceSheet.astro';
+import { referenzen } from '../data/referenzen.js';
+
+const filter = [
+  { key: 'alle', label: 'Alle' },
+  { key: 'frei', label: 'Freifläche', match: ['Freifläche'] },
+  { key: 'gewerbe', label: 'Gewerbe, Industrie und Landwirtschaft', match: ['Industrie', 'Landwirtschaft', 'Carport'] },
+  { key: 'privat', label: 'Privat und Speicher', match: ['Privat', 'Speicher', 'Ladeinfrastruktur'] },
+];
+const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.kategorie.includes(m))).map((f) => f.key).join(' ');
+---
+
+<Base
+  title="Referenzen"
+  description="Referenzen der ip³ Energietechnik GmbH: Photovoltaik auf Landwirtschaft und Gewerbe, Freiflächenanlagen, Carports sowie Heim- und Industriespeicher in der Oberpfalz und darüber hinaus."
+>
+  <PageHero
+    kicker="Referenzen"
+    title={'Gebaut und am Netz<span class="dot">.</span>'}
+    lead="Zufriedene Kunden sind der beste Nachweis für Erfahrung und Kompetenz. Hier ein Einblick in Anlagen, die wir bereits umgesetzt haben."
+    crumbs={[{ label: 'Referenzen' }]}
+  />
+
+  <section class="section refs-page" data-theme="light" data-header-zone="light" aria-labelledby="refs-list-title" data-refs>
+    <div class="wrap">
+      <h2 id="refs-list-title" class="visually-hidden">Projektübersicht</h2>
+      <div class="filter" role="group" aria-label="Referenzen filtern">
+        {
+          filter.map((f, i) => (
+            <button type="button" class="filter__btn" data-filter={f.key} aria-pressed={i === 0 ? 'true' : 'false'}>
+              {f.label}
+            </button>
+          ))
+        }
+        <p class="filter__count tech" aria-live="polite"><span data-count>{referenzen.length}</span> Projekte</p>
+      </div>
+
+      <ul class="refs-page__grid" role="list">
+        {
+          referenzen.map((r, i) => (
+            <li class:list={['refs-page__item', i % 3 === 0 ? 'wide' : '']} data-tags={tags(r)}>
+              <ReferenceSheet ref={r} index={i + 1} total={referenzen.length} size={i % 3 === 0 ? 'l' : 'm'} headingLevel={3} />
+            </li>
+          ))
+        }
+      </ul>
+      <p class="refs-page__note muted">Schematische Darstellung der Anlagentypen. Kennwerte, soweit veröffentlicht.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--linie);
+  }
+
+  .filter__btn {
+    min-height: 44px;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid rgb(47 36 130 / 0.3);
+    background: var(--weiss);
+    color: var(--blau);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition:
+      background-color var(--dur-fast),
+      color var(--dur-fast),
+      border-color var(--dur-fast);
+  }
+
+  .filter__btn:hover {
+    border-color: var(--blau);
+  }
+
+  .filter__btn[aria-pressed='true'] {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: var(--weiss);
+  }
+
+  .filter__count {
+    margin-left: auto;
+    font-size: var(--fs-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .refs-page__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(2rem, 4vw, 3.5rem) var(--gutter);
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .refs-page__item.wide {
+    grid-column: 1 / -1;
+  }
+
+  .refs-page__item.wide :global(.sheet) {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+
+  .refs-page__item.wide :global(.sheet__block) {
+    border-top: 0;
+    border-left: 1px solid var(--linie);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .refs-page__item.wide :global(.sheet__title) {
+    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.6rem);
+    padding: 1.5rem 1.5rem 1.25rem;
+  }
+
+  .refs-page__item[hidden] {
+    display: none;
+  }
+
+  .refs-page__note {
+    margin-top: 2.5rem;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 860px) {
+    .refs-page__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .refs-page__item.wide :global(.sheet) {
+      display: flex;
+    }
+
+    .refs-page__item.wide :global(.sheet__block) {
+      border-left: 0;
+      border-top: 1px solid var(--linie);
+    }
+
+    .filter__count {
+      width: 100%;
+      margin-left: 0;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll('[data-refs]').forEach((root) => {
+    const buttons = [...root.querySelectorAll('[data-filter]')];
+    const items = [...root.querySelectorAll('[data-tags]')];
+    const count = root.querySelector('[data-count]');
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        const key = b.dataset.filter;
+        buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        let n = 0;
+        items.forEach((it) => {
+          const show = key === 'alle' || it.dataset.tags.split(' ').includes(key);
+          it.hidden = !show;
+          if (show) {
+            n++;
+            const card = it.querySelector('[data-reveal]');
+            if (card) {
+              card.style.opacity = '1';
+              card.style.transform = 'none';
+            }
+          }
+        });
+        if (count) count.textContent = String(n);
+        window.dispatchEvent(new Event('resize'));
+      })
+    );
+  });
+</script>

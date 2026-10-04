@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+import { leistungenNav } from '../data/site.js';
+---
+
+<Base title="Seite nicht gefunden" noindex footerCta={false}>
+  <section class="nf" data-theme="dark" data-header-zone="dark">
+    <img class="zeichen zeichen--dark nf__zeichen" src="/brand/zeichen-3-kontur-akzent.png" alt="" width="808" height="1052" />
+    <div class="wrap">
+      <p class="kicker">Fehler 404</p>
+      <h1 class="display nf__title">Hier fließt kein Strom<span class="dot">.</span></h1>
+      <p class="lead nf__lead">Die Seite gibt es nicht oder nicht mehr. Vielleicht hilft einer dieser Wege weiter.</p>
+      <div class="btn-row">
+        <a class="btn btn--primary" href="/">Zur Startseite <Arrow /></a>
+        <a class="btn btn--ghost" href="/kontakt">Kontakt</a>
+      </div>
+      <ul class="nf__links" role="list">
+        {leistungenNav.map((l) => <li><a class="arrow-link" href={l.href}>{l.label} <span class="line" /></a></li>)}
+        <li><a class="arrow-link" href="/referenzen">Referenzen <span class="line" /></a></li>
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    min-height: 100vh;
+    padding-top: calc(var(--header-h) + 8rem);
+    padding-bottom: 6rem;
+  }
+
+  .nf__zeichen {
+    right: -16vmin;
+    top: -6vmin;
+    width: clamp(340px, 80vmin, 900px);
+  }
+
+  .nf__title {
+    margin-top: 1.25rem;
+    max-width: 12ch;
+  }
+
+  .nf__lead {
+    margin: 1.75rem 0 2.25rem;
+    color: var(--on-navy-sec);
+    max-width: 36rem;
+  }
+
+  .nf__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    margin-top: 3rem;
+  }
+</style>

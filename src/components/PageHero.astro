@@ -1,0 +1,121 @@
+---
+// Seitenkopf der Unterseiten: Navy-Fläche, große Headline mit rotem Satzendpunkt,
+// optional eine technische Zeichnung rechts und die Kontur-3 groß und leise im Hintergrund.
+import { drawing } from '../lib/drawings.js';
+
+const { kicker, title, lead, art = null, artTitle = '', crumbs = [], zeichen = true } = Astro.props;
+---
+
+<section class:list={['page-hero', { 'page-hero--art': art }]} data-theme="dark" data-header-zone="dark">
+  {zeichen && <img class="zeichen zeichen--dark page-hero__zeichen" src="/brand/zeichen-3-kontur-akzent.png" alt="" width="808" height="1052" data-parallax="-10" />}
+  <div class="wrap page-hero__inner">
+    <div class="page-hero__text">
+      {
+        crumbs.length > 0 && (
+          <nav class="crumbs" aria-label="Brotkrumen">
+            <ol role="list">
+              <li>
+                <a href="/">Start</a>
+              </li>
+              {crumbs.map((c) => (
+                <li>{c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}</li>
+              ))}
+            </ol>
+          </nav>
+        )
+      }
+      {kicker && <p class="kicker">{kicker}</p>}
+      <h1 class="h1 page-hero__title" data-split>
+        <Fragment set:html={title} />
+      </h1>
+      {lead && <p class="lead page-hero__lead" data-reveal>{lead}</p>}
+      <slot />
+    </div>
+    {art && <div class="page-hero__art" aria-hidden="true" set:html={drawing(art, artTitle)} />}
+  </div>
+</section>
+
+<style>
+  .page-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    padding-top: calc(var(--header-h) + clamp(3.5rem, 9vw, 8rem));
+    padding-bottom: clamp(4rem, 8vw, 7.5rem);
+  }
+
+  .page-hero__zeichen {
+    right: -18vmin;
+    top: -10vmin;
+    width: clamp(340px, 74vmin, 900px);
+  }
+
+  .page-hero__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3rem var(--gutter);
+    align-items: end;
+  }
+
+  .page-hero--art .page-hero__inner {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+
+  .page-hero__title {
+    margin-top: 1.25rem;
+    max-width: 13ch;
+  }
+
+  .page-hero__lead {
+    margin-top: clamp(1.5rem, 3vw, 2.25rem);
+    max-width: 40rem;
+    color: var(--on-navy-sec);
+  }
+
+  .page-hero__art {
+    align-self: center;
+  }
+
+  .crumbs {
+    margin-bottom: 2rem;
+    font-family: var(--font-tech);
+    font-size: var(--fs-label);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--on-navy-sec);
+  }
+
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.8rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .crumbs li + li::before {
+    content: '/';
+    margin-right: 0.8rem;
+    opacity: 0.5;
+  }
+
+  .crumbs a {
+    text-decoration: none;
+  }
+
+  .crumbs a:hover {
+    color: var(--weiss);
+    text-decoration: underline;
+  }
+
+  @media (max-width: 860px) {
+    .page-hero--art .page-hero__inner {
+      grid-template-columns: 1fr;
+    }
+
+    .page-hero__art {
+      max-width: 520px;
+    }
+  }
+</style>

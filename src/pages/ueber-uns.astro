@@ -1,0 +1,304 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Arrow from '../components/Arrow.astro';
+import { firma } from '../data/site.js';
+
+const werte = [
+  {
+    titel: 'Ganzheitliche Beratung',
+    text: 'Wir betrachten Erzeugung, Verbrauch, Speicher und Netzanschluss zusammen, bevor wir eine Lösung empfehlen.',
+  },
+  {
+    titel: 'Transparente Kommunikation',
+    text: 'Sie wissen, wo Ihr Projekt steht und welche Schritte als Nächstes folgen. Ein Ansprechpartner begleitet Sie durchgehend.',
+  },
+  {
+    titel: 'Maßgeschneiderte Lösungen',
+    text: 'Jede Anlage wird für ihren Standort geplant. Wir greifen dabei auf langjährige Erfahrung mit erneuerbaren Energien zurück.',
+  },
+];
+---
+
+<Base
+  title="Über uns"
+  description="ip³ Energietechnik GmbH aus Theisseil bei Weiden: 2009 als Ingenieurbüro gestartet, heute Fachunternehmen für schlüsselfertige Photovoltaikanlagen und Batteriespeicher."
+>
+  <PageHero
+    kicker="Über uns"
+    title={'Energie, die aus der Region kommt<span class="dot">.</span>'}
+    lead="ip³ ist ein auf erneuerbare Energien spezialisiertes Fachunternehmen aus der Oberpfalz. 2009 als Ingenieurbüro gestartet, haben wir uns zu Spezialisten für Energieeffizienz und zum Servicepartner für schlüsselfertige Energielösungen entwickelt."
+    crumbs={[{ label: 'Über uns' }]}
+  />
+
+  <section class="section story-about" data-theme="light" data-header-zone="light" aria-labelledby="weg-title">
+    <div class="wrap">
+      <div class="dim"><span class="dim__num">01</span><span>Unser Weg</span><span class="dim__line" data-draw></span></div>
+      <div class="weg">
+        <h2 id="weg-title" class="display weg__title" data-split>Vom Ingenieurbüro zum Fachbetrieb<span class="dot">.</span></h2>
+        <ol class="weg__line" role="list">
+          <li data-reveal>
+            <p class="weg__year tech">2009</p>
+            <h3>Start als Ingenieurbüro</h3>
+            <p>Gestartet als Ingenieurbüro in der Oberpfalz.</p>
+          </li>
+          <li data-reveal>
+            <p class="weg__year tech">Heute</p>
+            <h3>Planung, Beratung und Umsetzung</h3>
+            <p>Schlüsselfertige Photovoltaikanlagen und Batteriespeicher für Privat, Gewerbe, Industrie und Freiflächen, bis zum Großspeicher im zweistelligen Megawattbereich.</p>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section werte-sec" data-theme="hell" data-header-zone="hell" aria-labelledby="werte-title">
+    <div class="wrap">
+      <div class="dim"><span class="dim__num">02</span><span>Arbeitsweise</span><span class="dim__line" data-draw></span></div>
+      <h2 id="werte-title" class="h2 werte__title" data-split>Worauf Sie sich verlassen können<span class="dot">.</span></h2>
+      <ol class="werte" role="list">
+        {
+          werte.map((w, i) => (
+            <li class="wert" data-reveal>
+              <p class="wert__nr tech">{String(i + 1).padStart(2, '0')}</p>
+              <h3 class="wert__titel">{w.titel}</h3>
+              <p class="wert__text">{w.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section team" data-theme="light" data-header-zone="light" aria-labelledby="team-title">
+    <img class="zeichen zeichen--light team__zeichen" src="/brand/zeichen-3-kontur-rot.png" alt="" width="607" height="864" loading="lazy" data-parallax="12" />
+    <div class="wrap team__grid">
+      <div>
+        <div class="dim"><span class="dim__num">03</span><span>Menschen</span><span class="dim__line" data-draw></span></div>
+        <h2 id="team-title" class="h2 team__title" data-split>Ein Team vom Plan bis zur Baustelle<span class="dot">.</span></h2>
+        <p class="lead team__lead" data-reveal>
+          Projektleitung, Elektrotechnik, Planung und technisches Zeichnen sowie die Assistenz der Geschäftsführung arbeiten bei uns eng zusammen. So bleibt ein Projekt von der ersten Skizze bis zur Inbetriebnahme in einer Hand.
+        </p>
+      </div>
+      <dl class="gf" data-reveal>
+        <div class="gf__row">
+          <dt class="tech">Geschäftsführer</dt>
+          <dd>Sven Wilhelm, B. Eng.</dd>
+        </div>
+        <div class="gf__row">
+          <dt class="tech">Geschäftsführer</dt>
+          <dd>Michael Bäumler</dd>
+        </div>
+        <div class="gf__row">
+          <dt class="tech">Standort</dt>
+          <dd>Theisseil bei Weiden in der Oberpfalz</dd>
+        </div>
+        <div class="gf__row">
+          <dt class="tech">Netzgebiet</dt>
+          <dd>überwiegend Bayernwerk</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section karriere" data-theme="dark" data-header-zone="dark" aria-labelledby="karriere-title">
+    <div class="wrap karriere__grid">
+      <h2 id="karriere-title" class="h1" data-split>Arbeiten, wo Energie zu Hause ist<span class="dot">.</span></h2>
+      <div class="karriere__text">
+        <p class="lead" data-reveal>Sie wollen die Energiewende in der Region mitbauen? Wir freuen uns über Ihre Initiativbewerbung.</p>
+        <a class="btn btn--ghost" href={`mailto:${firma.email}?subject=Initiativbewerbung`} data-reveal>Bewerbung per E-Mail <Arrow /></a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .weg {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 3rem var(--gutter);
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
+    align-items: end;
+  }
+
+  .weg__title {
+    max-width: 11ch;
+  }
+
+  .weg__line {
+    position: relative;
+    display: grid;
+    gap: 2.5rem;
+    padding-left: 2rem;
+    border-left: 1px solid var(--linie);
+  }
+
+  .weg__line li {
+    position: relative;
+  }
+
+  .weg__line li::before {
+    content: '';
+    position: absolute;
+    left: calc(-2rem - 6px);
+    top: 0.45rem;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--weiss);
+    border: 1px solid var(--blau);
+  }
+
+  .weg__line li:last-child::before {
+    background: var(--akzent);
+    border-color: var(--akzent);
+  }
+
+  .weg__year {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--blau);
+    line-height: 1;
+  }
+
+  .weg__line h3 {
+    margin-top: 0.6rem;
+    font-size: 1.3rem;
+    color: var(--blau);
+  }
+
+  .weg__line p:not(.weg__year) {
+    margin-top: 0.5rem;
+    color: var(--text-sec);
+  }
+
+  .werte__title {
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+    max-width: 16ch;
+  }
+
+  .werte {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem var(--gutter);
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .wert {
+    border-top: 2px solid var(--blau);
+    padding-top: 1.4rem;
+  }
+
+  .wert__nr {
+    color: var(--akzent);
+    font-size: 0.9rem;
+  }
+
+  .wert__titel {
+    margin-top: 0.6rem;
+    font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+    color: var(--blau);
+  }
+
+  .wert__text {
+    margin-top: 0.8rem;
+    color: var(--text-sec);
+  }
+
+  .team {
+    overflow: hidden;
+  }
+
+  .team__zeichen {
+    right: -10vmin;
+    top: 10%;
+    width: clamp(260px, 44vmin, 560px);
+  }
+
+  .team__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 3rem var(--gutter);
+    align-items: end;
+  }
+
+  .team__title {
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+    max-width: 14ch;
+  }
+
+  .team__lead {
+    margin-top: 1.5rem;
+    max-width: 38rem;
+    color: var(--text-sec);
+  }
+
+  .gf {
+    margin: 0;
+    border-top: 1px solid var(--linie);
+    background: var(--weiss);
+  }
+
+  .gf__row {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--linie);
+  }
+
+  .gf__row dt {
+    font-size: var(--fs-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+    padding-top: 0.25rem;
+  }
+
+  .gf__row dd {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--blau);
+  }
+
+  .karriere__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 2.5rem var(--gutter);
+    align-items: end;
+  }
+
+  .karriere__grid .h1 {
+    max-width: 12ch;
+  }
+
+  .karriere__text {
+    display: grid;
+    gap: 1.75rem;
+    justify-items: start;
+  }
+
+  .karriere__text .lead {
+    color: var(--on-navy-sec);
+  }
+
+  @media (max-width: 960px) {
+    .weg,
+    .team__grid,
+    .karriere__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .werte {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .gf__row {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+  }
+</style>

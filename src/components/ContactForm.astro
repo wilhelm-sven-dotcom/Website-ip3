@@ -1,0 +1,463 @@
+---
+// Kontaktformular "Schreiben Sie uns" mit den Feldern der bisherigen Website.
+// Versand an das Server-Skript (Standard: /kontakt-senden.php). Ist kein Versand
+// möglich, bietet das Formular die vorbereitete Nachricht für das E-Mail-Programm an.
+import { firma } from '../data/site.js';
+import Arrow from './Arrow.astro';
+
+const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT || '/kontakt-senden.php';
+const interessen = [
+  'Private PV-Anlage',
+  'PV-Anlage für Industrie und Gewerbe',
+  'PV-Anlage auf Freiflächen',
+  'Batteriespeicher',
+  'Sonstiges',
+];
+---
+
+<form class="cform" action={endpoint} method="post" novalidate data-contact-form data-mail={firma.email} aria-labelledby="cform-title">
+  <h2 id="cform-title" class="h3 cform__title">Schreiben Sie uns<span class="dot">.</span></h2>
+  <p class="cform__intro muted">Felder mit <span aria-hidden="true">*</span><span class="visually-hidden">Stern</span> sind Pflichtfelder.</p>
+
+  <div class="cform__hp" aria-hidden="true">
+    <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+  </div>
+  <input type="hidden" name="ts" value="0" data-ts />
+
+  <fieldset class="cform__interest">
+    <legend class="cform__label">Interesse an</legend>
+    <div class="chips">
+      {
+        interessen.map((i, n) => (
+          <label class="chip">
+            <input type="radio" name="interesse" value={i} checked={n === 0} />
+            <span>{i}</span>
+          </label>
+        ))
+      }
+    </div>
+  </fieldset>
+
+  <div class="cform__grid">
+    <div class="field field--full">
+      <label class="cform__label" for="cf-name">Name <span class="req" aria-hidden="true">*</span></label>
+      <input id="cf-name" name="name" type="text" autocomplete="name" required maxlength="120" aria-describedby="cf-name-err" />
+      <p class="field__err" id="cf-name-err"></p>
+    </div>
+    <div class="field">
+      <label class="cform__label" for="cf-email">E-Mail <span class="req" aria-hidden="true">*</span></label>
+      <input id="cf-email" name="email" type="email" autocomplete="email" required maxlength="160" aria-describedby="cf-email-err" />
+      <p class="field__err" id="cf-email-err"></p>
+    </div>
+    <div class="field">
+      <label class="cform__label" for="cf-tel">Telefon</label>
+      <input id="cf-tel" name="telefon" type="tel" autocomplete="tel" maxlength="60" />
+    </div>
+    <div class="field">
+      <label class="cform__label" for="cf-adresse">Adresse</label>
+      <input id="cf-adresse" name="adresse" type="text" autocomplete="street-address" maxlength="160" />
+    </div>
+    <div class="field">
+      <label class="cform__label" for="cf-ort">PLZ und Ort</label>
+      <input id="cf-ort" name="plz_ort" type="text" autocomplete="postal-code" maxlength="120" />
+    </div>
+    <div class="field field--full">
+      <label class="cform__label" for="cf-msg">Nachricht <span class="req" aria-hidden="true">*</span></label>
+      <textarea id="cf-msg" name="nachricht" rows="6" required maxlength="5000" aria-describedby="cf-msg-hint cf-msg-err"></textarea>
+      <p class="field__hint muted" id="cf-msg-hint">Zum Beispiel: Dachfläche oder Flächengröße, Jahresverbrauch, gewünschter Zeitraum.</p>
+      <p class="field__err" id="cf-msg-err"></p>
+    </div>
+  </div>
+
+  <div class="field field--check">
+    <label class="check">
+      <input type="checkbox" name="datenschutz" value="ja" required aria-describedby="cf-ds-err" />
+      <span>Ich bin damit einverstanden, dass meine Angaben zur Bearbeitung der Anfrage verarbeitet werden. Details in der <a href="/datenschutz">Datenschutzerklärung</a>. <span class="req" aria-hidden="true">*</span></span>
+    </label>
+    <p class="field__err" id="cf-ds-err"></p>
+  </div>
+
+  <div class="cform__actions">
+    <button type="submit" class="btn btn--primary" data-submit>
+      <span data-submit-label>Anfrage senden</span>
+      <Arrow />
+    </button>
+  </div>
+
+  <div class="cform__status" role="status" aria-live="polite" data-status></div>
+
+  <div class="cform__fallback" data-fallback hidden>
+    <p>
+      Der direkte Versand ist gerade nicht möglich. Ihre Nachricht ist nicht verloren: Öffnen Sie sie vorbereitet in Ihrem E-Mail-Programm oder rufen Sie uns an.
+    </p>
+    <div class="btn-row">
+      <a class="btn btn--primary" href="#" data-mailto>Nachricht per E-Mail senden <Arrow /></a>
+      <a class="btn btn--ghost" href={firma.telefonHref}>{firma.telefon}</a>
+    </div>
+  </div>
+</form>
+
+<div class="cform__sent" id="anfrage-gesendet" tabindex="-1">
+  <p class="kicker">Vielen Dank</p>
+  <p class="lead">Ihre Anfrage ist bei uns eingegangen. Wir melden uns zeitnah bei Ihnen.</p>
+</div>
+<div class="cform__sent cform__sent--err" id="anfrage-fehler" tabindex="-1">
+  <p class="kicker">Versand nicht möglich</p>
+  <p>Bitte schreiben Sie uns direkt an <a href={`mailto:${firma.email}`}>{firma.email}</a> oder rufen Sie an: <a href={firma.telefonHref}>{firma.telefon}</a>.</p>
+</div>
+
+<style>
+  .cform {
+    display: grid;
+    gap: 1.6rem;
+  }
+
+  .cform__title {
+    color: var(--blau);
+  }
+
+  .cform__intro {
+    margin-top: -0.9rem;
+    font-size: 0.9rem;
+  }
+
+  .cform__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .cform__label {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-family: var(--font-tech);
+    font-weight: 500;
+    font-size: var(--fs-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .req {
+    color: var(--akzent);
+  }
+
+  .cform__interest {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .chip {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  .chip span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgb(47 36 130 / 0.3);
+    background: var(--weiss);
+    color: var(--blau);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition:
+      background-color var(--dur-fast),
+      color var(--dur-fast),
+      border-color var(--dur-fast);
+  }
+
+  .chip:hover span {
+    border-color: var(--blau);
+  }
+
+  .chip input:checked + span {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: var(--weiss);
+  }
+
+  .chip input:focus-visible + span {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  .cform__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem var(--gutter);
+  }
+
+  .field--full {
+    grid-column: 1 / -1;
+  }
+
+  .field input,
+  .field textarea {
+    width: 100%;
+    min-height: 52px;
+    padding: 0.8rem 0.95rem;
+    border: 1px solid #b9bccb;
+    border-radius: 0;
+    background: var(--weiss);
+    color: var(--text);
+    font-size: 1rem;
+    transition:
+      border-color var(--dur-fast),
+      box-shadow var(--dur-fast);
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 160px;
+  }
+
+  .field input:hover,
+  .field textarea:hover {
+    border-color: var(--blau);
+  }
+
+  .field input:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--blau);
+    box-shadow: 0 0 0 3px rgb(47 36 130 / 0.18);
+  }
+
+  .field [aria-invalid='true'] {
+    border-color: var(--akzent);
+  }
+
+  .field__err {
+    min-height: 0;
+    margin-top: 0.35rem;
+    font-size: 0.88rem;
+    color: #a3271d;
+  }
+
+  .field__err:empty {
+    display: none;
+  }
+
+  .field__hint {
+    margin-top: 0.35rem;
+    font-size: 0.88rem;
+  }
+
+  .check {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.8rem;
+    align-items: start;
+    font-size: 0.95rem;
+    color: var(--text-sec);
+    cursor: pointer;
+  }
+
+  .check input {
+    width: 22px;
+    height: 22px;
+    margin: 0.1rem 0 0;
+    accent-color: var(--navy);
+  }
+
+  .check a {
+    color: var(--blau);
+  }
+
+  .cform__actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .cform button[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .cform__status:empty {
+    display: none;
+  }
+
+  .cform__status {
+    padding: 1rem 1.2rem;
+    border-left: 3px solid var(--blau);
+    background: var(--box);
+  }
+
+  .cform__status.is-ok {
+    border-left-color: var(--blau);
+  }
+
+  .cform__status.is-error {
+    border-left-color: var(--akzent);
+  }
+
+  .cform__fallback {
+    display: grid;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--box);
+    border-left: 3px solid var(--akzent);
+  }
+
+  .cform__fallback[hidden] {
+    display: none;
+  }
+
+  /* Rückmeldung bei Versand ohne JavaScript (Weiterleitung mit Sprungmarke) */
+  .cform__sent {
+    display: none;
+    margin-top: 1.5rem;
+    padding: 1.25rem 1.4rem;
+    background: var(--box);
+    border-left: 3px solid var(--blau);
+  }
+
+  .cform__sent--err {
+    border-left-color: var(--akzent);
+  }
+
+  .cform__sent:target {
+    display: block;
+  }
+
+  @media (max-width: 640px) {
+    .cform__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  const forms = document.querySelectorAll('[data-contact-form]');
+  forms.forEach((form) => {
+    const ts = form.querySelector('[data-ts]');
+    ts.value = String(Date.now());
+    const status = form.querySelector('[data-status]');
+    const fallback = form.querySelector('[data-fallback]');
+    const mailto = form.querySelector('[data-mailto]');
+    const submit = form.querySelector('[data-submit]');
+    const label = form.querySelector('[data-submit-label]');
+
+    const fields = {
+      name: { el: form.elements.namedItem('name'), msg: 'Bitte geben Sie Ihren Namen an.' },
+      email: { el: form.elements.namedItem('email'), msg: 'Bitte geben Sie eine gültige E-Mail-Adresse an.' },
+      nachricht: { el: form.elements.namedItem('nachricht'), msg: 'Bitte beschreiben Sie kurz Ihr Anliegen.' },
+      datenschutz: { el: form.elements.namedItem('datenschutz'), msg: 'Bitte bestätigen Sie die Verarbeitung Ihrer Angaben.' },
+    };
+
+    const setError = (f, text) => {
+      const err = document.getElementById(f.el.getAttribute('aria-describedby').split(' ').pop());
+      f.el.setAttribute('aria-invalid', text ? 'true' : 'false');
+      if (err) err.textContent = text || '';
+    };
+
+    const validate = () => {
+      let first = null;
+      for (const key of Object.keys(fields)) {
+        const f = fields[key];
+        let ok = true;
+        if (key === 'datenschutz') ok = f.el.checked;
+        else if (key === 'email') ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(f.el.value.trim());
+        else ok = f.el.value.trim().length > (key === 'nachricht' ? 4 : 0);
+        setError(f, ok ? '' : f.msg);
+        if (!ok && !first) first = f.el;
+      }
+      return first;
+    };
+
+    Object.values(fields).forEach((f) =>
+      f.el.addEventListener(f.el.type === 'checkbox' ? 'change' : 'blur', () => {
+        if (f.el.getAttribute('aria-invalid') === 'true') validate();
+      })
+    );
+
+    const mailBody = () => {
+      const d = new FormData(form);
+      const lines = [
+        `Interesse an: ${d.get('interesse') || ''}`,
+        `Name: ${d.get('name') || ''}`,
+        `E-Mail: ${d.get('email') || ''}`,
+        `Telefon: ${d.get('telefon') || ''}`,
+        `Adresse: ${d.get('adresse') || ''}`,
+        `PLZ und Ort: ${d.get('plz_ort') || ''}`,
+        '',
+        `${d.get('nachricht') || ''}`,
+      ];
+      const subject = `Projektanfrage: ${d.get('interesse') || 'Allgemein'}`;
+      return `mailto:${form.dataset.mail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`;
+    };
+
+    const showFallback = (reason) => {
+      status.className = 'cform__status is-error';
+      status.textContent = reason;
+      mailto.href = mailBody();
+      fallback.hidden = false;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.textContent = '';
+      fallback.hidden = true;
+      const first = validate();
+      if (first) {
+        first.focus();
+        status.className = 'cform__status is-error';
+        status.textContent = 'Bitte prüfen Sie die markierten Felder.';
+        return;
+      }
+      submit.disabled = true;
+      label.textContent = 'Wird gesendet …';
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        let data = null;
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+        if (res.ok && data && data.ok === true) {
+          form.reset();
+          ts.value = String(Date.now());
+          status.className = 'cform__status is-ok';
+          status.textContent = 'Vielen Dank. Ihre Anfrage ist bei uns eingegangen. Wir melden uns zeitnah bei Ihnen.';
+          status.focus?.();
+        } else if (data && data.error === 'validation') {
+          status.className = 'cform__status is-error';
+          status.textContent = 'Bitte prüfen Sie Ihre Angaben.';
+        } else {
+          showFallback('Ihre Anfrage konnte nicht direkt übermittelt werden.');
+        }
+      } catch {
+        showFallback('Ihre Anfrage konnte nicht direkt übermittelt werden. Bitte prüfen Sie Ihre Internetverbindung.');
+      } finally {
+        submit.disabled = false;
+        label.textContent = 'Anfrage senden';
+      }
+    });
+  });
+</script>

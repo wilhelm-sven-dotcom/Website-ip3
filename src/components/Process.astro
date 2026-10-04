@@ -1,0 +1,257 @@
+---
+// Ablauf von der ersten Anfrage bis zum Betrieb. Die Bemaßungslinie füllt sich beim Scrollen.
+const { nr = '05', theme = 'hell' } = Astro.props;
+
+const schritte = [
+  {
+    titel: 'Erstgespräch und Ist-Analyse',
+    text: 'Wir nehmen Standort, Verbrauch und Ziele auf. Bei Gewerbe und Industrie auf Basis Ihres Lastgangs.',
+  },
+  {
+    titel: 'Planung und Auslegung',
+    text: 'Verschattungsanalyse, Ertragsprognose, Modul- und Wechselrichterkombination, Speicherauslegung und Wirtschaftlichkeitsberechnung.',
+  },
+  {
+    titel: 'Genehmigung und Netzanschluss',
+    text: 'Baurechtliche Fachplanung, Netzanschlussbegehren und Abstimmung mit dem Netzbetreiber. Anlagenzertifikat nach VDE-AR-N 4110 oder 4120, wo gefordert.',
+  },
+  {
+    titel: 'Bau und Bauüberwachung',
+    text: 'Montage, Elektroinstallation und Ausführungsüberwachung durch unsere Projektleitung gemeinsam mit unseren Realisierungspartnern.',
+  },
+  {
+    titel: 'Inbetriebnahme und Übergabe',
+    text: 'Abnahme, schlüsselfertige Übergabe, Registrierung im Marktstammdatenregister (MaStR) und Einweisung Ihres Personals.',
+  },
+  {
+    titel: 'Betrieb',
+    text: 'Betriebsführung und Überwachung der Anlage, auf Wunsch mit Anbindung an die Direktvermarktung.',
+  },
+];
+---
+
+<section class="section process" id="ablauf" data-theme={theme} data-header-zone={theme} aria-labelledby="process-title" data-process>
+  <div class="wrap process__grid">
+    <div class="process__aside">
+      <div class="dim"><span class="dim__num">{nr}</span><span>Ablauf</span><span class="dim__line" data-draw></span></div>
+      <h2 id="process-title" class="h1 process__title" data-split>Von der Idee bis ans Netz<span class="dot">.</span></h2>
+      <p class="lead process__lead" data-reveal>
+        Planung, Beratung und Umsetzung aus einer Hand. Sie haben einen Ansprechpartner, vom ersten Gespräch bis zum laufenden Betrieb.
+      </p>
+      <p class="process__counter tech" aria-hidden="true"><span data-process-current>01</span> / {String(schritte.length).padStart(2, '0')}</p>
+    </div>
+
+    <div class="steps">
+      <span class="steps__rail" aria-hidden="true"><span class="steps__fill" data-process-fill></span></span>
+      <ol class="steps__list" role="list">
+      {
+        schritte.map((s, i) => (
+          <li class="step" data-step={i + 1}>
+            <span class="step__marker" aria-hidden="true" />
+            <p class="step__nr tech">{String(i + 1).padStart(2, '0')}</p>
+            <h3 class="step__title">{s.titel}</h3>
+            <p class="step__text">{s.text}</p>
+          </li>
+        ))
+      }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .process__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 3rem var(--gutter);
+    align-items: start;
+  }
+
+  .process__aside {
+    position: sticky;
+    top: calc(var(--header-h) + 3rem);
+  }
+
+  .process__title {
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
+    max-width: 10ch;
+  }
+
+  .process__lead {
+    margin-top: 1.75rem;
+    max-width: 30rem;
+    color: var(--text-sec);
+  }
+
+  .process__counter {
+    margin-top: 2.5rem;
+    font-size: clamp(2.5rem, 2rem + 2vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--blau);
+  }
+
+  .process__counter span {
+    color: var(--akzent);
+  }
+
+  .steps {
+    position: relative;
+    padding: 0 0 0 clamp(2.5rem, 5vw, 4.5rem);
+  }
+
+  .steps__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .steps__rail {
+    position: absolute;
+    left: 6px;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 1px;
+    background: rgb(12 26 61 / 0.2);
+  }
+
+  .steps__rail::before,
+  .steps__rail::after {
+    content: '';
+    position: absolute;
+    left: -6px;
+    width: 13px;
+    height: 1px;
+    background: rgb(12 26 61 / 0.4);
+  }
+
+  .steps__rail::before {
+    top: 0;
+  }
+
+  .steps__rail::after {
+    bottom: 0;
+  }
+
+  .steps__fill {
+    position: absolute;
+    left: -1px;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--akzent);
+    transform: scaleY(var(--fill, 0));
+    transform-origin: top;
+  }
+
+  .step {
+    position: relative;
+    padding: clamp(2rem, 4vw, 3.5rem) 0;
+    border-top: 1px solid rgb(12 26 61 / 0.12);
+  }
+
+  .step:first-of-type {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .step__marker {
+    position: absolute;
+    left: calc(-1 * clamp(2.5rem, 5vw, 4.5rem) + 1px);
+    top: calc(clamp(2rem, 4vw, 3.5rem) + 0.35rem);
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--hell);
+    border: 1px solid rgb(12 26 61 / 0.45);
+    transition:
+      background-color 400ms var(--ease-out),
+      border-color 400ms var(--ease-out),
+      transform 400ms var(--ease-out);
+  }
+
+  .step:first-of-type .step__marker {
+    top: 0.35rem;
+  }
+
+  [data-theme='light'] .step__marker {
+    background: var(--weiss);
+  }
+
+  .step.is-active .step__marker {
+    background: var(--akzent);
+    border-color: var(--akzent);
+    transform: scale(1.25);
+  }
+
+  .step__nr {
+    font-size: 0.9rem;
+    color: var(--akzent);
+  }
+
+  .step__title {
+    margin-top: 0.5rem;
+    font-size: clamp(1.5rem, 1.15rem + 1.3vw, 2.4rem);
+    color: var(--blau);
+  }
+
+  .step__text {
+    margin-top: 0.85rem;
+    max-width: 40rem;
+    color: var(--text-sec);
+  }
+
+  @media (max-width: 960px) {
+    .process__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .process__aside {
+      position: relative;
+      top: auto;
+    }
+
+    .process__counter {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.querySelectorAll('[data-process]').forEach((root) => {
+    const fill = root.querySelector('[data-process-fill]');
+    const steps = [...root.querySelectorAll('.step')];
+    const counter = root.querySelector('[data-process-current]');
+    const list = root.querySelector('.steps__list');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    ScrollTrigger.create({
+      trigger: list,
+      start: 'top 65%',
+      end: 'bottom 55%',
+      onUpdate: (self) => fill.style.setProperty('--fill', reduce ? 1 : self.progress.toFixed(4)),
+    });
+    if (reduce) fill.style.setProperty('--fill', 1);
+
+    steps.forEach((step) => {
+      ScrollTrigger.create({
+        trigger: step,
+        start: 'top 62%',
+        end: 'bottom 62%',
+        onToggle: (self) => {
+          if (self.isActive) {
+            steps.forEach((s) => s.classList.toggle('is-active', s === step || +s.dataset.step < +step.dataset.step));
+            if (counter) counter.textContent = String(step.dataset.step).padStart(2, '0');
+          }
+        },
+        onLeaveBack: () => {
+          step.classList.remove('is-active');
+        },
+      });
+    });
+  });
+</script>
