@@ -176,7 +176,7 @@ const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.katego
           }
         });
         if (count) count.textContent = String(n);
-        window.dispatchEvent(new Event('resize'));
+        document.dispatchEvent(new Event('layout:change'));
       })
     );
   });

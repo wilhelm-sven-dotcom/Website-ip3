@@ -30,7 +30,9 @@ Offline-Fassung zum Weitergeben, ohne Server und ohne Installation:
 npm run offline      # erzeugt vorschau-offline/: jede Seite als eigenständige HTML-Datei, index.html per Doppelklick öffnen
 ```
 
-Zusätzlich entsteht `vorschau-offline/ip3-website.html`: die gesamte Website in einer einzigen Datei, mit Navigation zwischen allen Seiten. Sie lässt sich auch dort öffnen, wo nur eine einzelne Datei geht, etwa auf Android-Smartphones oder als E-Mail-Anhang. Daneben liegt `vorschau-offline/ip3-handy-simulation.html`: dieselbe Website im Handy- oder Tablet-Rahmen in echter Darstellungsgröße (360, 390, 430 und 820 px breit, hoch und quer), mit nachgebildetem Touchgerät ohne Hover-Zustände und mit Wischen per gedrückter Maustaste. Damit lässt sich die mobile Fassung am Rechner prüfen. Das Formular verschickt in beiden Offline-Fassungen nichts und bietet stattdessen die vorbereitete E-Mail an.
+Zusätzlich entsteht `vorschau-offline/ip3-website.html`: die gesamte Website in einer einzigen Datei, mit Navigation zwischen allen Seiten. Sie lässt sich auch dort öffnen, wo nur eine einzelne Datei geht, etwa auf Android-Smartphones oder als E-Mail-Anhang. Daneben liegt `vorschau-offline/ip3-handy-simulation.html`: dieselbe Website im Handy- oder Tablet-Rahmen in echter Darstellungsgröße (360, 390, 430 und 820 px breit, hoch und quer), mit nachgebildetem Touchgerät ohne Hover-Zustände und mit Wischen per gedrückter Maustaste. Damit lässt sich die mobile Fassung am Rechner prüfen. Ohne JavaScript, etwa in der Dateivorschau am iPhone, zeigen beide Dateien einen Hinweis statt einer leeren Fläche; am Handy selbst öffnet die Simulation die Website im Vollbild.
+
+Für das Handy ohne Server gibt es den Rundgang als Video: `node scripts/video-rundgang.mjs http://127.0.0.1:8080 rundgang.mp4` bei laufender Vorschau (benötigt ffmpeg, Pfad über `FFMPEG`). Das Formular verschickt in beiden Offline-Fassungen nichts und bietet stattdessen die vorbereitete E-Mail an.
 
 Ohne PHP genügt `npm run build && npm run preview`. Das Formular meldet dann ehrlich, dass der direkte Versand nicht möglich ist, und bietet die vorbereitete Nachricht für das E-Mail-Programm an.
 

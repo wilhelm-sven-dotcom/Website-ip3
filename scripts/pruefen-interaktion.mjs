@@ -72,6 +72,25 @@ const browser = await chromium.launch({ args: gl });
   await page.close();
 }
 
+/* 3b. Referenzfilter am Touchgerät: nachgerückte Planblätter werden beim Scrollen enthüllt */
+{
+  const ctx = await browser.newContext({ ...zugang, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage();
+  await page.goto(base + '/referenzen', { waitUntil: 'load' });
+  await page.waitForTimeout(800);
+  await page.tap('[data-filter="frei"]');
+  await page.waitForTimeout(500);
+  const platten = await page.$$('[data-tags]:not([hidden]) [data-clip]');
+  let offen = 0;
+  for (const platte of platten) {
+    await platte.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await page.waitForTimeout(1800);
+    if (!(await platte.evaluate((el) => getComputedStyle(el).clipPath)).includes('100%')) offen++;
+  }
+  note(platten.length === 3 && offen === platten.length, `Filter am Touchgerät: Planblätter enthüllt (${offen} von ${platten.length})`);
+  await ctx.close();
+}
+
 /* 4. Schaltbild: Legende hebt Positionen hervor */
 {
   const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });

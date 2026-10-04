@@ -322,6 +322,9 @@ function init() {
   initReveals();
   initTilt();
   window.addEventListener('load', () => ScrollTrigger.refresh());
+  // Inhalte verschieben sich (z. B. Referenzfilter): Auslöser neu berechnen. Ein künstliches
+  // resize-Ereignis reicht nicht, ScrollTrigger übergeht es auf Touchgeräten.
+  document.addEventListener('layout:change', () => ScrollTrigger.refresh());
 }
 
 if (document.readyState === 'loading') {

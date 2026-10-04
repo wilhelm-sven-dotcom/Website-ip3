@@ -200,6 +200,30 @@ window.addEventListener('popstate', (e) => {
 window.addEventListener('hashchange', () => zeigen(false));
 `;
 
+// Hinweis, solange kein Skript läuft (Dateivorschau am iPhone, manche Apps); bei einem
+// Startfehler steht dort die Fehlermeldung
+const meldungStil = `.meldung{position:fixed;inset:0;z-index:5;display:grid;place-items:center;padding:24px;color:#fff;font:15px/1.5 'Libre Franklin',Arial,Helvetica,sans-serif}.meldung>div{max-width:540px;padding:28px 30px;border:1px solid rgb(232 231 239 / .34);border-radius:18px;background:#0c1a3d}.meldung strong{display:block;margin:0 0 12px;font-size:24px;line-height:1.2;font-weight:800;letter-spacing:-.01em}.meldung p{margin:0 0 10px;color:rgb(232 231 239 / .78)}.meldung p:last-child{margin-bottom:0}.bereit .meldung{display:none}`;
+const meldungHtml = (...absaetze) => `<div class="meldung" data-meldung><div><strong>Diese Vorschau führt keine Skripte aus.</strong>${absaetze.map((a) => `<p>${a}</p>`).join('')}</div></div>`;
+const meldungSkript = `const meldung = (titel, ...absaetze) => {
+  const k = document.querySelector('[data-meldung] div');
+  k.textContent = '';
+  const s = document.createElement('strong');
+  s.textContent = titel;
+  k.append(s);
+  for (const a of absaetze) {
+    const p = document.createElement('p');
+    p.textContent = a;
+    k.append(p);
+  }
+  document.documentElement.classList.remove('bereit');
+};
+const startfehler = (e) => meldung('Die Vorschau konnte nicht starten.', String(e.message || e.error || 'Unbekannter Fehler'), 'Browser: ' + navigator.userAgent);
+window.addEventListener('error', startfehler);
+const gestartet = () => {
+  document.documentElement.classList.add('bereit');
+  window.removeEventListener('error', startfehler);
+};`;
+
 const voll = `<!doctype html>
 <html lang="de">
 <head>
@@ -207,16 +231,19 @@ const voll = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ip³ Energietechnik GmbH</title>
 ${icons}
-<style>html,body{margin:0;height:100%;background:#0c1a3d}iframe{position:fixed;inset:0;width:100%;height:100%;border:0;display:block}</style>
+<style>html,body{margin:0;height:100%;background:#0c1a3d}iframe{position:fixed;inset:0;width:100%;height:100%;border:0;display:block}${meldungStil}</style>
 </head>
 <body>
+${meldungHtml('Die Website-Datei braucht JavaScript. Diese Vorschau führt keins aus, das ist zum Beispiel in der Dateivorschau am iPhone so.', 'Am Rechner: Datei herunterladen und per Doppelklick in Chrome, Edge, Firefox oder Safari öffnen.')}
 <script>
+${meldungSkript}
 ${datenSkript}
 const BEHAELTER = document.body;
 const VORBEREITEN = (html) => html;
 const TITEL = (titel) => (document.title = titel);
 ${router}
 zeigen(true);
+gestartet();
 </script>
 </body>
 </html>
@@ -232,7 +259,7 @@ ${icons}
 <style>
 :root{--navy:#0c1a3d;--hell:#e8e7ef;--weiss:#fff;--akzent:#c83c30;--linie:rgb(232 231 239 / .34);--strich:rgb(232 231 239 / .6);--sek:rgb(232 231 239 / .72);--tech:'Space Grotesk','Libre Franklin',Arial,sans-serif}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%}
+html,body{margin:0;height:100%;min-height:520px}
 body{display:flex;flex-direction:column;overflow:hidden;background:var(--navy);color:var(--weiss);font:400 15px/1.45 'Libre Franklin',Archivo,Arial,Helvetica,sans-serif}
 img:not([src]){visibility:hidden}
 .zeichen{position:fixed;right:-26vmin;bottom:-24vmin;width:82vmin;opacity:.16;pointer-events:none;user-select:none}
@@ -276,6 +303,10 @@ button:focus-visible{outline:2px solid var(--weiss);outline-offset:3px}
 .hinweis{position:absolute;left:28px;bottom:16px;margin:0;max-width:min(380px,calc(100% - 56px));color:var(--sek);font-size:13px}
 .hinweis strong{color:var(--weiss);font-weight:600}
 @media (max-width:900px){.leiste{padding:14px 18px}.hinweis{left:18px}}
+${meldungStil}
+html:not(.bereit) .huelle,html:not(.bereit) .leiste .gruppe,html:not(.bereit) .hinweis{display:none}
+.direkt .leiste,.direkt .hinweis,.direkt .mass,.direkt .zeichen,.direkt .kamera,.direkt .taste{display:none}
+.direkt .huelle,.direkt .geraet,.direkt .rahmen,.direkt .bildschirm{position:fixed;inset:0;width:auto;height:auto;padding:0;border:0;border-radius:0;transform:none;box-shadow:none}
 </style>
 </head>
 <body>
@@ -301,6 +332,7 @@ button:focus-visible{outline:2px solid var(--weiss);outline-offset:3px}
   </div>
 </header>
 <main class="buehne" data-buehne>
+  ${meldungHtml('Die Handy-Simulation braucht JavaScript. In der Dateivorschau am iPhone und in manchen Apps läuft es nicht.', 'Am Rechner: Datei herunterladen und per Doppelklick in Chrome, Edge, Firefox oder Safari öffnen.', 'Am Handy: Das Video ip3-handy-rundgang.mp4 zeigt die mobile Fassung in Bewegung.')}
   <div class="huelle" data-huelle>
     <div class="geraet" data-box>
       <div class="rahmen">
@@ -317,6 +349,9 @@ button:focus-visible{outline:2px solid var(--weiss);outline-offset:3px}
   <p class="hinweis"><strong data-seite>Startseite</strong><br><span class="zahl" data-groesse></span>&nbsp;px · Maßstab <span class="zahl" data-massstab></span>&nbsp;%<br>Scrollen mit Mausrad oder Touchpad oder durch Wischen mit gedrückter Maustaste. Darstellung wie auf dem Gerät, Rechenleistung vom Rechner.</p>
 </main>
 <script>
+${meldungSkript}
+// Am Handy selbst: Website im Vollbild statt eines Geräts im Gerät
+if (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600) document.documentElement.classList.add('direkt');
 ${datenSkript}
 for (const s of ${JSON.stringify(schriften)}) {
   try {
@@ -374,8 +409,12 @@ function masse() {
 
 // Gerät in echter Pixelgröße, bei kleinem Fenster als Ganzes verkleinert
 function einpassen() {
+  if (document.documentElement.classList.contains('direkt')) {
+    box.style.transform = huelle.style.width = huelle.style.height = '';
+    return;
+  }
   const m = masse();
-  const s = Math.min(1, (buehne.clientWidth - 32) / m.breite, (buehne.clientHeight - (buehne.clientWidth >= 1100 ? 24 : 80)) / m.hoehe);
+  const s = Math.max(0.2, Math.min(1, (buehne.clientWidth - 32) / m.breite, (buehne.clientHeight - (buehne.clientWidth >= 1100 ? 24 : 80)) / m.hoehe));
   box.style.transform = 'scale(' + s + ')';
   huelle.style.width = m.breite * s + 'px';
   huelle.style.height = m.hoehe * s + 'px';
@@ -420,6 +459,7 @@ document.querySelector('[data-neu]').addEventListener('click', () => zeigen(true
 window.addEventListener('resize', einpassen);
 anwenden();
 zeigen(true);
+gestartet();
 </script>
 </body>
 </html>
