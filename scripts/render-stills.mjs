@@ -23,7 +23,7 @@ for (const size of sizes) {
   const page = await browser.newPage({ viewport: { width: size.w, height: size.h }, deviceScaleFactor: 1.5 });
   await page.goto(url + '?capture', { waitUntil: 'load' });
   await page.waitForFunction(() => window.__story, null, { timeout: 120000 });
-  await page.addStyleTag({ content: '.story__flow,.story__labels,.story__poster,.site-header,.skip-link{display:none !important}' });
+  await page.addStyleTag({ content: '.story__flow,.story__poster,.site-header,.skip-link{display:none !important}' });
   for (const s of shots) {
     await page.evaluate((s) => window.__story.setProgress(s.p, s.t), s);
     await page.waitForTimeout(200);

@@ -186,11 +186,13 @@ export async function initStory() {
       l.el.style.transform = `translate3d(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px, 0)`;
       // Text bleibt im Bild: bei Bedarf auf die andere Seite klappen
       if (!l.textW) l.textW = l.text.offsetWidth + (quality.mobile ? 48 : 70);
-      let side = l.side;
-      if (side === 'right' && s.x + l.textW > width - 8) side = 'left';
-      else if (side === 'left' && s.x - l.textW < 8) side = 'right';
-      l.el.classList.toggle('story-label--left', side === 'left');
-      l.el.classList.toggle('story-label--right', side !== 'left');
+      if (l.side !== 'none') {
+        let side = l.side;
+        if (side === 'right' && s.x + l.textW > width - 8) side = 'left';
+        else if (side === 'left' && s.x - l.textW < 8) side = 'right';
+        l.el.classList.toggle('story-label--left', side === 'left');
+        l.el.classList.toggle('story-label--right', side !== 'left');
+      }
     }
   }
 
@@ -268,9 +270,14 @@ export async function initStory() {
   story.render();
   placeLabels(current);
   section.classList.add('is-live');
+  document.dispatchEvent(new Event('header:update'));
   start();
 
-  // Hook für Bildschirmaufnahmen und Tests
+  // Schnittstelle für Bildschirmaufnahmen und Tests, nur mit ?capture oder ?debug
+  if (!params.has('capture') && !params.has('debug')) {
+    document.dispatchEvent(new CustomEvent('story:ready'));
+    return;
+  }
   window.__story = {
     setProgress(p, t = 2) {
       stop();

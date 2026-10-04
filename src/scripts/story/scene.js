@@ -8,6 +8,8 @@ import { createPhotons } from './photons.js';
 import { monotone, range, win, clamp01 } from './spline.js';
 
 const DEG = Math.PI / 180;
+// Entwicklungswerkzeug: Kamera- und Posenwerte per window.__storyTune überschreiben
+const TUNING = new URLSearchParams(location.search).has('capture');
 const NAVY = new THREE.Color('#0c1a3d');
 
 /** Farbe so vorverzerren, dass sie nach Neutral-Tonemapping exakt erscheint (dunkle Töne). */
@@ -77,7 +79,7 @@ export function createStoryScene(canvas, quality) {
 
   const scene = new THREE.Scene();
   // Streiflicht, das in der Präsentationslage diagonal über das Glas läuft
-  const strip = (window.__storyTune && window.__storyTune.strip) || {
+  const strip = (TUNING && window.__storyTune && window.__storyTune.strip) || {
     w: 80,
     h: 1.8,
     pos: new THREE.Vector3(18.2, 37.2, 28.1),
@@ -141,6 +143,34 @@ export function createStoryScene(canvas, quality) {
   const photons = createPhotons({ center: new THREE.Vector2(focusLocal.x, focusLocal.y), count: quality.photons });
   hero.add(photons.group);
 
+  // Bemaßung des Moduls in der Präsentationslage (Maßlinien mit Hilfslinien wie im CAD)
+  const MW = MODULE.w / 1000;
+  const MH = MODULE.h / 1000;
+  const DZ = 0.0175;
+  const OFF = 0.15;
+  const T = 0.025;
+  const dimSegs = [
+    // Länge, rechts neben dem Modul
+    [MW / 2 + OFF, -MH / 2, MW / 2 + OFF, MH / 2],
+    [MW / 2 + 0.035, -MH / 2, MW / 2 + OFF + 0.05, -MH / 2],
+    [MW / 2 + 0.035, MH / 2, MW / 2 + OFF + 0.05, MH / 2],
+    [MW / 2 + OFF - T, -MH / 2 - T, MW / 2 + OFF + T, -MH / 2 + T],
+    [MW / 2 + OFF - T, MH / 2 - T, MW / 2 + OFF + T, MH / 2 + T],
+    // Breite, unter dem Modul
+    [-MW / 2, -MH / 2 - OFF, MW / 2, -MH / 2 - OFF],
+    [-MW / 2, -MH / 2 - 0.035, -MW / 2, -MH / 2 - OFF - 0.05],
+    [MW / 2, -MH / 2 - 0.035, MW / 2, -MH / 2 - OFF - 0.05],
+    [-MW / 2 - T, -MH / 2 - OFF - T, -MW / 2 + T, -MH / 2 - OFF + T],
+    [MW / 2 - T, -MH / 2 - OFF - T, MW / 2 + T, -MH / 2 - OFF + T],
+  ];
+  const dimPos = [];
+  dimSegs.forEach(([x1, y1, x2, y2]) => dimPos.push(x1, y1, DZ, x2, y2, DZ));
+  const dimGeo = new THREE.BufferGeometry();
+  dimGeo.setAttribute('position', new THREE.Float32BufferAttribute(dimPos, 3));
+  const dimMat = new THREE.LineBasicMaterial({ color: '#e8e7ef', transparent: true, opacity: 0, toneMapped: false });
+  const dimLines = new THREE.LineSegments(dimGeo, dimMat);
+  hero.add(dimLines);
+
   // Kamera
   const camera = new THREE.PerspectiveCamera(28, 1, 0.01, 1200);
   scene.add(camera);
@@ -179,6 +209,8 @@ export function createStoryScene(canvas, quality) {
     licht: new THREE.Vector3(),
     finger: new THREE.Vector3(),
     busbar: new THREE.Vector3(),
+    massB: new THREE.Vector3(),
+    massL: new THREE.Vector3(),
     ...plant.anchors,
   };
 
@@ -190,13 +222,16 @@ export function createStoryScene(canvas, quality) {
     busbar: toLocal(cc.x + bbPitch * 0.5 + 0.0, focusMM.y + 9),
     finger: toLocal(focusMM.x - 3.5, focusMM.y - 4.62),
     licht: toLocal(focusMM.x - 8, focusMM.y + 4, GLASS_Z + 0.016),
+    // Maßzahlen mittig auf den Maßlinien
+    massB: new THREE.Vector3(0, -MODULE.h / 2000 - 0.15, 0.0175),
+    massL: new THREE.Vector3(MODULE.w / 2000 + 0.15, 0, 0.0175),
   };
 
   function update(p, time, pointer = { x: 0, y: 0 }) {
     // Hauptmodul: von der Präsentationslage in die Einbaulage
     const settle = range(p, 0.1, 0.32);
     const idle = 1 - settle;
-    const tune = window.__storyTune || {};
+    const tune = (TUNING && window.__storyTune) || {};
     offsetEuler.set(
       (tune.rx ?? fRx(p)) + Math.sin(time * 0.45) * 0.035 * idle + pointer.y * 0.06 * idle,
       (tune.ry ?? fRy(p)) + Math.sin(time * 0.31) * 0.06 * idle + pointer.x * 0.12 * idle,
@@ -278,6 +313,10 @@ export function createStoryScene(canvas, quality) {
     labelAnchors.busbar.copy(macroLocal.busbar).applyMatrix4(hero.matrixWorld);
     labelAnchors.finger.copy(macroLocal.finger).applyMatrix4(hero.matrixWorld);
     labelAnchors.licht.copy(macroLocal.licht).applyMatrix4(hero.matrixWorld);
+    labelAnchors.massB.copy(macroLocal.massB).applyMatrix4(hero.matrixWorld);
+    labelAnchors.massL.copy(macroLocal.massL).applyMatrix4(hero.matrixWorld);
+    dimMat.opacity = 0.55 * win(p, -1, -0.5, 0.04, 0.1) * (quality.mobile ? 0 : 1);
+    dimLines.visible = dimMat.opacity > 0.005;
   }
 
   function render() {

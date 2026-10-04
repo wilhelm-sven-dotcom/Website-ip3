@@ -10,6 +10,8 @@ const stills = {
 };
 
 const labels = [
+  { key: 'massL', text: '2.278 mm', range: '-1,-0.5,0.04,0.1', dim: true },
+  { key: 'massB', text: '1.134 mm', range: '-1,-0.5,0.04,0.1', dim: true },
   { key: 'licht', text: 'Lichteinfall', range: '0.49,0.535,0.625,0.66', side: 'left' },
   { key: 'finger', text: 'Kontaktfinger', range: '0.505,0.55,0.625,0.66' },
   { key: 'busbar', text: 'Busbar', range: '0.515,0.56,0.625,0.66', side: 'left' },
@@ -32,7 +34,7 @@ const labels = [
     <div class="story__labels" data-story-labels>
       {
         labels.map((l) => (
-          <div class={`story-label story-label--${l.side ?? 'right'}`} data-label={l.key} data-range={l.range} data-side={l.side ?? 'right'}>
+          <div class:list={['story-label', `story-label--${l.side ?? 'right'}`, { 'story-label--dim': l.dim }]} data-label={l.key} data-range={l.range} data-side={l.dim ? 'none' : l.side ?? 'right'}>
             <span class="story-label__dot" />
             <svg class="story-label__leader" viewBox="0 0 48 32" preserveAspectRatio="none">
               <path d="M0 32 L18 6 L48 6" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke" />
@@ -350,6 +352,29 @@ const labels = [
     text-transform: uppercase;
     background: var(--navy);
     border: 1px solid var(--on-navy-line-strong);
+  }
+
+  /* Maßzahl mittig auf der Maßlinie */
+  .story-label--dim .story-label__dot,
+  .story-label--dim .story-label__leader {
+    display: none;
+  }
+
+  .story-label--dim .story-label__text {
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    padding: 0.2rem 0.45rem;
+    border: 0;
+    background: var(--navy);
+    color: var(--hell);
+    font-size: 0.7rem;
+  }
+
+  @media (max-width: 1080px) {
+    .story-label--dim {
+      display: none;
+    }
   }
 
   .story-label--left .story-label__leader {
