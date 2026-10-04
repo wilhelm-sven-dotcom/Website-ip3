@@ -4,10 +4,10 @@ import PageHero from '../components/PageHero.astro';
 import { firma } from '../data/site.js';
 ---
 
-<Base title="Datenschutz" description="Datenschutzerklärung der ip³ Energietechnik GmbH." footerCta={false}>
+<Base title="Datenschutz" description="Datenschutzerklärung der ip³ Energietechnik GmbH: Server-Logdateien, Kontaktformular, keine Cookies und kein Tracking, Ihre Rechte nach DSGVO." footerCta={false}>
   <PageHero kicker="Rechtliches" title={'Datenschutz<span class="dot">.</span>'} crumbs={[{ label: 'Datenschutz' }]} zeichen={false} />
   <section class="section legal" data-theme="light" data-header-zone="light" aria-label="Datenschutzerklärung">
-    <div class="wrap legal__grid">
+    <div class="wrap"><div class="legal__grid">
       <div class="prose">
         <p class="lead">
           Wir nehmen den Schutz Ihrer persönlichen Daten ernst. Diese Erklärung beschreibt, welche personenbezogenen Daten beim Besuch dieser Website verarbeitet werden, zu welchem Zweck und auf welcher Rechtsgrundlage.
@@ -78,7 +78,7 @@ import { firma } from '../data/site.js';
         <h2>8. Aktualität</h2>
         <p>Stand dieser Datenschutzerklärung: Oktober 2026. Wir passen sie an, wenn sich die Website oder die Rechtslage ändert.</p>
       </div>
-    </div>
+    </div></div>
   </section>
 </Base>
 

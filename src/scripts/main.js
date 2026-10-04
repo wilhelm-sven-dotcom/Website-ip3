@@ -21,14 +21,17 @@ function initHeader() {
     ticking = false;
     const probeY = header.offsetHeight * 0.5;
     let theme = initial;
+    let overStory = false;
     for (const z of zones()) {
       const r = z.getBoundingClientRect();
       if (r.top <= probeY && r.bottom > probeY) {
         theme = z.dataset.headerZone;
+        overStory = z.hasAttribute('data-story') && z.classList.contains('is-live');
       }
     }
     header.dataset.headerTheme = theme;
-    header.classList.toggle('is-solid', window.scrollY > 24 && !header.hasAttribute('data-transparent-zone-active'));
+    header.classList.toggle('is-solid', window.scrollY > 24);
+    header.classList.toggle('is-over-story', overStory);
   };
 
   const onScroll = () => {
@@ -230,9 +233,10 @@ function initReveals() {
       return;
     }
     // Ausgangszustand sofort setzen, damit nichts aufblitzt
+    const fillEls = svg.querySelectorAll('[data-fill]');
     if (rendered()) {
       prepare();
-      gsap.set(svg.querySelectorAll('[data-fill]'), { fillOpacity: 0 });
+      if (fillEls.length) gsap.set(fillEls, { fillOpacity: 0 });
     }
     ScrollTrigger.create({
       trigger: svg,
@@ -251,8 +255,9 @@ function initReveals() {
           stagger: { amount: Math.min(1.2, paths.length * 0.012) },
           onComplete: done,
         });
-        const fills = svg.querySelectorAll('[data-fill]');
-        gsap.to(fills, { fillOpacity: 1, duration: 0.9, ease: 'power1.out', delay: 0.8, stagger: { amount: 0.4 }, clearProps: 'fillOpacity' });
+        if (fillEls.length) {
+          gsap.to(fillEls, { fillOpacity: 1, duration: 0.9, ease: 'power1.out', delay: 0.8, stagger: { amount: 0.4 }, clearProps: 'fillOpacity' });
+        }
       },
     });
   });

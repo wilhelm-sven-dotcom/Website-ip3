@@ -8,7 +8,7 @@ import Arrow from './Arrow.astro';
 const { nr = '02', theme = 'hell', heading = true } = Astro.props;
 ---
 
-<section class="section services" data-theme={theme} data-header-zone={theme} aria-labelledby="services-title">
+<section class:list={['section services', { 'services--bare': !heading }]} data-theme={theme} data-header-zone={theme} aria-labelledby="services-title">
   <div class="wrap">
     {
       heading && (
@@ -128,7 +128,7 @@ const { nr = '02', theme = 'hell', heading = true } = Astro.props;
     align-self: start;
     padding-top: 0.9rem;
     font-size: 0.95rem;
-    color: var(--akzent);
+    color: var(--akzent-text);
   }
 
   .svc__body {
@@ -181,12 +181,25 @@ const { nr = '02', theme = 'hell', heading = true } = Astro.props;
     height: 22px;
   }
 
+  .services--bare {
+    padding-top: clamp(3rem, 5vw, 5rem);
+  }
+
+  .svc__art :global(.iso) {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+  }
+
   .svc__art {
     position: absolute;
     z-index: 1;
     right: calc(64px + 3rem);
     top: 50%;
+    height: calc(100% - 1.2rem);
     width: min(30%, 380px);
+    display: flex;
+    justify-content: flex-end;
     transform: translate3d(0, -50%, 0) scale(0.96);
     opacity: 0;
     pointer-events: none;
@@ -331,12 +344,19 @@ const { nr = '02', theme = 'hell', heading = true } = Astro.props;
       position: relative;
       right: auto;
       top: auto;
+      display: block;
       width: 72%;
+      height: auto;
       max-width: 340px;
       margin: -0.5rem 0 1.25rem 2.6rem;
       transform: none;
       opacity: 1;
       clip-path: none;
+    }
+
+    .svc__art :global(.iso) {
+      width: 100%;
+      height: auto;
     }
   }
 </style>

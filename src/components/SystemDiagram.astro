@@ -521,6 +521,10 @@ const positions = [
     }
   }
 
+  .sld.is-paused .sld__flow path {
+    animation-play-state: paused;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .sld__flow path {
       animation: none;
@@ -534,6 +538,8 @@ const positions = [
   // Verknüpft Legende und Schaltbild: Hover, Fokus und Antippen heben die Position hervor
   document.querySelectorAll('[data-system]').forEach((root) => {
     const fig = root.querySelector('.sld');
+    // Fluss-Animation nur, solange das Schaltbild sichtbar ist
+    new IntersectionObserver(([e]) => fig.classList.toggle('is-paused', !e.isIntersecting)).observe(fig);
     const items = [...root.querySelectorAll('.legend__item')];
     const activate = (n) => {
       fig.classList.toggle('has-active', n !== null);

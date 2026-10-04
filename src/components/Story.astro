@@ -56,7 +56,7 @@ const labels = [
       <p class="story__dreiklang tech">Planung <span class="dot">·</span> Beratung <span class="dot">·</span> Umsetzung</p>
       <div class="btn-row story__actions">
         <a class="btn btn--primary" href="/kontakt">Projekt besprechen <Arrow /></a>
-        <a class="btn btn--ghost" href="/unsere-leistungen">Leistungen ansehen</a>
+        <a class="btn btn--ghost" href="/unsere-leistungen"><span>Leistungen<span class="story__more"> ansehen</span></span></a>
       </div>
       <p class="story__hint tech" aria-hidden="true"><span class="story__hint-line"></span>Vom Modul zum System</p>
       <figure class="story__still story__still--intro">
@@ -465,11 +465,31 @@ const labels = [
 
   @media (max-width: 759px) {
     .story {
-      --story-h: 360vh;
+      --story-h: 420vh;
     }
 
     .story__intro {
-      padding-bottom: 2rem;
+      padding-bottom: 1.75rem;
+    }
+
+    .story__kicker {
+      letter-spacing: 0.1em;
+      font-size: 0.7rem;
+    }
+
+    .story__hint,
+    .story__more {
+      display: none;
+    }
+
+    .story__actions {
+      gap: 0.5rem;
+    }
+
+    .story__actions .btn {
+      padding-inline: 0.95rem;
+      font-size: 0.94rem;
+      gap: 0.6rem;
     }
 
     .story__title {
@@ -481,15 +501,15 @@ const labels = [
     }
 
     .story__step--1 {
-      top: 123vh;
+      top: 150vh;
     }
 
     .story__step--2 {
-      top: 200vh;
+      top: 252vh;
     }
 
     .story__step--3 {
-      top: 292vh;
+      top: 358vh;
     }
 
     .story__panel {

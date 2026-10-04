@@ -50,6 +50,8 @@
   --blau: #2f2482;
   --rot: #8d0c07;
   --akzent: #c83c30;
+  /* Akzent für kleine Schrift: auf Weiß Akzent-Rot (5,1:1), auf Hell das ip³ Rot (7,8:1) */
+  --akzent-text: var(--akzent);
   --weiss: #ffffff;
   --hell: #e8e7ef;
 

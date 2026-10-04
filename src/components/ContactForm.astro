@@ -210,7 +210,7 @@ const interessen = [
     grid-column: 1 / -1;
   }
 
-  .field input,
+  .field input:not([type='checkbox']),
   .field textarea {
     width: 100%;
     min-height: 52px;
@@ -230,12 +230,12 @@ const interessen = [
     min-height: 160px;
   }
 
-  .field input:hover,
+  .field input:not([type='checkbox']):hover,
   .field textarea:hover {
     border-color: var(--blau);
   }
 
-  .field input:focus,
+  .field input:not([type='checkbox']):focus,
   .field textarea:focus {
     outline: none;
     border-color: var(--blau);

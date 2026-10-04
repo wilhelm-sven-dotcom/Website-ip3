@@ -4,10 +4,10 @@ import PageHero from '../components/PageHero.astro';
 import { firma } from '../data/site.js';
 ---
 
-<Base title="Impressum" description="Impressum der ip³ Energietechnik GmbH." footerCta={false}>
+<Base title="Impressum" description="Impressum der ip³ Energietechnik GmbH: Anschrift, Geschäftsführung, Handelsregister HRB 5725 beim Amtsgericht Weiden i.d.OPf. und Kontakt." footerCta={false}>
   <PageHero kicker="Rechtliches" title={'Impressum<span class="dot">.</span>'} crumbs={[{ label: 'Impressum' }]} zeichen={false} />
   <section class="section legal" data-theme="light" data-header-zone="light" aria-label="Angaben gemäß § 5 DDG">
-    <div class="wrap legal__grid">
+    <div class="wrap"><div class="legal__grid">
       <div class="prose">
         <h2>Angaben gemäß § 5 DDG</h2>
         <p>
@@ -41,7 +41,7 @@ import { firma } from '../data/site.js';
           Visualisierungen und technische Zeichnungen auf dieser Website sind schematische Darstellungen der {firma.name}. Schriften: Libre Franklin und Space Grotesk, lizenziert unter der SIL Open Font License.
         </p>
       </div>
-    </div>
+    </div></div>
   </section>
 </Base>
 

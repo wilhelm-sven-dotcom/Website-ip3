@@ -42,12 +42,12 @@ function pickQuality() {
   // Hochformat: Modul im oberen Bilddrittel, Anlage zum Schluss von Osten gesehen
   const mobileKeys = {
     ...desktopKeys,
-    dist: [9, 8.4, 3.2, 0.42, 0.07, 0.05, 0.06, 9, 100, 170],
+    dist: [13, 12.2, 3.4, 0.42, 0.07, 0.05, 0.06, 9, 100, 170],
     az: [-46, -42, -14, -4, 6, 13, 10, 2, 40, 70],
-    el: [22, 24, 50, 54, 33, 27, 30, 58, 40, 36],
-    fov: [30, 30, 34, 38, 44, 46, 46, 40, 38, 38],
-    shiftX: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    shiftY: [0.22, 0.22, 0.14, 0.08, 0.06, 0.06, 0.06, 0.08, 0.12, 0.12],
+    el: [24, 26, 50, 54, 33, 27, 30, 58, 40, 36],
+    fov: [28, 28, 34, 38, 44, 46, 46, 40, 38, 38],
+    shiftX: [0.03, 0.03, 0, 0, 0, 0, 0, 0, 0, 0],
+    shiftY: [0.33, 0.33, 0.16, 0.08, 0.06, 0.06, 0.06, 0.08, 0.12, 0.12],
   };
 
   return {
@@ -124,6 +124,7 @@ export async function initStory() {
   let frames = 0;
   let width = 0;
   let height = 0;
+  let capturing = false;
 
   const resize = () => {
     const r = stage.getBoundingClientRect();
@@ -147,7 +148,7 @@ export async function initStory() {
     end: 'bottom bottom',
     onUpdate: (self) => {
       target = self.progress;
-      if (!running) frame(performance.now());
+      if (!running && !capturing) frame(performance.now());
     },
   });
   target = st.progress;
@@ -198,7 +199,7 @@ export async function initStory() {
     last = now;
     time += dt;
     // Glättung des Scrollfortschritts, das Scrollen selbst bleibt nativ
-    const k = 1 - Math.exp(-dt * 7.5);
+    const k = params.has('capture') ? 1 : 1 - Math.exp(-dt * 7.5);
     current += (target - current) * k;
     if (Math.abs(target - current) < 0.00005) current = target;
     pointer.x += (pointerTarget.x - pointer.x) * (1 - Math.exp(-dt * 3));
@@ -280,6 +281,18 @@ export async function initStory() {
       placeLabels(p);
     },
     resume: start,
+    // rendert genau ein Bild passend zur aktuellen Scrollposition (für Aufnahmen)
+    renderAtScroll(dt = 1 / 30) {
+      capturing = true;
+      stop();
+      ScrollTrigger.update();
+      target = current = st.progress;
+      time += dt;
+      story.update(current, time, { x: 0, y: 0 });
+      story.render();
+      placeLabels(current);
+      return current;
+    },
     setStrip: (st) => story.setStrip(st),
     quality,
   };

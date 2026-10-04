@@ -92,8 +92,8 @@ const isActive = (href) => (href === '/' ? path === '/' : path === href || path.
       </nav>
       <div class="mobile-menu__foot">
         <a class="btn btn--primary" href="/kontakt">Projekt besprechen <Arrow /></a>
-        <p class="tech">
-          <a href={firma.telefonHref}>{firma.telefon}</a><br />
+        <p class="tech mobile-menu__contact">
+          <a href={firma.telefonHref}>{firma.telefon}</a>
           <a href={`mailto:${firma.email}`}>{firma.email}</a>
         </p>
       </div>
@@ -122,6 +122,14 @@ const isActive = (href) => (href === '/' ? path === '/' : path === href || path.
   .site-header.is-solid[data-header-theme='dark'] {
     background: var(--navy);
     box-shadow: 0 1px 0 var(--on-navy-line);
+  }
+
+  /* Über der 3D-Inszenierung: halbtransparent, die Szene scheint durch */
+  .site-header.is-solid.is-over-story[data-header-theme='dark'] {
+    background: rgb(12 26 61 / 0.5);
+    box-shadow: none;
+    backdrop-filter: blur(12px) saturate(1.1);
+    -webkit-backdrop-filter: blur(12px) saturate(1.1);
   }
 
   .site-header.is-solid[data-header-theme='light'] {
@@ -452,7 +460,14 @@ const isActive = (href) => (href === '/' ? path === '/' : path === href || path.
     color: var(--on-navy-sec);
   }
 
+  .mobile-menu__contact {
+    display: grid;
+  }
+
   .mobile-menu__foot a:not(.btn) {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
     text-decoration: none;
   }
 

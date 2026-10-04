@@ -11,7 +11,7 @@ export default defineConfig({
     inlineStylesheets: 'auto',
   },
   compressHTML: true,
-  prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   devToolbar: { enabled: false },
   vite: {
     build: { assetsInlineLimit: 2048 },

@@ -12,7 +12,7 @@ page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') 
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 await page.goto(url + '?capture', { waitUntil: 'load' });
 await page.waitForFunction(() => window.__story, null, { timeout: 120000 });
-await page.addStyleTag({ content: '.story__flow{display:none !important}' });
+if (!process.env.KEEP_FLOW) await page.addStyleTag({ content: '.story__flow{display:none !important}' });
 for (const v of variants) {
   await page.evaluate((v) => {
     window.__storyTune = v.tune || {};

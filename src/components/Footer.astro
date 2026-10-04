@@ -52,7 +52,7 @@ const jahr = new Date().getFullYear();
         {firma.plz} {firma.ort}
       </address>
       <p class="tech footer-contact">
-        <a href={firma.telefonHref}>{firma.telefon}</a><br />
+        <a href={firma.telefonHref}>{firma.telefon}</a>
         <a href={`mailto:${firma.email}`}>{firma.email}</a>
       </p>
     </div>
@@ -206,8 +206,9 @@ const jahr = new Date().getFullYear();
   }
 
   .footer-contact {
-    margin-top: 1rem;
-    line-height: 1.9;
+    display: grid;
+    justify-items: start;
+    margin-top: 0.75rem;
   }
 
   .footer-col ul {
@@ -218,7 +219,7 @@ const jahr = new Date().getFullYear();
   .footer-col a {
     display: inline-flex;
     align-items: center;
-    min-height: 34px;
+    min-height: 40px;
     text-decoration: none;
     background-image: linear-gradient(currentColor, currentColor);
     background-size: 0 1px;
