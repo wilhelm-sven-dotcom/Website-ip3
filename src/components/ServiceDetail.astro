@@ -1,12 +1,14 @@
 ---
 // Inhaltsbaustein der Leistungsseiten: Einleitung, Leistungsumfang als nummerierte
-// Liste, optional Phasen, passende Referenzen und Verweise auf die übrigen Bereiche.
+// Liste, optional Phasen, passende Referenzen, eine Bildstrecke und Verweise auf die
+// übrigen Bereiche.
 import { leistungen } from '../data/leistungen.js';
 import { referenzen } from '../data/referenzen.js';
 import ReferenceSheet from './ReferenceSheet.astro';
+import Galerie from './Galerie.astro';
 import Arrow from './Arrow.astro';
 
-const { slug, intro = [], umfang = [], umfangTitel = 'Leistungsumfang', phasen = [], phasenTitel = '', refIds = [] } = Astro.props;
+const { slug, intro = [], umfang = [], umfangTitel = 'Leistungsumfang', phasen = [], phasenTitel = '', refIds = [], galerie } = Astro.props;
 const refs = refIds.map((id) => referenzen.find((r) => r.id === id)).filter(Boolean);
 const andere = leistungen.filter((l) => l.slug !== slug);
 ---
@@ -72,13 +74,15 @@ const andere = leistungen.filter((l) => l.slug !== slug);
         </div>
         <div class:list={['sd-refs__grid', `n${Math.min(refs.length, 3)}`]}>
           {refs.map((r, i) => (
-            <ReferenceSheet ref={r} index={i + 1} total={refs.length} size="m" />
+            <ReferenceSheet ref={r} index={i + 1} total={refs.length} size="m" sizes="(max-width: 960px) 100vw, 32vw" />
           ))}
         </div>
       </div>
     </section>
   )
 }
+
+{galerie && <Galerie name={galerie} />}
 
 <section class="section sd-more" data-theme="hell" data-header-zone="hell" aria-labelledby="sd-more-title">
   <div class="wrap">

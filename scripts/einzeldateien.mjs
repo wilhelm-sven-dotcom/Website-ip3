@@ -23,7 +23,6 @@ const seiten = {
   '/kontakt': 'kontakt.html',
   '/impressum': 'impressum.html',
   '/datenschutz': 'datenschutz.html',
-  '/efre-foerderhinweis': 'efre-foerderhinweis.html',
 };
 const quelle = (p) => (p === '/' ? 'index.html' : p.slice(1) + '.html');
 
@@ -42,7 +41,24 @@ const dataUrl = (p) => {
   }
   return cache.get(p);
 };
-const assetPfad = /\/(?:fonts|brand|img)\/[^'")\s,]+|\/favicon-32\.png|\/apple-touch-icon\.png/;
+const assetPfad = /\/(?:fonts|brand|img)\/[^'")\s,]+|\/_astro\/[^'")\s,]+\.(?:webp|png|jpg|svg)|\/favicon-32\.png|\/apple-touch-icon\.png/;
+
+// Fotos mit srcset: offline genügt eine Breite je Foto, sonst stünde jede Größe in der Datei.
+// Gewählt wird die kleinste ab 1024 px, sonst die größte vorhandene.
+const OFFLINE_BREITE = 1024;
+const eineGroesse = (html) =>
+  html.replace(/<img\b[^>]*\ssrcset="([^"]+)"[^>]*>/g, (tag, srcset) => {
+    const kandidaten = srcset.split(',').map((t) => {
+      const [url, w] = t.trim().split(/\s+/);
+      return { url, w: parseInt(w, 10) };
+    });
+    const ab = kandidaten.filter((k) => k.w >= OFFLINE_BREITE).sort((a, b) => a.w - b.w);
+    const wahl = ab[0] || kandidaten.sort((a, b) => b.w - a.w)[0];
+    return tag
+      .replace(/\ssrcset="[^"]*"/, '')
+      .replace(/\ssizes="[^"]*"/, '')
+      .replace(/\ssrc="[^"]*"/, ` src="${wahl.url}"`);
+  });
 
 // url(...) in CSS einbetten
 const cssEinbetten = (css) =>
@@ -96,6 +112,7 @@ for (const [route, ziel] of Object.entries(seiten)) {
   fs.rmSync(tmp, { recursive: true, force: true });
 
   // Bilder und Icons in Attributen einbetten
+  html = eineGroesse(html);
   html = html.replace(/(src|srcset|href|content)="([^"]+)"/g, (m, attr, wert) => {
     if (attr === 'content' && !wert.startsWith('/')) return m;
     const treffer = wert.match(assetPfad);

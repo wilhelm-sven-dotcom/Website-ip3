@@ -2,7 +2,11 @@
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Arrow from '../components/Arrow.astro';
+import Foto from '../components/Foto.astro';
 import { team } from '../data/site.js';
+
+const kurzname = (name) => name.split(',')[0];
+const initialen = (name) => kurzname(name).split(' ').map((t) => t[0]).join('');
 
 const werte = [
   {
@@ -84,11 +88,28 @@ const werte = [
       </div>
       <ul class="kontakte" role="list">
         {
-          team.map((p) => (
-            <li class="kontakt" data-reveal>
-              <p class="kontakt__name">{p.name}</p>
-              <p class="kontakt__rolle tech">{p.rolle}</p>
-              <a class="kontakt__mail" href={`mailto:${p.email}`}>{p.email}</a>
+          team.map((p, i) => (
+            <li class:list={['kontakt', { 'kontakt--gf': i < 2 }]} data-reveal>
+              <div class="kontakt__bild">
+                {p.foto ? (
+                  <Foto
+                    class="kontakt__foto"
+                    src={p.foto}
+                    alt={`Porträt ${kurzname(p.name)}`}
+                    sizes={i < 2 ? '(max-width: 760px) 44vw, 340px' : '(max-width: 760px) 46vw, (max-width: 1080px) 30vw, 300px'}
+                    stufen={[320, 640, 800]}
+                  />
+                ) : (
+                  <span class="kontakt__monogramm tech" aria-hidden="true">
+                    {initialen(p.name)}
+                  </span>
+                )}
+              </div>
+              <div class="kontakt__text">
+                <p class="kontakt__name">{p.name}</p>
+                <p class="kontakt__rolle tech">{p.rolle}</p>
+                <a class="kontakt__mail" href={`mailto:${p.email}`}>{p.email}</a>
+              </div>
             </li>
           ))
         }
@@ -227,18 +248,66 @@ const werte = [
     color: var(--text-sec);
   }
 
+  /* Geschäftsführung groß mit Text daneben, das Team darunter in fünf Spalten */
   .kontakte {
     position: relative;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(10, minmax(0, 1fr));
     gap: 0 var(--gutter);
     margin-top: clamp(2.5rem, 5vw, 4rem);
     border-top: 1px solid var(--linie);
   }
 
   .kontakt {
-    padding: 1.2rem 0 1.3rem;
+    grid-column: span 2;
+    padding: 1.5rem 0 1.4rem;
     border-bottom: 1px solid var(--linie);
+  }
+
+  .kontakt--gf {
+    grid-column: span 5;
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: end;
+  }
+
+  .kontakt__bild {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--box);
+  }
+
+  .kontakt__bild :global(.kontakt__foto) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .kontakt__monogramm {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--hell);
+    color: var(--blau);
+    font-size: clamp(2rem, 1.4rem + 2vw, 3.2rem);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  .kontakt__text {
+    padding-top: 1rem;
+  }
+
+  .kontakt--gf .kontakt__text {
+    padding: 0 0 0.25rem;
+  }
+
+  .kontakt--gf .kontakt__name {
+    font-size: clamp(1.35rem, 1.1rem + 0.8vw, 1.8rem);
   }
 
   .kontakt__name {
@@ -248,6 +317,7 @@ const werte = [
   }
 
   .kontakt__rolle {
+    overflow-wrap: anywhere;
     margin-top: 0.3rem;
     font-size: var(--fs-label);
     letter-spacing: 0.12em;
@@ -298,18 +368,52 @@ const werte = [
       grid-template-columns: 1fr;
     }
 
-    .kontakte {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .werte {
       grid-template-columns: 1fr;
     }
   }
 
-  @media (max-width: 560px) {
+  @media (max-width: 1080px) {
     .kontakte {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .kontakt--gf {
+      grid-column: span 3;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+
+    .kontakt--gf .kontakt__text {
+      padding-top: 1rem;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .kontakte {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .kontakt {
+      grid-column: span 1;
+    }
+
+    .kontakt--gf {
+      grid-column: span 2;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+      gap: 1rem;
+    }
+
+    .kontakt--gf .kontakt__text {
+      padding: 0;
+    }
+
+    .kontakt__rolle {
+      letter-spacing: 0.08em;
+    }
+
+    .kontakt__mail {
+      font-size: 0.85rem;
     }
   }
 </style>

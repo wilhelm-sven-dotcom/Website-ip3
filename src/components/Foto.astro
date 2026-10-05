@@ -1,0 +1,22 @@
+---
+// Foto als WebP in mehreren Breiten. sizes beschreibt die dargestellte Breite, damit der
+// Browser die passende Datei lädt. pos setzt den Bildausschnitt bei object-fit: cover.
+import { Image } from 'astro:assets';
+import { foto, breiten } from '../lib/fotos.js';
+
+const { src, alt, sizes = '100vw', stufen, pos, loading = 'lazy', ...rest } = Astro.props;
+const bild = foto(src);
+---
+
+<Image
+  {...rest}
+  src={bild}
+  alt={alt}
+  widths={breiten(bild, stufen)}
+  sizes={sizes}
+  format="webp"
+  quality={72}
+  loading={loading}
+  decoding="async"
+  style={pos ? `object-position: ${pos}` : undefined}
+/>

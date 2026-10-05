@@ -14,6 +14,7 @@ import { createHash } from 'node:crypto';
 const dist = 'dist';
 const quelle = process.argv[2] || 'vorschau-offline';
 const zielordner = process.argv[3] || quelle;
+fs.mkdirSync(zielordner, { recursive: true });
 const ziele = {
   voll: path.resolve(zielordner, 'ip3-website.html'),
   handy: path.resolve(zielordner, 'ip3-handy-simulation.html'),
@@ -89,7 +90,8 @@ const schriften = [
 ].map(([familie, gewicht, p]) => ({ familie, gewicht, i: eintrag(p) }));
 
 // Touch-Nachbildung für die Simulation: Medienabfragen wie auf einem Touchgerät, keine
-// Hover-Zustände, runder Fingerzeiger, Wischen mit gedrückter Maustaste samt Nachlauf
+// Hover-Zustände, runder Fingerzeiger, Wischen mit gedrückter Maustaste samt Nachlauf,
+// in waagerecht scrollbaren Streifen (Bildstrecke) auch seitwärts
 const touchErsatz = [
   ['\\(\\s*(?:any-)?hover\\s*:\\s*hover\\s*\\)', '(min-width:99999px)'],
   ['\\(\\s*(?:any-)?hover\\s*\\)', '(min-width:99999px)'],
@@ -104,32 +106,38 @@ const touch = {
   skript: `<script>(function(){
 var e=${JSON.stringify(touchErsatz)},m=window.matchMedia.bind(window);
 window.matchMedia=function(q){q=String(q);for(var i=0;i<e.length;i++)q=q.replace(new RegExp(e[i][0],'g'),e[i][1]);return m(q)};
-var start=null,letzt=0,zeit=0,v=0,zieht=false,sperre=false,raf=0;
+var start=null,sx=0,letzt=0,zeit=0,v=0,zieht=false,achse='y',quer=null,sperre=false,raf=0;
+function querScroller(el){for(;el&&el!==document.documentElement;el=el.parentElement){var o=getComputedStyle(el).overflowX;if((o==='auto'||o==='scroll')&&el.scrollWidth>el.clientWidth+1)return el}return null}
+function rollen(d){if(achse==='x')quer.scrollBy({left:d,behavior:'instant'});else scrollBy({top:d,behavior:'instant'})}
+function einrasten(){if(quer)quer.style.scrollSnapType=''}
 addEventListener('pointerdown',function(ev){
   sperre=false;
   if(ev.pointerType!=='mouse'||ev.button!==0)return;
   if(ev.target.closest&&ev.target.closest('input,textarea,select,[contenteditable]'))return;
-  cancelAnimationFrame(raf);start=letzt=ev.clientY;zeit=ev.timeStamp;v=0;zieht=false;
+  cancelAnimationFrame(raf);einrasten();start=letzt=ev.clientY;sx=ev.clientX;zeit=ev.timeStamp;v=0;zieht=false;achse='y';quer=querScroller(ev.target);
 },true);
 addEventListener('pointermove',function(ev){
   if(start===null||!(ev.buttons&1))return;
-  if(!zieht&&Math.abs(ev.clientY-start)>6){
-    zieht=true;document.documentElement.style.userSelect='none';
+  if(!zieht){
+    var ax=Math.abs(ev.clientX-sx),ay=Math.abs(ev.clientY-start);
+    if(Math.max(ax,ay)<=6)return;
+    zieht=true;achse=quer&&ax>ay?'x':'y';letzt=achse==='x'?ev.clientX:ev.clientY;
+    if(achse==='x')quer.style.scrollSnapType='none';
+    document.documentElement.style.userSelect='none';
     try{getSelection().removeAllRanges();document.documentElement.setPointerCapture(ev.pointerId)}catch(_){}
   }
-  if(!zieht)return;
-  var dy=ev.clientY-letzt,dt=Math.max(8,ev.timeStamp-zeit);
-  scrollBy({top:-dy,behavior:'instant'});v=.7*(-dy/dt)+.3*v;letzt=ev.clientY;zeit=ev.timeStamp;ev.preventDefault();
+  var pos=achse==='x'?ev.clientX:ev.clientY,d=pos-letzt,dt=Math.max(8,ev.timeStamp-zeit);
+  rollen(-d);v=.7*(-d/dt)+.3*v;letzt=pos;zeit=ev.timeStamp;ev.preventDefault();
 },true);
 addEventListener('pointerup',function(){
   if(start===null)return;start=null;
   if(!zieht)return;
   sperre=true;document.documentElement.style.userSelect='';
-  (function lauf(){v*=.95;if(Math.abs(v)>.02){scrollBy({top:v*16,behavior:'instant'});raf=requestAnimationFrame(lauf)}})();
+  (function lauf(){v*=.95;if(Math.abs(v)>.02){rollen(v*16);raf=requestAnimationFrame(lauf)}else einrasten()})();
 },true);
 addEventListener('click',function(ev){if(sperre){sperre=false;ev.preventDefault();ev.stopPropagation()}},true);
 addEventListener('dragstart',function(ev){ev.preventDefault()},true);
-addEventListener('pointercancel',function(){start=null;zieht=false;document.documentElement.style.userSelect=''},true);
+addEventListener('pointercancel',function(){start=null;zieht=false;einrasten();document.documentElement.style.userSelect=''},true);
 })();<\/script>`.replace(/\n\s*/g, ''),
 };
 

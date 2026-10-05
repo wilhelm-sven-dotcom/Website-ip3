@@ -24,7 +24,6 @@ const seiten = [
   '/kontakt',
   '/impressum',
   '/datenschutz',
-  '/efre-foerderhinweis',
   '/gibt-es-nicht',
 ];
 const viewports = [
@@ -87,12 +86,14 @@ for (const vp of viewports) {
         .filter((el) => {
           const r = el.getBoundingClientRect();
           const cs = getComputedStyle(el);
-          return r.width > 0 && r.right > de.clientWidth + 1 && cs.position !== 'fixed' && !el.closest('.zeichen, [aria-hidden="true"], .story__stage');
+          return r.width > 0 && r.right > de.clientWidth + 1 && cs.position !== 'fixed' && !el.closest('.zeichen, [aria-hidden="true"], .story__stage, [data-spur]');
         })
         .slice(0, 5)
         .map((el) => `${el.tagName.toLowerCase()}.${[...el.classList].join('.')} → ${Math.round(el.getBoundingClientRect().right)}`);
       const h1 = document.querySelectorAll('h1').length;
       const ohneAlt = [...document.querySelectorAll('img')].filter((i) => !i.hasAttribute('alt')).length;
+      // geladene Bilder ohne Inhalt (defekte Datei); Fotos weiter rechts in der Bildstrecke laden erst beim Wischen
+      const defekt = [...document.images].filter((i) => i.complete && i.naturalWidth === 0).map((i) => i.currentSrc || i.src);
       const links = [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href'));
       const unsichtbar = [...document.querySelectorAll('[data-reveal]')].filter((el) => {
         const r = el.getBoundingClientRect();
@@ -100,11 +101,12 @@ for (const vp of viewports) {
       }).length;
       const titel = document.title;
       const desc = document.querySelector('meta[name="description"]')?.content || '';
-      return { overflow, breit, h1, ohneAlt, links, unsichtbar, titel, desc };
+      return { overflow, breit, h1, ohneAlt, defekt, links, unsichtbar, titel, desc };
     });
     note(pruef.overflow <= 1, `[${vp.name}] ${pfad} kein horizontaler Überlauf (${pruef.overflow}px) ${pruef.breit.join(' | ')}`);
     note(pruef.h1 === 1, `[${vp.name}] ${pfad} genau eine h1 (${pruef.h1})`);
     note(pruef.ohneAlt === 0, `[${vp.name}] ${pfad} alle Bilder mit alt (${pruef.ohneAlt} ohne)`);
+    note(pruef.defekt.length === 0, `[${vp.name}] ${pfad} keine defekten Bilder ${pruef.defekt.join(', ')}`);
     note(pruef.unsichtbar === 0, `[${vp.name}] ${pfad} keine hängenden Reveal-Elemente (${pruef.unsichtbar})`);
     note(!!pruef.titel && pruef.desc.length > 50, `[${vp.name}] ${pfad} Titel und Beschreibung`);
     note(kaputt.length === 0, `[${vp.name}] ${pfad} keine fehlerhaften Ressourcen ${kaputt.join(', ')}`);

@@ -181,16 +181,24 @@ function initReveals() {
   ScrollTrigger.batch('[data-reveal]', {
     start: 'top 90%',
     once: true,
-    onEnter: (batch) =>
-      gsap.to(batch, {
-        opacity: 1,
-        y: 0,
-        duration: 1,
-        ease: 'expo.out',
-        stagger: 0.08,
-        overwrite: true,
-        clearProps: 'transform',
-      }),
+    onEnter: (batch) => {
+      // Nach einem Sprung (Anker, gespeicherte Scrollposition) sofort zeigen, was schon
+      // oberhalb liegt; gestaffelt erscheint nur, was im Bild ist
+      const vorbei = batch.filter((el) => el.getBoundingClientRect().bottom <= 0);
+      const imBild = batch.filter((el) => !vorbei.includes(el));
+      if (vorbei.length) gsap.set(vorbei, { opacity: 1, y: 0, clearProps: 'transform' });
+      if (imBild.length) {
+        gsap.to(imBild, {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: 'expo.out',
+          stagger: 0.08,
+          overwrite: true,
+          clearProps: 'transform',
+        });
+      }
+    },
   });
 
   // Bemaßungslinien zeichnen sich

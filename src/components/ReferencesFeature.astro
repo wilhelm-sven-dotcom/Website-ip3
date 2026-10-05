@@ -5,16 +5,17 @@ import ReferenceSheet from './ReferenceSheet.astro';
 import Arrow from './Arrow.astro';
 
 const { nr = '04' } = Astro.props;
-const auswahl = ['stall-300', 'industrie-muenchen', 'ff-vohenstrauss', 'netto-fristo-weiden', 'allblack-altenstadt', 'byd-weiden']
+const auswahl = ['stall-300', 'powerwall-3', 'ff-vohenstrauss', 'industrie-muenchen', 'allblack-altenstadt', 'carport-powerwall-weiden']
   .map((id) => referenzen.find((r) => r.id === id))
   .filter(Boolean);
+// Spalten im 12er-Raster, daraus die Darstellungsbreite der Fotos
 const layout = [
-  { cls: 'r1', size: 'l' },
-  { cls: 'r2', size: 'tall' },
-  { cls: 'r3', size: 'm' },
-  { cls: 'r4', size: 'l' },
-  { cls: 'r5', size: 'm' },
-  { cls: 'r6', size: 'm' },
+  { cls: 'r1', size: 'l', sizes: '(max-width: 960px) 100vw, 56vw' },
+  { cls: 'r2', size: 'tall', sizes: '(max-width: 960px) 100vw, 32vw' },
+  { cls: 'r3', size: 'm', sizes: '(max-width: 960px) 100vw, 40vw' },
+  { cls: 'r4', size: 'l', sizes: '(max-width: 960px) 100vw, 48vw' },
+  { cls: 'r5', size: 'm', sizes: '(max-width: 960px) 100vw, 40vw' },
+  { cls: 'r6', size: 'm', sizes: '(max-width: 960px) 100vw, 40vw' },
 ];
 ---
 
@@ -25,7 +26,7 @@ const layout = [
       <h2 id="refs-title" class="h1" data-split>Realisiert<span class="dot">.</span></h2>
       <div class="refs__intro">
         <p class="lead" data-reveal>
-          Ein Auszug aus unseren Projekten: vom landwirtschaftlichen Dach über Gewerbe mit Speicher bis zur Freiflächenanlage.
+          Ein Auszug aus unseren Projekten: vom Stalldach über Heim- und Industriespeicher bis zur Freiflächenanlage.
         </p>
         <a class="btn btn--ghost" href="/referenzen" data-reveal>Alle Referenzen <Arrow /></a>
       </div>
@@ -35,12 +36,11 @@ const layout = [
       {
         auswahl.map((ref, i) => (
           <div class:list={['refs__cell', layout[i].cls]} data-parallax={i % 2 ? '6' : '0'}>
-            <ReferenceSheet ref={ref} index={i + 1} total={auswahl.length} size={layout[i].size} />
+            <ReferenceSheet ref={ref} index={i + 1} total={auswahl.length} size={layout[i].size} sizes={layout[i].sizes} />
           </div>
         ))
       }
     </div>
-    <p class="refs__note muted">Schematische Darstellung der Anlagentypen.</p>
   </div>
 </section>
 
@@ -81,13 +81,14 @@ const layout = [
     margin-top: clamp(4rem, 10vw, 10rem);
   }
 
+  /* Blatt 3 rückt unter das kürzere Blatt 1, Blatt 4 bleibt unter dem versetzten Blatt 2 */
   .r3 {
     grid-column: 2 / span 5;
+    margin-top: clamp(-6rem, -6vw, -2rem);
   }
 
   .r4 {
     grid-column: 7 / span 6;
-    margin-top: clamp(-6rem, -6vw, -2rem);
   }
 
   .r5 {
@@ -99,10 +100,6 @@ const layout = [
     margin-top: clamp(2rem, 6vw, 6rem);
   }
 
-  .refs__note {
-    margin-top: 2.5rem;
-    font-size: 0.85rem;
-  }
 
   @media (max-width: 960px) {
     .refs__head {

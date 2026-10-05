@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import ReferenceSheet from '../components/ReferenceSheet.astro';
+import Galerie from '../components/Galerie.astro';
 import { referenzen } from '../data/referenzen.js';
 
 const filter = [
@@ -42,14 +43,23 @@ const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.katego
         {
           referenzen.map((r, i) => (
             <li class:list={['refs-page__item', i % 3 === 0 ? 'wide' : '']} data-tags={tags(r)}>
-              <ReferenceSheet ref={r} index={i + 1} total={referenzen.length} size={i % 3 === 0 ? 'l' : 'm'} headingLevel={3} />
+              <ReferenceSheet
+                ref={r}
+                index={i + 1}
+                total={referenzen.length}
+                size={i % 3 === 0 ? 'l' : 'm'}
+                sizes={i % 3 === 0 ? '(max-width: 860px) 100vw, 56vw' : '(max-width: 860px) 100vw, 46vw'}
+                headingLevel={3}
+              />
             </li>
           ))
         }
       </ul>
-      <p class="refs-page__note muted">Schematische Darstellung der Anlagentypen. Kennwerte, soweit veröffentlicht.</p>
+      <p class="refs-page__note muted">Ohne Foto: schematische Darstellung des Anlagentyps. Kennwerte, soweit veröffentlicht.</p>
     </div>
   </section>
+
+  <Galerie name="projekte" theme="hell" />
 </Base>
 
 <style>

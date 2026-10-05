@@ -1,0 +1,108 @@
+---
+// Partnerlogos auf der Startseite, als Stückliste: links die Gruppe, rechts die Logos
+import { partnerGruppen, logoBreite } from '../data/partner.js';
+
+const { nr = '06' } = Astro.props;
+---
+
+<section class="section partner" data-theme="light" data-header-zone="light" aria-labelledby="partner-title">
+  <div class="wrap">
+    <div class="dim"><span class="dim__num">{nr}</span><span>Netzwerk</span><span class="dim__line" data-draw></span></div>
+    <h2 id="partner-title" class="h2 partner__title" data-split>Unsere Partner<span class="dot">.</span></h2>
+
+    {
+      partnerGruppen.map((g, gi) => (
+        <div class="partner__gruppe" data-reveal>
+          <h3 class="partner__gruppentitel tech" id={`partner-gruppe-${gi}`}>{g.titel}</h3>
+          <ul class="partner__liste" role="list" aria-labelledby={`partner-gruppe-${gi}`}>
+            {g.logos.map((l) => (
+              <li class="partner__eintrag">
+                <img
+                  src={`/img/partner/${l.datei}.webp`}
+                  alt={l.name}
+                  width={l.w}
+                  height={l.h}
+                  loading="lazy"
+                  decoding="async"
+                  style={`--b: ${logoBreite(l)}px`}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .partner__title {
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .partner__gruppe {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+    gap: 1rem var(--gutter);
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    border-top: 1px solid var(--linie);
+  }
+
+  .partner__gruppe + .partner__gruppe {
+    margin-top: 0;
+  }
+
+  .partner__gruppentitel {
+    padding-top: 1.4rem;
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .partner__liste {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .partner__eintrag {
+    display: grid;
+    place-items: center;
+    min-height: clamp(110px, 10vw, 150px);
+    padding: 1.25rem 1rem;
+    border-left: 1px solid var(--linie);
+    border-bottom: 1px solid var(--linie);
+  }
+
+  .partner__eintrag img {
+    width: var(--b);
+    max-width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 960px) {
+    .partner__gruppe {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .partner__gruppentitel {
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .partner__liste {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .partner__eintrag:nth-child(odd) {
+      border-left: 0;
+    }
+
+    .partner__eintrag img {
+      width: calc(var(--b) * 0.82);
+    }
+  }
+</style>

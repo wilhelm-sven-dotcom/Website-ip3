@@ -171,6 +171,76 @@ const browser = await chromium.launch({ args: gl });
   await page.close();
 }
 
+/* 8. Bildstrecke: Tasten, Stand, Tastatur, natürliches Scrollen der Seite */
+{
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
+  await page.goto(base + '/unsere-leistungen/freiflaechen', { waitUntil: 'load' });
+  await page.evaluate(() => document.querySelector('[data-galerie]').scrollIntoView());
+  await page.waitForTimeout(600);
+  const spur = '[data-galerie] [data-spur]';
+  note(await page.isVisible('[data-galerie] [data-steuerung]'), 'Bildstrecke: Tasten mit JavaScript sichtbar');
+  note((await page.getAttribute('[data-schritt="-1"]', 'aria-disabled')) === 'true', 'Bildstrecke: Zurück am Anfang gesperrt');
+  await page.click('[data-schritt="1"]');
+  await page.waitForTimeout(1200);
+  const links = await page.$eval(spur, (el) => el.scrollLeft);
+  const stand = await page.textContent('[data-stand]');
+  note(links > 300 && stand !== '01', `Bildstrecke: Weiter blättert (${Math.round(links)} px, Stand ${stand})`);
+  note((await page.getAttribute('[data-schritt="-1"]', 'aria-disabled')) === 'false', 'Bildstrecke: Zurück danach frei');
+  await page.$eval(spur, (el) => el.scrollTo({ left: 0, behavior: 'instant' }));
+  await page.focus(spur);
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(600);
+  note((await page.$eval(spur, (el) => el.scrollLeft)) > 0, 'Bildstrecke: Pfeiltasten scrollen den fokussierten Streifen');
+  const y0 = await page.evaluate(() => scrollY);
+  await page.mouse.move(700, 600);
+  await page.mouse.wheel(0, 500);
+  await page.waitForTimeout(800);
+  note((await page.evaluate(() => scrollY)) > y0 + 200, 'Bildstrecke: Mausrad scrollt weiter die Seite');
+  const alts = await page.$$eval('[data-galerie] img', (imgs) => imgs.every((i) => i.alt.length > 10));
+  note(alts, 'Bildstrecke: alle Fotos mit beschreibendem Alternativtext');
+  await page.close();
+}
+
+/* 9. Startseite: Partnerlogos, Referenzfotos */
+{
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
+  await page.goto(base + '/', { waitUntil: 'load' });
+  await page.evaluate(() => document.querySelector('.partner').scrollIntoView());
+  await page.waitForTimeout(1500);
+  const logos = await page.$$eval('.partner img', (imgs) => imgs.map((i) => i.complete && i.naturalWidth > 0 && i.alt.length > 1));
+  note(logos.length === 15 && logos.every(Boolean), `Partnerlogos: ${logos.filter(Boolean).length} von 15 geladen, mit Namen`);
+  note((await page.$$eval('.partner__gruppe', (g) => g.length)) === 2, 'Partnerlogos in zwei Gruppen');
+  note((await page.$$eval('.refs .sheet--photo', (s) => s.length)) === 6, 'Startseite: sechs Referenzen mit Foto');
+  await page.close();
+}
+
+/* 10. Über uns: Team mit Porträts */
+{
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
+  await page.goto(base + '/ueber-uns', { waitUntil: 'load' });
+  const team = await page.evaluate(() => ({
+    n: document.querySelectorAll('.kontakt').length,
+    fotos: document.querySelectorAll('.kontakt img').length,
+    monogramm: document.querySelectorAll('.kontakt__monogramm').length,
+  }));
+  note(team.n === 12 && team.fotos === 11 && team.monogramm === 1, `Team: ${team.n} Ansprechpartner, ${team.fotos} Porträts, ${team.monogramm} Monogramm`);
+  await page.close();
+}
+
+/* 11. Keine Kundennamen, kein EFRE-Hinweis */
+{
+  const namen = /beierl|netto|fristo|forster/i;
+  let treffer = [];
+  for (const pfad of ['/', '/referenzen', '/unsere-leistungen/industrie-gewerbe', '/unsere-leistungen/privat']) {
+    const r = await fetch(base + pfad, { headers: nutzer ? { Authorization: 'Basic ' + Buffer.from(process.env.PRUEF_LOGIN).toString('base64') } : {} });
+    if (namen.test(await r.text())) treffer.push(pfad);
+  }
+  note(treffer.length === 0, `Keine Kundennamen im Quelltext ${treffer.join(', ')}`);
+  const efre = await fetch(base + '/efre-foerderhinweis', { redirect: 'manual', headers: nutzer ? { Authorization: 'Basic ' + Buffer.from(process.env.PRUEF_LOGIN).toString('base64') } : {} });
+  note(efre.status === 404, `EFRE-Förderhinweis entfernt (Status ${efre.status})`);
+}
+
 console.log(ergebnisse.join('\n'));
 const fehler = ergebnisse.filter((e) => e.startsWith('FEHL')).length;
 console.log(`${ergebnisse.length} Prüfungen, ${fehler} Fehler`);

@@ -12,7 +12,6 @@ const seiten = [
   { path: '/kontakt', prio: '0.7' },
   { path: '/impressum', prio: '0.2' },
   { path: '/datenschutz', prio: '0.2' },
-  { path: '/efre-foerderhinweis', prio: '0.2' },
 ];
 
 export function GET({ site }) {

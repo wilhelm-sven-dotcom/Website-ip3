@@ -32,27 +32,30 @@ export const firma = {
   datenschutzbeauftragter: { name: 'Michael Schwenke', email: 'info@team-netz.net' },
 };
 
-// Kennzahlen wie auf der Startseite der bisherigen Website (Stand 05.10.2026)
+// Kennzahlen wie auf der Startseite der bisherigen Website (Stand 05.10.2026).
+// Die Erfahrung zählt ab der Gründung und wird bei jedem Build neu berechnet (2026: 17 Jahre).
 export const kennzahlen = [
-  { wert: '111.208', einheit: 'kWp', text: 'realisierte PV-Leistung' },
-  { wert: '35.990', einheit: 'kWh', text: 'verbaute Speicherkapazität' },
-  { wert: '20', einheit: '', text: 'Jahre Erfahrung' },
+  { wert: '111.208', einheit: 'kWp', plus: true, text: 'realisierte PV-Leistung' },
+  { wert: '35.990', einheit: 'kWh', plus: true, text: 'verbaute Speicherkapazität' },
+  { wert: String(new Date().getFullYear() - firma.gruendung), einheit: '', plus: false, text: 'Jahre Erfahrung' },
 ];
 
-// Ansprechpartner wie auf der bisherigen Seite „Über uns“
+// Ansprechpartner wie auf der bisherigen Seite „Über uns“. Porträts in derselben Reihenfolge
+// wie dort (src/assets/fotos/team), für Sascha Kriegler gibt es kein Foto. \u00ad ist ein
+// weicher Trennstrich für schmale Spalten.
 export const team = [
-  { name: 'Sven Wilhelm, B. Eng.', rolle: 'Geschäftsführer', email: 's.wilhelm@ip3-energie.de' },
-  { name: 'Michael Bäumler', rolle: 'Geschäftsführer', email: 'm.baeumler@ip3-energie.de' },
-  { name: 'Alisa Geber', rolle: 'Assistentin der Geschäftsführung', email: 'a.geber@ip3-energie.de' },
-  { name: 'Sabrina Früchtl', rolle: 'Assistentin der Geschäftsführung', email: 's.fruechtl@ip3-energie.de' },
-  { name: 'Ida Schmid', rolle: 'Assistentin der Geschäftsführung', email: 'i.schmid@ip3-energie.de' },
-  { name: 'Stefan Pregler', rolle: 'Projektleiter', email: 's.pregler@ip3-energie.de' },
-  { name: 'Benjamin Janker', rolle: 'Meister im Elektrotechnikerhandwerk', email: 'b.janker@ip3-energie.de' },
-  { name: 'Daniel Tretter', rolle: 'Meister im Elektrotechnikerhandwerk', email: 'd.tretter@ip3-energie.de' },
-  { name: 'Markus Dietrich', rolle: 'Lagerverwaltung / Bestellwesen', email: 'm.dietrich@ip3-energie.de' },
-  { name: 'Koran Shanak', rolle: 'Technische Zeichnung', email: 'k.shanak@ip3-energie.de' },
-  { name: 'Sascha Kriegler', rolle: 'Planung / Technische Zeichnung', email: 's.kriegler@ip3-energie.de' },
-  { name: 'Benjamin Völkl', rolle: 'Digital Services', email: 'b.voelkl@ip3-energie.de' },
+  { name: 'Sven Wilhelm, B. Eng.', rolle: 'Geschäftsführer', email: 's.wilhelm@ip3-energie.de', foto: 'team/sven-wilhelm' },
+  { name: 'Michael Bäumler', rolle: 'Geschäftsführer', email: 'm.baeumler@ip3-energie.de', foto: 'team/michael-baeumler' },
+  { name: 'Alisa Geber', rolle: 'Assistentin der Geschäftsführung', email: 'a.geber@ip3-energie.de', foto: 'team/alisa-geber' },
+  { name: 'Sabrina Früchtl', rolle: 'Assistentin der Geschäftsführung', email: 's.fruechtl@ip3-energie.de', foto: 'team/sabrina-fruechtl' },
+  { name: 'Ida Schmid', rolle: 'Assistentin der Geschäftsführung', email: 'i.schmid@ip3-energie.de', foto: 'team/ida-schmid' },
+  { name: 'Stefan Pregler', rolle: 'Projektleiter', email: 's.pregler@ip3-energie.de', foto: 'team/stefan-pregler' },
+  { name: 'Benjamin Janker', rolle: 'Meister im Elektrotechniker\u00adhandwerk', email: 'b.janker@ip3-energie.de', foto: 'team/benjamin-janker' },
+  { name: 'Daniel Tretter', rolle: 'Meister im Elektrotechniker\u00adhandwerk', email: 'd.tretter@ip3-energie.de', foto: 'team/daniel-tretter' },
+  { name: 'Markus Dietrich', rolle: 'Lagerverwaltung / Bestellwesen', email: 'm.dietrich@ip3-energie.de', foto: 'team/markus-dietrich' },
+  { name: 'Koran Shanak', rolle: 'Technische Zeichnung', email: 'k.shanak@ip3-energie.de', foto: 'team/koran-shanak' },
+  { name: 'Sascha Kriegler', rolle: 'Planung / Technische Zeichnung', email: 's.kriegler@ip3-energie.de', foto: null },
+  { name: 'Benjamin Völkl', rolle: 'Digital Services', email: 'b.voelkl@ip3-energie.de', foto: 'team/benjamin-voelkl' },
 ];
 
 export const leistungenNav = [
@@ -85,5 +88,4 @@ export const hauptnav = [
 export const rechtliches = [
   { href: '/impressum', label: 'Impressum' },
   { href: '/datenschutz', label: 'Datenschutz' },
-  { href: '/efre-foerderhinweis', label: 'EFRE-Förderhinweis' },
 ];

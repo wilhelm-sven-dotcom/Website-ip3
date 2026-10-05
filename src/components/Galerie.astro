@@ -1,0 +1,269 @@
+---
+// Bildstrecke: Fotos in einem waagerechten Streifen, frei scrollbar per Wischen, Trackpad
+// oder Pfeiltasten (der Streifen ist fokussierbar). Die Tasten blättern um eine
+// Streifenbreite. Das senkrechte Scrollen der Seite bleibt unberührt.
+import Foto from './Foto.astro';
+import Arrow from './Arrow.astro';
+import { galerien } from '../data/galerien.js';
+
+const { name, theme = 'dark', nr } = Astro.props;
+const g = galerien[name];
+const id = `bildstrecke-${name}`;
+const zwei = (n) => String(n).padStart(2, '0');
+---
+
+<section class="section galerie" data-theme={theme} data-header-zone={theme} aria-labelledby={`${id}-titel`} data-galerie>
+  <div class="wrap galerie__kopf">
+    <div>
+      <div class="dim">
+        {nr && <span class="dim__num">{nr}</span>}
+        <span>Bildstrecke</span>
+        <span class="dim__line" data-draw />
+      </div>
+      <h2 id={`${id}-titel`} class="h2 galerie__titel" data-split>{g.titel}<span class="dot">.</span></h2>
+    </div>
+    <div class="galerie__steuerung" data-steuerung hidden>
+      <p class="galerie__stand tech" aria-hidden="true"><span data-stand>01</span> / {zwei(g.bilder.length)}</p>
+      <button type="button" class="galerie__taste" data-schritt="-1" aria-controls={id} aria-label="Vorherige Fotos">
+        <Arrow direction="left" />
+      </button>
+      <button type="button" class="galerie__taste" data-schritt="1" aria-controls={id} aria-label="Nächste Fotos">
+        <Arrow />
+      </button>
+    </div>
+  </div>
+
+  <div class="galerie__spur" id={id} role="region" aria-label={`${g.titel}, ${g.bilder.length} Fotos`} tabindex="0" data-spur>
+    <ul class="galerie__liste" role="list">
+      {
+        g.bilder.map((b, i) => (
+          <li class="galerie__eintrag">
+            <figure class="galerie__figur">
+              <Foto src={b.src} alt={b.alt} sizes="(max-width: 760px) 84vw, (max-width: 1400px) 62vw, 900px" class="galerie__foto" />
+              <figcaption class="galerie__text tech" aria-hidden="true">
+                <span class="galerie__nr">{zwei(i + 1)}</span>
+                {b.alt}
+              </figcaption>
+            </figure>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .galerie {
+    --rand: max(var(--pad-x), calc((100% - var(--page-max)) / 2 + var(--pad-x)));
+    --hoehe: clamp(300px, 36vw, 560px);
+    overflow: hidden;
+  }
+
+  .galerie__kopf {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1.5rem var(--gutter);
+  }
+
+  .galerie__titel {
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+    max-width: 18ch;
+  }
+
+  .galerie__steuerung {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .galerie__steuerung[hidden] {
+    display: none;
+  }
+
+  .galerie__stand {
+    margin-right: 0.9rem;
+    font-size: var(--fs-label);
+    letter-spacing: 0.14em;
+    color: var(--text-sec);
+    font-variant-numeric: tabular-nums;
+  }
+
+  [data-theme='dark'] .galerie__stand {
+    color: var(--on-navy-sec);
+  }
+
+  .galerie__taste {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--blau);
+    transition:
+      background-color var(--dur-fast),
+      color var(--dur-fast),
+      opacity var(--dur-fast);
+  }
+
+  [data-theme='dark'] .galerie__taste {
+    color: var(--weiss);
+  }
+
+  .galerie__taste :global(.arrow) {
+    width: 22px;
+    height: 22px;
+  }
+
+  .galerie__taste:hover:not([aria-disabled='true']) {
+    background: var(--blau);
+    border-color: var(--blau);
+    color: var(--weiss);
+  }
+
+  [data-theme='dark'] .galerie__taste:hover:not([aria-disabled='true']) {
+    background: var(--weiss);
+    border-color: var(--weiss);
+    color: var(--navy);
+  }
+
+  .galerie__taste[aria-disabled='true'] {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .galerie__spur {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--rand);
+    scrollbar-width: thin;
+    scrollbar-color: rgb(47 36 130 / 0.35) transparent;
+  }
+
+  [data-theme='dark'] .galerie__spur {
+    scrollbar-color: var(--on-navy-line-strong) transparent;
+  }
+
+  .galerie__spur:focus-visible {
+    outline-offset: -4px;
+  }
+
+  .galerie__liste {
+    display: flex;
+    gap: var(--gutter);
+    width: max-content;
+    padding-inline: var(--rand);
+    padding-bottom: 1.25rem;
+  }
+
+  .galerie__eintrag {
+    flex: none;
+    scroll-snap-align: start;
+  }
+
+  .galerie__figur {
+    /* so breit wie das Foto, die Bildunterschrift bricht darunter um */
+    width: min-content;
+    margin: 0;
+  }
+
+  .galerie__figur :global(.galerie__foto) {
+    display: block;
+    width: auto;
+    height: var(--hoehe);
+    max-width: min(84vw, 1100px);
+    object-fit: cover;
+    background: var(--box);
+  }
+
+  [data-theme='dark'] .galerie__figur :global(.galerie__foto) {
+    background: rgb(232 231 239 / 0.06);
+  }
+
+  .galerie__text {
+    display: flex;
+    gap: 0.75rem;
+    max-width: 46ch;
+    margin-top: 0.85rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--text-sec);
+  }
+
+  [data-theme='dark'] .galerie__text {
+    color: var(--on-navy-sec);
+  }
+
+  .galerie__nr {
+    color: var(--akzent-text);
+  }
+
+  [data-theme='dark'] .galerie__nr {
+    color: var(--hell);
+  }
+
+  @media (max-width: 760px) {
+    .galerie {
+      --hoehe: 63vw;
+    }
+
+    .galerie__steuerung .galerie__taste {
+      width: 46px;
+      height: 46px;
+    }
+  }
+</style>
+
+<script>
+  // Tasten und Stand: blättern um eine Streifenbreite, am Anfang und Ende gesperrt
+  const sanft = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('[data-galerie]').forEach((root) => {
+    const spur = root.querySelector('[data-spur]');
+    const eintraege = [...spur.querySelectorAll('li')];
+    const stand = root.querySelector('[data-stand]');
+    const tasten = [...root.querySelectorAll('[data-schritt]')];
+    root.querySelector('[data-steuerung]').hidden = false;
+
+    const aktualisieren = () => {
+      const max = spur.scrollWidth - spur.clientWidth - 2;
+      tasten.forEach((t) => {
+        const ende = t.dataset.schritt === '1' ? spur.scrollLeft >= max : spur.scrollLeft <= 2;
+        t.setAttribute('aria-disabled', String(ende));
+      });
+      // erstes Foto, das mindestens zur Hälfte sichtbar ist
+      const links = spur.getBoundingClientRect().left;
+      const i = eintraege.findIndex((li) => {
+        const r = li.getBoundingClientRect();
+        return r.right - Math.max(r.left, links) > r.width / 2;
+      });
+      stand.textContent = String(Math.max(0, i) + 1).padStart(2, '0');
+    };
+
+    let geplant = false;
+    spur.addEventListener(
+      'scroll',
+      () => {
+        if (geplant) return;
+        geplant = true;
+        requestAnimationFrame(() => {
+          geplant = false;
+          aktualisieren();
+        });
+      },
+      { passive: true }
+    );
+    tasten.forEach((t) =>
+      t.addEventListener('click', () => {
+        if (t.getAttribute('aria-disabled') === 'true') return;
+        spur.scrollBy({ left: Number(t.dataset.schritt) * spur.clientWidth * 0.8, behavior: sanft ? 'smooth' : 'auto' });
+      })
+    );
+    window.addEventListener('resize', aktualisieren);
+    aktualisieren();
+  });
+</script>

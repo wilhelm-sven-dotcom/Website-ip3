@@ -2,8 +2,15 @@
 // Referenz als Planblatt: Zeichnung oder Foto, darunter ein Schriftfeld wie auf
 // einer technischen Zeichnung. Mit Foto (ref.bild) wird das Bild zum Hauptmotiv.
 import { drawing } from '../lib/drawings.js';
+import Foto from './Foto.astro';
 
-const { ref, index = 1, total = 1, size = 'm', headingLevel = 3 } = Astro.props;
+// Darstellungsbreite des Fotos je Blattgröße, für die Auswahl der Bilddatei
+const breite = {
+  l: '(max-width: 960px) 100vw, 58vw',
+  m: '(max-width: 860px) 100vw, 46vw',
+  tall: '(max-width: 960px) 100vw, 34vw',
+};
+const { ref, index = 1, total = 1, size = 'm', headingLevel = 3, sizes = breite[size] } = Astro.props;
 const H = `h${headingLevel}`;
 const blatt = `${String(index).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
 const felder = [
@@ -22,7 +29,7 @@ const felder = [
     <span class="sheet__crop sheet__crop--br" aria-hidden="true"></span>
     {
       ref.bild ? (
-        <img class="sheet__photo" src={ref.bild} alt={`${ref.titel}${ref.ort ? ', ' + ref.ort : ''}`} loading="lazy" decoding="async" />
+        <Foto class="sheet__photo" src={ref.bild} alt={ref.bildAlt || `${ref.titel}${ref.ort ? ', ' + ref.ort : ''}`} sizes={sizes} pos={ref.bildPos} />
       ) : (
         <div class="sheet__drawing" set:html={drawing(ref.zeichnung, `${ref.titel}${ref.ort ? ', ' + ref.ort : ''} (schematische Darstellung)`)} />
       )
@@ -62,9 +69,10 @@ const felder = [
     box-shadow: 0 40px 70px -40px rgb(12 26 61 / 0.35);
   }
 
+  /* feste Proportion, damit Fotos im Raster gleich hoch sind; das Schriftfeld nimmt den Rest */
   .sheet__plate {
     position: relative;
-    flex: 1;
+    flex: none;
     display: grid;
     place-items: center;
     padding: clamp(1.75rem, 4vw, 3.5rem);
@@ -96,7 +104,7 @@ const felder = [
     transform: scale(1.035);
   }
 
-  .sheet__photo {
+  .sheet :global(.sheet__photo) {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -105,7 +113,7 @@ const felder = [
     transition: transform 1200ms var(--ease-out);
   }
 
-  .sheet--photo:hover .sheet__photo {
+  .sheet--photo:hover :global(.sheet__photo) {
     transform: scale(1.04);
   }
 
@@ -189,9 +197,15 @@ const felder = [
 
   .sheet--photo .sheet__sheetno {
     color: var(--weiss);
+    opacity: 0.9;
+    text-shadow: 0 1px 3px rgb(12 26 61 / 0.55);
   }
 
   .sheet__block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     border-top: 1px solid var(--linie);
   }
 

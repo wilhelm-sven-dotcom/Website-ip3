@@ -44,7 +44,9 @@ Ohne PHP genügt `npm run build && npm run preview`. Das Formular meldet dann eh
 | `src/components/Story.astro` | Scroll-Inszenierung der Startseite (HTML-Inhalte, Beschriftungen, Fallback) |
 | `src/scripts/story/` | Three.js-Szene: Modul, prozeduraler Zellshader, Lichteinfall, Gesamtanlage, Kamerafahrt |
 | `src/lib/iso.js` | Generator für die isometrischen Linienzeichnungen |
-| `src/data/` | Unternehmensdaten, Leistungen, Referenzen |
+| `src/data/` | Unternehmensdaten, Team, Leistungen, Referenzen, Bildstrecken, Partnerlogos |
+| `src/assets/fotos/` | Projektfotos und Porträts (JPEG), beim Build in WebP-Dateien mehrerer Breiten umgerechnet |
+| `public/img/partner/` | Partnerlogos (WebP, weißer Rand entfernt) |
 | `src/styles/` | Designsystem: Farben, Schriften, Raster, Bausteine |
 | `public/kontakt-senden.php` | Versand des Kontaktformulars per PHP `mail()` |
 | `public/.htaccess` | Saubere URLs und Caching für Apache |
@@ -54,7 +56,10 @@ Ohne PHP genügt `npm run build && npm run preview`. Das Formular meldet dann eh
 ## Inhalte pflegen
 
 - **Kontaktdaten, Impressum:** `src/data/site.js`
-- **Referenzen:** `src/data/referenzen.js`. Für ein Projektfoto die Datei nach `public/img/referenzen/` legen und bei der Referenz `bild: '/img/referenzen/dateiname.jpg'` eintragen (Querformat, mindestens 1.600 px breit). Kennwerte über `leistung` und `komponenten`.
+- **Referenzen:** `src/data/referenzen.js`. Für ein Projektfoto die JPEG-Datei nach `src/assets/fotos/referenzen/` legen und bei der Referenz `bild: 'referenzen/dateiname'` (ohne Endung) und `bildAlt` mit einer Beschreibung des Fotos eintragen, mindestens 1.600 px breit. Breite Planblätter (jedes dritte auf `/referenzen`) brauchen Querformate, `bildPos` verschiebt den Ausschnitt. Kennwerte über `leistung` und `komponenten`. Keine Kundennamen in Titeln, Dateinamen und Fotos.
+- **Bildstrecken:** `src/data/galerien.js`, Fotos in `src/assets/fotos/galerie/`. Astro erzeugt WebP in 640, 1.024 und 1.600 px Breite und lässt Metadaten weg.
+- **Team:** `src/data/site.js`, Porträts quadratisch in `src/assets/fotos/team/`. Ohne Foto erscheint ein Monogramm.
+- **Partnerlogos:** `src/data/partner.js`, Dateien in `public/img/partner/`.
 - **Leistungstexte:** `src/data/leistungen.js` und die Seiten in `src/pages/unsere-leistungen/`
 
 ## Inszenierung auf der Startseite

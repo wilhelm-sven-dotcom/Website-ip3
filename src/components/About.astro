@@ -26,7 +26,7 @@ import { kennzahlen } from '../data/site.js';
         kennzahlen.map((k) => (
           <div class="fact" data-reveal>
             <dt>{k.text}</dt>
-            <dd class="tech">{k.wert}{k.einheit ? '\u202f' : ''}<span class="fact__unit">{k.einheit}+</span></dd>
+            <dd class="tech">{k.wert}{k.einheit && '\u202f'}{(k.einheit || k.plus) && <span class="fact__unit">{k.einheit}{k.plus && '+'}</span>}</dd>
           </div>
         ))
       }

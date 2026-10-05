@@ -1,5 +1,5 @@
 // Rundgang durch die mobile Fassung als Video: Startseite mit Inszenierung, Menü, Referenzen mit
-// Filter, Kontaktformular mit Versand. Bild für Bild mit angehaltener Seitenuhr aufgenommen,
+// Filter und Bildstrecke, Kontaktformular mit Versand. Bild für Bild mit angehaltener Seitenuhr aufgenommen,
 // dadurch flüssig auch auf langsamen Rechnern. Entwicklungswerkzeug.
 // Voraussetzung: Vorschau mit PHP läuft (npm run vorschau), für den Formularversand mit
 // umgeleitetem sendmail (siehe README). Aufruf: node scripts/video-rundgang.mjs [basisUrl] [ausgabe.mp4]
@@ -90,6 +90,25 @@ async function tippen(selektor, { seitenwechsel = false } = {}) {
     await bild();
   }
 }
+// Seitlich wischen in einem Bildstreifen, mit Fingerpunkt
+async function wischenQuer(selektor, sek, anteil = 0.6) {
+  const box = await page.locator(selektor).first().boundingBox();
+  const y = box.y + box.height * 0.4;
+  const x0 = box.x + box.width * 0.82;
+  const weg = box.width * anteil;
+  const von = await page.$eval(selektor, (el) => {
+    el.style.scrollSnapType = 'none';
+    return el.scrollLeft;
+  });
+  const n = Math.max(1, Math.round(sek * fps));
+  for (let i = 0; i <= n; i++) {
+    const t = sanft(i / n);
+    await page.$eval(selektor, (el, l) => el.scrollTo({ left: l, behavior: 'instant' }), von + weg * t);
+    await punkt(x0 - weg * t, y, i === n ? 1 : 0);
+    await bild();
+  }
+  await page.$eval(selektor, (el) => (el.style.scrollSnapType = ''));
+}
 async function tippen2(selektor, text) {
   await tippen(selektor);
   for (let i = 0; i < text.length; i += 2) {
@@ -120,7 +139,7 @@ await scrollen(storyEnde, 2.5);
 await halten(0.6);
 
 // Rest der Startseite: Leistungen, Systemverständnis, Projekte, Ablauf
-for (const selektor of ['.svc', '[data-sld], .sld', '.sheet', '#ablauf']) {
+for (const selektor of ['.svc', '[data-sld], .sld', '.sheet', '#ablauf', '.partner__liste']) {
   const da = await page.evaluate((s) => !!document.querySelector(s), selektor);
   if (!da) continue;
   await insBild(selektor, 2.2, 0.42);
@@ -137,6 +156,12 @@ await halten(0.5);
 await tippen('[data-filter="frei"]');
 await halten(1.2);
 await scrollen((await page.evaluate(() => scrollY)) + 1.3 * vh, 2.4);
+await halten(1);
+await insBild('[data-spur]', 2.6, 0.5);
+await halten(0.8);
+await wischenQuer('[data-spur]', 1.1);
+await halten(0.6);
+await wischenQuer('[data-spur]', 1.1);
 await halten(1);
 
 // 3. Kontakt: Formular ausfüllen und absenden
