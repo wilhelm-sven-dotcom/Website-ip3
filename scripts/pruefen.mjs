@@ -19,10 +19,12 @@ const seiten = [
   '/unsere-leistungen/freiflaechen',
   '/unsere-leistungen/batteriespeicher',
   '/referenzen',
+  '/karriere',
   '/ueber-uns',
   '/kontakt',
   '/impressum',
   '/datenschutz',
+  '/efre-foerderhinweis',
   '/gibt-es-nicht',
 ];
 const viewports = [

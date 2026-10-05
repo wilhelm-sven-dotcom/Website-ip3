@@ -5,7 +5,7 @@ import ReferenceSheet from './ReferenceSheet.astro';
 import Arrow from './Arrow.astro';
 
 const { nr = '04' } = Astro.props;
-const auswahl = ['stall-300', 'industrie-muenchen', 'ff-vohenstrauss', 'carport-mitterteich', 'allblack-altenstadt', 'byd-weiden']
+const auswahl = ['stall-300', 'industrie-muenchen', 'ff-vohenstrauss', 'netto-fristo-weiden', 'allblack-altenstadt', 'byd-weiden']
   .map((id) => referenzen.find((r) => r.id === id))
   .filter(Boolean);
 const layout = [

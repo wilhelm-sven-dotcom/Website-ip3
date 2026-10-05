@@ -1,6 +1,7 @@
 ---
 import { firma, leistungenNav, rechtliches } from '../data/site.js';
 import Arrow from './Arrow.astro';
+import EuEmblem from './EuEmblem.astro';
 
 const { cta = true } = Astro.props;
 const jahr = new Date().getFullYear();
@@ -75,6 +76,7 @@ const jahr = new Date().getFullYear();
       <h2 class="footer-col__title">Unternehmen</h2>
       <ul role="list">
         <li><a href="/referenzen">Referenzen</a></li>
+        <li><a href="/karriere">Karriere</a></li>
         <li><a href="/ueber-uns">Über uns</a></li>
         <li><a href="/kontakt">Kontakt</a></li>
         {
@@ -90,6 +92,9 @@ const jahr = new Date().getFullYear();
 
   <div class="footer-bottom wrap">
     <p>{firma.name} · {firma.region} · {firma.email} · {firma.web}</p>
+    <a class="footer-eu" href="/efre-foerderhinweis" aria-label="EFRE-Förderhinweis: Kofinanziert von der Europäischen Union">
+      <EuEmblem dunkel />
+    </a>
     <p class="tech">© {jahr}</p>
   </div>
 </footer>
@@ -243,6 +248,17 @@ const jahr = new Date().getFullYear();
     border-top: 1px solid var(--on-navy-line);
     font-size: 0.85rem;
     color: var(--on-navy-sec);
+    align-items: center;
+  }
+
+  .footer-eu {
+    display: block;
+    width: 260px;
+    max-width: 100%;
+  }
+
+  .footer-eu:focus-visible {
+    outline-offset: 4px;
   }
 
   @media (max-width: 960px) {

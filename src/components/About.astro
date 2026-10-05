@@ -1,5 +1,6 @@
 ---
 // Abschnitt "Wer wir sind" auf der Startseite
+import { kennzahlen } from '../data/site.js';
 ---
 
 <section class="section about" data-theme="light" data-header-zone="light" aria-labelledby="about-title">
@@ -21,21 +22,17 @@
     </div>
 
     <dl class="facts">
-      <div class="fact" data-reveal>
-        <dt>Start als Ingenieurbüro</dt>
-        <dd class="tech">2009</dd>
-      </div>
-      <div class="fact" data-reveal>
-        <dt>Großspeicher im zweistelligen Megawattbereich</dt>
-        <dd class="tech">≥ 10 MW</dd>
-      </div>
+      {
+        kennzahlen.map((k) => (
+          <div class="fact" data-reveal>
+            <dt>{k.text}</dt>
+            <dd class="tech">{k.wert}{k.einheit ? '\u202f' : ''}<span class="fact__unit">{k.einheit}+</span></dd>
+          </div>
+        ))
+      }
       <div class="fact" data-reveal>
         <dt>VDE-AR-N für Netzanschluss und Anlagenzertifikat</dt>
         <dd class="tech">4105 · 4110 · 4120</dd>
-      </div>
-      <div class="fact" data-reveal>
-        <dt>Theisseil bei Weiden, Projekte in der Region und darüber hinaus</dt>
-        <dd class="tech">Oberpfalz</dd>
       </div>
     </dl>
   </div>
@@ -81,7 +78,7 @@
 
   .facts {
     display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1.45fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 1.3fr);
     margin-top: clamp(4rem, 9vw, 8rem);
     border-top: 1px solid var(--linie);
   }
@@ -111,6 +108,12 @@
     line-height: 1;
     color: var(--blau);
     white-space: nowrap;
+  }
+
+  .fact__unit {
+    font-size: 0.5em;
+    font-weight: 500;
+    letter-spacing: 0;
   }
 
   .fact dt {

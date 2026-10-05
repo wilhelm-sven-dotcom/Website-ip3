@@ -7,10 +7,12 @@ const seiten = [
   { path: '/unsere-leistungen/freiflaechen', prio: '0.8' },
   { path: '/unsere-leistungen/batteriespeicher', prio: '0.8' },
   { path: '/referenzen', prio: '0.8' },
+  { path: '/karriere', prio: '0.6' },
   { path: '/ueber-uns', prio: '0.7' },
   { path: '/kontakt', prio: '0.7' },
   { path: '/impressum', prio: '0.2' },
   { path: '/datenschutz', prio: '0.2' },
+  { path: '/efre-foerderhinweis', prio: '0.2' },
 ];
 
 export function GET({ site }) {

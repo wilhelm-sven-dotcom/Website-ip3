@@ -22,6 +22,11 @@ import { firma } from '../data/site.js';
           E-Mail: <a href={`mailto:${firma.email}`}>{firma.email}</a>
         </p>
         <p>Vertreten durch die Geschäftsführer {firma.geschaeftsfuehrer.join(' und ')}.</p>
+        <h3>Datenschutzbeauftragter</h3>
+        <p>
+          Wenn Sie Fragen zum Datenschutz haben, schreiben Sie uns bitte eine E-Mail oder wenden Sie sich direkt an unseren Datenschutzbeauftragten {firma.datenschutzbeauftragter.name},
+          <a href={`mailto:${firma.datenschutzbeauftragter.email}`}>{firma.datenschutzbeauftragter.email}</a>.
+        </p>
 
         <h2>2. Aufruf der Website und Server-Logdateien</h2>
         <p>

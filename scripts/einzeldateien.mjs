@@ -18,10 +18,12 @@ const seiten = {
   '/unsere-leistungen/freiflaechen': 'unsere-leistungen-freiflaechen.html',
   '/unsere-leistungen/batteriespeicher': 'unsere-leistungen-batteriespeicher.html',
   '/referenzen': 'referenzen.html',
+  '/karriere': 'karriere.html',
   '/ueber-uns': 'ueber-uns.html',
   '/kontakt': 'kontakt.html',
   '/impressum': 'impressum.html',
   '/datenschutz': 'datenschutz.html',
+  '/efre-foerderhinweis': 'efre-foerderhinweis.html',
 };
 const quelle = (p) => (p === '/' ? 'index.html' : p.slice(1) + '.html');
 

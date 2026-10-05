@@ -7,7 +7,7 @@ import { referenzen } from '../data/referenzen.js';
 const filter = [
   { key: 'alle', label: 'Alle' },
   { key: 'frei', label: 'Freifläche', match: ['Freifläche'] },
-  { key: 'gewerbe', label: 'Gewerbe, Industrie und Landwirtschaft', match: ['Industrie', 'Landwirtschaft', 'Carport'] },
+  { key: 'gewerbe', label: 'Gewerbe, Industrie und Landwirtschaft', match: ['Industrie', 'Gewerbe', 'Landwirtschaft', 'Carport'] },
   { key: 'privat', label: 'Privat und Speicher', match: ['Privat', 'Speicher', 'Ladeinfrastruktur'] },
 ];
 const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.kategorie.includes(m))).map((f) => f.key).join(' ');
@@ -20,7 +20,7 @@ const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.katego
   <PageHero
     kicker="Referenzen"
     title={'Gebaut und am Netz<span class="dot">.</span>'}
-    lead="Zufriedene Kunden sind der beste Nachweis für Erfahrung und Kompetenz. Hier ein Einblick in Anlagen, die wir bereits umgesetzt haben."
+    lead="Zufriedene Kunden sind der beste Nachweis für Erfahrung und Kompetenz. Hier ein Einblick in Anlagen, die wir bereits umgesetzt haben. Das ist nur ein Auszug: Weitere Projekte und Details zu besonderen Anforderungen zeigen wir Ihnen gern auf Anfrage."
     crumbs={[{ label: 'Referenzen' }]}
   />
 

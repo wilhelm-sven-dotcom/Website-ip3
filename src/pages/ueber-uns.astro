@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Arrow from '../components/Arrow.astro';
-import { firma } from '../data/site.js';
+import { team } from '../data/site.js';
 
 const werte = [
   {
@@ -10,12 +10,12 @@ const werte = [
     text: 'Wir betrachten Erzeugung, Verbrauch, Speicher und Netzanschluss zusammen, bevor wir eine Lösung empfehlen.',
   },
   {
-    titel: 'Transparente Kommunikation',
-    text: 'Sie wissen, wo Ihr Projekt steht und welche Schritte als Nächstes folgen. Ein Ansprechpartner begleitet Sie durchgehend.',
+    titel: 'Klare und ehrliche Kommunikation',
+    text: 'Intern wie extern sprechen wir offen und klar. So kommt Ihr Projekt am schnellsten zum Erfolg.',
   },
   {
-    titel: 'Maßgeschneiderte Lösungen',
-    text: 'Jede Anlage wird für ihren Standort geplant. Wir greifen dabei auf langjährige Erfahrung mit erneuerbaren Energien zurück.',
+    titel: 'Arbeit am Detail',
+    text: 'Die Arbeit am Detail setzt uns vom Wettbewerb ab. Wir formen Ihre Ideen und Wünsche und setzen sie durch aktives Planen um.',
   },
 ];
 ---
@@ -27,7 +27,7 @@ const werte = [
   <PageHero
     kicker="Über uns"
     title={'Energie, die aus der Region kommt<span class="dot">.</span>'}
-    lead="ip³ ist ein auf erneuerbare Energien spezialisiertes Fachunternehmen aus der Oberpfalz. 2009 als Ingenieurbüro gestartet, haben wir uns zu Spezialisten für Energieeffizienz und zum Servicepartner für schlüsselfertige Energielösungen entwickelt."
+    lead="ip³ ist ein Fachbetrieb für erneuerbare Energien aus der Oberpfalz. 2009 als Ingenieurbüro gestartet, haben wir uns zu Energieeffizienzexperten und zum Dienstleistungspartner für schlüsselfertige Energielösungen weiterentwickelt. Wir sind eingetragener Partner beim Bayernwerk."
     crumbs={[{ label: 'Über uns' }]}
   />
 
@@ -45,7 +45,7 @@ const werte = [
           <li data-reveal>
             <p class="weg__year tech">Heute</p>
             <h3>Planung, Beratung und Umsetzung</h3>
-            <p>Schlüsselfertige Photovoltaikanlagen und Batteriespeicher für Privat, Gewerbe, Industrie und Freiflächen, bis zum Großspeicher im zweistelligen Megawattbereich.</p>
+            <p>Der gesamte Projektzyklus von der Grundlagenermittlung über Planung und Bauüberwachung bis zur Inbetriebnahme und Schulung des Personals. Schlüsselfertig für Privat, Gewerbe, Industrie und Freiflächen, bis zum Großspeicher im zweistelligen Megawattbereich.</p>
           </li>
         </ol>
       </div>
@@ -55,7 +55,7 @@ const werte = [
   <section class="section werte-sec" data-theme="hell" data-header-zone="hell" aria-labelledby="werte-title">
     <div class="wrap">
       <div class="dim"><span class="dim__num">02</span><span>Arbeitsweise</span><span class="dim__line" data-draw></span></div>
-      <h2 id="werte-title" class="h2 werte__title" data-split>Worauf Sie sich verlassen können<span class="dot">.</span></h2>
+      <h2 id="werte-title" class="h2 werte__title" data-split>Aktiv planen heißt Zukunft gestalten<span class="dot">.</span></h2>
       <ol class="werte" role="list">
         {
           werte.map((w, i) => (
@@ -72,32 +72,27 @@ const werte = [
 
   <section class="section team" data-theme="light" data-header-zone="light" aria-labelledby="team-title">
     <img class="zeichen zeichen--light team__zeichen" src="/brand/zeichen-3-kontur-rot.png" alt="" width="607" height="864" loading="lazy" data-parallax="12" />
-    <div class="wrap team__grid">
-      <div>
-        <div class="dim"><span class="dim__num">03</span><span>Menschen</span><span class="dim__line" data-draw></span></div>
-        <h2 id="team-title" class="h2 team__title" data-split>Ein Team vom Plan bis zur Baustelle<span class="dot">.</span></h2>
+    <div class="wrap">
+      <div class="team__head">
+        <div>
+          <div class="dim"><span class="dim__num">03</span><span>Menschen</span><span class="dim__line" data-draw></span></div>
+          <h2 id="team-title" class="h2 team__title" data-split>Ihre Ansprechpartner<span class="dot">.</span></h2>
+        </div>
         <p class="lead team__lead" data-reveal>
-          Projektleitung, Elektrotechnik, Planung und technisches Zeichnen sowie die Assistenz der Geschäftsführung arbeiten bei uns eng zusammen. So bleibt ein Projekt von der ersten Skizze bis zur Inbetriebnahme in einer Hand.
+          Geschäftsführung, Projektleitung, Elektrotechnik, Planung und technisches Zeichnen, Lager und Digital Services: Ihr Projekt bleibt von der ersten Skizze bis zur Inbetriebnahme in einer Hand.
         </p>
       </div>
-      <dl class="gf" data-reveal>
-        <div class="gf__row">
-          <dt class="tech">Geschäftsführer</dt>
-          <dd>Sven Wilhelm, B. Eng.</dd>
-        </div>
-        <div class="gf__row">
-          <dt class="tech">Geschäftsführer</dt>
-          <dd>Michael Bäumler</dd>
-        </div>
-        <div class="gf__row">
-          <dt class="tech">Standort</dt>
-          <dd>Theisseil bei Weiden in der Oberpfalz</dd>
-        </div>
-        <div class="gf__row">
-          <dt class="tech">Netzgebiet</dt>
-          <dd>überwiegend Bayernwerk</dd>
-        </div>
-      </dl>
+      <ul class="kontakte" role="list">
+        {
+          team.map((p) => (
+            <li class="kontakt" data-reveal>
+              <p class="kontakt__name">{p.name}</p>
+              <p class="kontakt__rolle tech">{p.rolle}</p>
+              <a class="kontakt__mail" href={`mailto:${p.email}`}>{p.email}</a>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </section>
 
@@ -105,8 +100,8 @@ const werte = [
     <div class="wrap karriere__grid">
       <h2 id="karriere-title" class="h1" data-split>Arbeiten, wo Energie zu Hause ist<span class="dot">.</span></h2>
       <div class="karriere__text">
-        <p class="lead" data-reveal>Sie wollen die Energiewende in der Region mitbauen? Wir freuen uns über Ihre Initiativbewerbung.</p>
-        <a class="btn btn--ghost" href={`mailto:${firma.email}?subject=Initiativbewerbung`} data-reveal>Bewerbung per E-Mail <Arrow /></a>
+        <p class="lead" data-reveal>Wir suchen Verstärkung als Elektriker / Elektroniker (m/w/d) in Vollzeit.</p>
+        <a class="btn btn--ghost" href="/karriere" data-reveal>Zur Stellenanzeige <Arrow /></a>
       </div>
     </div>
   </section>
@@ -215,10 +210,10 @@ const werte = [
     width: clamp(260px, 44vmin, 560px);
   }
 
-  .team__grid {
+  .team__head {
     display: grid;
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    gap: 3rem var(--gutter);
+    gap: 1.5rem var(--gutter);
     align-items: end;
   }
 
@@ -228,38 +223,51 @@ const werte = [
   }
 
   .team__lead {
-    margin-top: 1.5rem;
     max-width: 38rem;
     color: var(--text-sec);
   }
 
-  .gf {
-    margin: 0;
+  .kontakte {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 var(--gutter);
+    margin-top: clamp(2.5rem, 5vw, 4rem);
     border-top: 1px solid var(--linie);
-    background: var(--weiss);
   }
 
-  .gf__row {
-    display: grid;
-    grid-template-columns: 9.5rem minmax(0, 1fr);
-    gap: 1rem;
-    padding: 1rem 0;
+  .kontakt {
+    padding: 1.2rem 0 1.3rem;
     border-bottom: 1px solid var(--linie);
   }
 
-  .gf__row dt {
-    font-size: var(--fs-label);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-sec);
-    padding-top: 0.25rem;
+  .kontakt__name {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--blau);
   }
 
-  .gf__row dd {
-    margin: 0;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: var(--blau);
+  .kontakt__rolle {
+    margin-top: 0.3rem;
+    font-size: var(--fs-label);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .kontakt__mail {
+    display: inline-block;
+    margin-top: 0.55rem;
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    text-decoration-color: var(--linie);
+    overflow-wrap: anywhere;
+  }
+
+  .kontakt__mail:hover {
+    text-decoration-color: var(--akzent);
   }
 
   .karriere__grid {
@@ -285,9 +293,13 @@ const werte = [
 
   @media (max-width: 960px) {
     .weg,
-    .team__grid,
+    .team__head,
     .karriere__grid {
       grid-template-columns: 1fr;
+    }
+
+    .kontakte {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .werte {
@@ -295,10 +307,9 @@ const werte = [
     }
   }
 
-  @media (max-width: 480px) {
-    .gf__row {
+  @media (max-width: 560px) {
+    .kontakte {
       grid-template-columns: 1fr;
-      gap: 0.25rem;
     }
   }
 </style>

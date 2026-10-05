@@ -79,6 +79,7 @@ if ($ts > 0 && $alter > MAX_SEKUNDEN) {
 }
 
 $name = einzeilig(feld('name', 120));
+$firma = einzeilig(feld('firma', 160));
 $email = einzeilig(feld('email', 160));
 $telefon = einzeilig(feld('telefon', 60));
 $adresse = einzeilig(feld('adresse', 160));
@@ -104,6 +105,7 @@ $text = "Neue Anfrage über das Kontaktformular der Website\n"
     . str_repeat('-', 52) . "\n"
     . "Interesse an: {$interesse}\n"
     . "Name:         {$name}\n"
+    . "Firma:        {$firma}\n"
     . "E-Mail:       {$email}\n"
     . "Telefon:      {$telefon}\n"
     . "Adresse:      {$adresse}\n"

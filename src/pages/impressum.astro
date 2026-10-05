@@ -30,15 +30,44 @@ import { firma } from '../data/site.js';
         <p>
           Telefon: <a href={firma.telefonHref}>+49 (0)961 40191360</a><br />
           Telefax: +49 (0)961 40191369<br />
-          E-Mail: <a href={`mailto:${firma.email}`}>{firma.email}</a>
+          E-Mail: <a href={`mailto:${firma.email}`}>{firma.email}</a><br />
+          Internet: {firma.web}
         </p>
 
         <h2>Umsatzsteuer-Identifikationsnummer</h2>
         <p>Umsatzsteuer-Identifikationsnummer gemäß § 27a Umsatzsteuergesetz: {firma.ustId}</p>
 
+        <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+        <p>Sven Wilhelm, Michael Bäumler, Anschrift wie oben</p>
+
+        <h2>Kammern und Verbände</h2>
+        <p>
+          {firma.kammer.name}<br />
+          {firma.kammer.strasse}<br />
+          {firma.kammer.ort}
+        </p>
+
         <h2>Gestaltung und Bildnachweis</h2>
         <p>
           Visualisierungen und technische Zeichnungen auf dieser Website sind schematische Darstellungen der {firma.name}. Schriften: Libre Franklin und Space Grotesk, lizenziert unter der SIL Open Font License.
+        </p>
+
+        <h2>Haftungsausschluss</h2>
+        <h3>1. Inhalt des Online-Angebotes</h3>
+        <p>
+          Die ip³ | Ingenieure mit Partner GmbH und die ip³ | Energietechnik GmbH (im Folgenden kurz „ip³“ genannt) übernehmen keinerlei Gewähr für die Aktualität, Korrektheit, Vollständigkeit oder Qualität der bereitgestellten Informationen. Haftungsansprüche gegen ip³, welche sich auf Schäden beziehen, die durch die Nutzung oder Nichtnutzung der dargebotenen Informationen bzw. durch die Nutzung fehlerhafter und unvollständiger Informationen verursacht wurden, sind grundsätzlich ausgeschlossen, sofern seitens ip³ kein nachweislich vorsätzliches oder grob fahrlässiges Verschulden vorliegt. Alle Angebote sind freibleibend und unverbindlich. ip³ behält es sich ausdrücklich vor, Teile der Seiten oder das gesamte Angebot ohne gesonderte Ankündigung zu verändern, zu ergänzen, zu löschen oder die Veröffentlichung zeitweise oder endgültig einzustellen.
+        </p>
+        <h3>2. Verweise und Links</h3>
+        <p>
+          Bei direkten oder indirekten Verweisen auf fremde Webseiten („Hyperlinks“), die außerhalb des Verantwortungsbereiches von ip³ liegen, würde eine Haftungsverpflichtung ausschließlich in dem Fall in Kraft treten, in dem ip³ von den Inhalten Kenntnis hat und es ihr technisch möglich und zumutbar wäre, die Nutzung im Falle rechtswidriger Inhalte zu verhindern. ip³ erklärt hiermit ausdrücklich, dass zum Zeitpunkt der Linksetzung keine illegalen Inhalte auf den zu verlinkenden Seiten erkennbar waren. Auf die aktuelle und zukünftige Gestaltung, die Inhalte oder die Urheberschaft der verlinkten/verknüpften Seiten hat ip³ keinerlei Einfluss. Deshalb distanziert sie sich hiermit ausdrücklich von allen Inhalten aller verlinkten/verknüpften Seiten, die nach der Linksetzung verändert wurden. Diese Feststellung gilt für alle innerhalb des eigenen Internetangebotes gesetzten Links und Verweise sowie für Fremdeinträge in von ip³ eingerichteten Gästebüchern, Diskussionsforen, Linkverzeichnissen, Mailinglisten, Weblogs und in allen anderen Formen von Datenbanken, auf deren Inhalt externe Schreibzugriffe möglich sind. Für illegale, fehlerhafte oder unvollständige Inhalte und insbesondere für Schäden, die aus der Nutzung oder Nichtnutzung solcher Art dargebotener Informationen entstehen, haftet allein der Anbieter der Seite, auf welche verwiesen wurde, nicht derjenige, der über Links auf die jeweilige Veröffentlichung lediglich verweist.
+        </p>
+        <h3>3. Urheber- und Kennzeichenrecht</h3>
+        <p>
+          ip³ ist bestrebt, in allen Publikationen die Urheberrechte der verwendeten Bilder, Grafiken, Tondokumente, Videosequenzen und Texte zu beachten, von ihr selbst erstellte Bilder, Grafiken, Tondokumente, Videosequenzen und Texte zu nutzen oder auf lizenzfreie Grafiken, Tondokumente, Videosequenzen und Texte zurückzugreifen. Alle innerhalb des Internetangebotes genannten und ggf. durch Dritte geschützten Marken- und Warenzeichen unterliegen uneingeschränkt den Bestimmungen des jeweils gültigen Kennzeichenrechts und den Besitzrechten der jeweiligen eingetragenen Eigentümer. Allein aufgrund der bloßen Nennung ist nicht der Schluss zu ziehen, dass Markenzeichen nicht durch Rechte Dritter geschützt sind! Das Copyright für veröffentlichte, von ip³ selbst erstellte Objekte bleibt allein bei ip³. Eine Vervielfältigung oder Verwendung solcher Grafiken, Tondokumente, Videosequenzen und Texte in anderen elektronischen oder gedruckten Publikationen ist ohne ausdrückliche Zustimmung von ip³ nicht gestattet.
+        </p>
+        <h3>4. Rechtswirksamkeit dieses Haftungsausschlusses</h3>
+        <p>
+          Dieser Haftungsausschluss ist als Teil des Internetangebotes zu betrachten, von dem aus auf diese Seite verwiesen wurde. Sofern Teile oder einzelne Formulierungen dieses Textes der geltenden Rechtslage nicht, nicht mehr oder nicht vollständig entsprechen sollten, bleiben die übrigen Teile des Dokumentes in ihrem Inhalt und ihrer Gültigkeit davon unberührt.
         </p>
       </div>
     </div></div>

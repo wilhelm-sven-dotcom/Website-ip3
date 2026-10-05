@@ -1,0 +1,43 @@
+---
+// Emblem „Kofinanziert von der Europäischen Union“ nach den grafischen Vorgaben der EU:
+// Flagge 3:2, zwölf Sterne auf einem Kreis mit 1/3 der Flaggenhöhe als Radius, Sternradius
+// 1/18 der Höhe, Farben Reflexblau #003399 und Gelb #FFCC00. Auf dunklem Grund mit weißem
+// Rand (1/25 der Höhe) und weißer Schrift. Kann durch die Originaldatei ersetzt werden.
+const { dunkel = false, class: klasse = '' } = Astro.props;
+
+const H = 60;
+const W = 90;
+const rand = dunkel ? H / 25 : 0;
+const stern = (cx, cy, r) => {
+  const innen = r * 0.381966;
+  const punkte = [];
+  for (let i = 0; i < 10; i++) {
+    const w = (Math.PI / 5) * i - Math.PI / 2;
+    const rr = i % 2 ? innen : r;
+    punkte.push(`${(cx + rr * Math.cos(w)).toFixed(3)},${(cy + rr * Math.sin(w)).toFixed(3)}`);
+  }
+  return punkte.join(' ');
+};
+const sterne = Array.from({ length: 12 }, (_, i) => {
+  const w = (Math.PI / 6) * i;
+  return stern(rand + W / 2 + (H / 3) * Math.sin(w), rand + H / 2 - (H / 3) * Math.cos(w), H / 18);
+});
+const textX = rand * 2 + W + 14;
+const breite = textX + 196;
+const hoehe = H + rand * 2;
+---
+
+<svg class:list={['eu-emblem', klasse]} viewBox={`0 0 ${breite} ${hoehe}`} role="img" aria-label="Kofinanziert von der Europäischen Union">
+  {dunkel && <rect x="0" y="0" width={W + rand * 2} height={H + rand * 2} fill="#ffffff" />}
+  <rect x={rand} y={rand} width={W} height={H} fill="#003399" />
+  {sterne.map((p) => <polygon points={p} fill="#ffcc00" />)}
+  <text x={textX} y={hoehe / 2 - 4} fill={dunkel ? '#ffffff' : '#003399'} font-family="Arial, Helvetica, sans-serif" font-size="17">Kofinanziert von der</text>
+  <text x={textX} y={hoehe / 2 + 17} fill={dunkel ? '#ffffff' : '#003399'} font-family="Arial, Helvetica, sans-serif" font-size="17">Europäischen Union</text>
+</svg>
+
+<style>
+  .eu-emblem {
+    display: block;
+    height: auto;
+  }
+</style>

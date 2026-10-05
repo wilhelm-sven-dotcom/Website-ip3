@@ -39,10 +39,14 @@ const interessen = [
   </fieldset>
 
   <div class="cform__grid">
-    <div class="field field--full">
+    <div class="field">
       <label class="cform__label" for="cf-name">Name <span class="req" aria-hidden="true">*</span></label>
       <input id="cf-name" name="name" type="text" autocomplete="name" required maxlength="120" aria-describedby="cf-name-err" />
       <p class="field__err" id="cf-name-err"></p>
+    </div>
+    <div class="field">
+      <label class="cform__label" for="cf-firma">Firma</label>
+      <input id="cf-firma" name="firma" type="text" autocomplete="organization" maxlength="160" />
     </div>
     <div class="field">
       <label class="cform__label" for="cf-email">E-Mail <span class="req" aria-hidden="true">*</span></label>
@@ -397,6 +401,7 @@ const interessen = [
       const lines = [
         `Interesse an: ${d.get('interesse') || ''}`,
         `Name: ${d.get('name') || ''}`,
+        `Firma: ${d.get('firma') || ''}`,
         `E-Mail: ${d.get('email') || ''}`,
         `Telefon: ${d.get('telefon') || ''}`,
         `Adresse: ${d.get('adresse') || ''}`,

@@ -1,0 +1,157 @@
+---
+// Stellenanzeige wie auf der bisherigen Seite /karriere (Extraktion vom 05.10.2026).
+// Schreibweise auf ip³ vereinheitlicht, Emojis entfernt.
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Arrow from '../components/Arrow.astro';
+import { firma } from '../data/site.js';
+
+const stelle = 'Elektriker / Elektroniker (m/w/d)';
+const spalten = [
+  {
+    titel: 'Deine Aufgaben',
+    punkte: [
+      'Installation und Inbetriebnahme von Photovoltaikanlagen',
+      'Anschluss von Wechselrichtern und Batteriespeichern',
+      'Installation und Konfiguration von Wallboxen',
+      'Montage von Zählerschränken und elektrischen Komponenten',
+      'Durchführung von Messungen, Prüfungen und Dokumentationen',
+      'Fehlersuche und Wartung bestehender Anlagen',
+      'Unterstützung bei der Inbetriebnahme von Energiemanagementsystemen',
+      'Kundenbetreuung vor Ort und technische Einweisung',
+    ],
+  },
+  {
+    titel: 'Das bringst Du mit',
+    punkte: [
+      'Abgeschlossene Ausbildung als Elektriker, Elektroniker oder vergleichbare Qualifikation',
+      'Idealerweise Erfahrung im Bereich Photovoltaik, Speicher oder E-Mobilität',
+      'Selbstständige und zuverlässige Arbeitsweise',
+      'Freundliches Auftreten und Kundenorientierung',
+      'Führerschein Klasse B',
+      'Interesse an erneuerbaren Energien und moderner Gebäudetechnik',
+    ],
+  },
+  {
+    titel: 'Das bieten wir Dir',
+    punkte: [
+      'Unbefristete Festanstellung in einer zukunftssicheren Branche',
+      'Attraktive und leistungsgerechte Vergütung',
+      'Firmenfahrzeug und moderne Arbeitsausstattung',
+      'Weiterbildungsmöglichkeiten im Bereich Photovoltaik, Speicher und Smart Energy',
+      'Abwechslungsreiche Projekte mit modernster Technik',
+      'Flache Hierarchien und kurze Entscheidungswege',
+      'Angenehmes Arbeitsumfeld in einem motivierten Team',
+      'Die Möglichkeit, die Energiewende aktiv mitzugestalten',
+    ],
+  },
+];
+const bewerbung = `mailto:${firma.email}?subject=${encodeURIComponent('Bewerbung ' + stelle)}`;
+---
+
+<Base
+  title="Karriere"
+  description={`Karriere bei ip³ Energietechnik: Verstärke unser Team als ${stelle} in Vollzeit. Photovoltaik, Batteriespeicher, Wallboxen und Energiemanagement in Bayern.`}
+  footerCta={false}
+>
+  <PageHero
+    kicker="Karriere"
+    title={'Arbeiten, wo Energie zu Hause ist<span class="dot">.</span>'}
+    lead="Du möchtest die Energiewende aktiv mitgestalten und suchst einen sicheren Job mit Zukunft? Dann werde Teil des Teams von ip³. Wir planen und realisieren moderne Photovoltaikanlagen, Stromspeicher, Wallboxen und intelligente Energiemanagementsysteme für Privat- und Gewerbekunden."
+    crumbs={[{ label: 'Karriere' }]}
+  />
+
+  <section class="section stelle" data-theme="light" data-header-zone="light" aria-labelledby="stelle-title">
+    <div class="wrap">
+      <div class="dim"><span class="dim__num">01</span><span>Offene Stelle</span><span class="dim__line" data-draw></span></div>
+      <h2 id="stelle-title" class="h1 stelle__title" data-split>Verstärke unser Team als {stelle}<span class="dot">.</span></h2>
+      <p class="tech stelle__meta" data-reveal>Vollzeit · Region Bayern · Photovoltaik &amp; Energiesysteme</p>
+
+      <div class="stelle__grid">
+        {
+          spalten.map((s) => (
+            <div class="prose stelle__spalte" data-reveal>
+              <h3>{s.titel}</h3>
+              <ul>
+                {s.punkte.map((p) => (
+                  <li>{p}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section bewerben" data-theme="hell" data-header-zone="hell" aria-labelledby="bewerben-title">
+    <div class="wrap bewerben__grid">
+      <div>
+        <h2 class="h3 bewerben__ueber">Über ip³</h2>
+        <p data-reveal>
+          ip³ ist spezialisiert auf Photovoltaikanlagen, Batteriespeicher, Wallboxen und intelligente Energiemanagementlösungen. Unser Ziel ist es, Kunden unabhängiger von steigenden Energiekosten zu machen und nachhaltige Energiekonzepte erfolgreich umzusetzen.
+        </p>
+      </div>
+      <div class="bewerben__cta">
+        <h2 id="bewerben-title" class="h1" data-split>Jetzt bewerben<span class="dot">.</span></h2>
+        <p class="lead" data-reveal>Sende Deine Bewerbung mit Lebenslauf und möglichem Eintrittstermin an {firma.email}.</p>
+        <a class="btn btn--primary" href={bewerbung} data-reveal>Bewerbung per E-Mail <Arrow /></a>
+        <p class="muted" data-reveal>Wir freuen uns darauf, Dich kennenzulernen und gemeinsam die Zukunft der Energieversorgung zu gestalten.</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .stelle__title {
+    margin-top: clamp(2rem, 5vw, 3.5rem);
+    max-width: 20ch;
+  }
+
+  .stelle__meta {
+    margin-top: 1.25rem;
+    color: var(--text-sec);
+    letter-spacing: 0.06em;
+  }
+
+  .stelle__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.5rem var(--gutter);
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    padding-top: clamp(2rem, 4vw, 3rem);
+    border-top: 1px solid var(--linie);
+  }
+
+  .stelle__spalte h3 {
+    margin-top: 0;
+  }
+
+  .bewerben__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 3rem var(--gutter);
+    align-items: end;
+  }
+
+  .bewerben__ueber {
+    color: var(--blau);
+    margin-bottom: 1rem;
+  }
+
+  .bewerben__cta {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+  }
+
+  @media (max-width: 960px) {
+    .stelle__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .bewerben__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

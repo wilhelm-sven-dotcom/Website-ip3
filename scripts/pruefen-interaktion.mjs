@@ -66,9 +66,9 @@ const browser = await chromium.launch({ args: gl });
   await page.click('[data-filter="frei"]');
   const sichtbar = await page.$$eval('[data-tags]', (els) => els.filter((e) => !e.hidden).length);
   const zahl = await page.textContent('[data-count]');
-  note(sichtbar === 3 && zahl === '3', `Filter Freifläche zeigt 3 Projekte (${sichtbar}, Zähler ${zahl})`);
+  note(sichtbar === 4 && zahl === '4', `Filter Freifläche zeigt 4 Projekte (${sichtbar}, Zähler ${zahl})`);
   await page.click('[data-filter="alle"]');
-  note((await page.$$eval('[data-tags]', (els) => els.filter((e) => !e.hidden).length)) === 10, 'Filter Alle zeigt 10 Projekte');
+  note((await page.$$eval('[data-tags]', (els) => els.filter((e) => !e.hidden).length)) === 18, 'Filter Alle zeigt 18 Projekte');
   await page.close();
 }
 
@@ -87,7 +87,7 @@ const browser = await chromium.launch({ args: gl });
     await page.waitForTimeout(1800);
     if (!(await platte.evaluate((el) => getComputedStyle(el).clipPath)).includes('100%')) offen++;
   }
-  note(platten.length === 3 && offen === platten.length, `Filter am Touchgerät: Planblätter enthüllt (${offen} von ${platten.length})`);
+  note(platten.length === 4 && offen === platten.length, `Filter am Touchgerät: Planblätter enthüllt (${offen} von ${platten.length})`);
   await ctx.close();
 }
 
