@@ -228,6 +228,23 @@ const browser = await chromium.launch({ args: gl });
   await page.close();
 }
 
+/* 10b. Überschriften: Unterlängen und Satzzeichen nach der Einblendung nicht beschnitten */
+for (const vp of [{ width: 1440, height: 900 }, { width: 390, height: 844, mobil: true }]) {
+  const ctx = await browser.newContext({ ...zugang, viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.mobil, hasTouch: !!vp.mobil });
+  const page = await ctx.newPage();
+  await page.goto(base + '/ueber-uns', { waitUntil: 'load' });
+  const offen = [];
+  for (const sel of ['#weg-title', '#karriere-title']) {
+    await page.evaluate((s) => document.querySelector(s).scrollIntoView({ block: 'center', behavior: 'instant' }), sel);
+    await page.waitForFunction((s) => [...document.querySelectorAll(s + ' .split-line-mask')].some((m) => m.style.overflow === 'visible'), sel, { timeout: 8000 }).catch(() => {});
+    offen.push(await page.$$eval(sel + ' .split-line-mask', (ms) => ms.length > 0 && ms.every((m) => getComputedStyle(m).overflow === 'visible')));
+  }
+  note(offen.every(Boolean), `Überschriften ${vp.width} px: nach der Einblendung ohne Beschnitt (g, y, Komma vollständig)`);
+  const ohneVde = await page.goto(base + '/', { waitUntil: 'load' }).then(() => page.$$eval('.fact', (fs) => fs.length));
+  note(ohneVde === 3, `Kennzahlen: drei Kacheln, ohne VDE-Normen (${ohneVde})`);
+  await ctx.close();
+}
+
 /* 11. Keine Kundennamen, kein EFRE-Hinweis */
 {
   const namen = /beierl|netto|fristo|forster/i;

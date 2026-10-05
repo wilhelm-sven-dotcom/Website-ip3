@@ -30,10 +30,6 @@ import { kennzahlen } from '../data/site.js';
           </div>
         ))
       }
-      <div class="fact" data-reveal>
-        <dt>VDE-AR-N für Netzanschluss und Anlagenzertifikat</dt>
-        <dd class="tech">4105 · 4110 · 4120</dd>
-      </div>
     </dl>
   </div>
 </section>
@@ -78,7 +74,7 @@ import { kennzahlen } from '../data/site.js';
 
   .facts {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 1.3fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: clamp(4rem, 9vw, 8rem);
     border-top: 1px solid var(--linie);
   }
@@ -102,7 +98,7 @@ import { kennzahlen } from '../data/site.js';
 
   .fact dd {
     margin: 0;
-    font-size: clamp(1.5rem, 1rem + 1.25vw, 2.4rem);
+    font-size: clamp(2rem, 1.1rem + 2.2vw, 3.4rem);
     font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 1;
@@ -122,31 +118,13 @@ import { kennzahlen } from '../data/site.js';
     max-width: 22ch;
   }
 
-  @media (max-width: 1080px) {
-    .facts {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .fact:nth-child(2) {
-      border-right: 0;
-    }
-
-    .fact:nth-child(3) {
-      padding-left: 0;
-    }
-
-    .fact:nth-child(n + 3) {
-      border-top: 1px solid var(--linie);
-    }
-  }
-
   @media (max-width: 860px) {
     .about__grid {
       grid-template-columns: 1fr;
     }
   }
 
-  @media (max-width: 520px) {
+  @media (max-width: 760px) {
     .facts {
       grid-template-columns: 1fr;
     }

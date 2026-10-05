@@ -221,6 +221,23 @@ sup {
   letter-spacing: -0.03em;
 }
 
+/* Zeilenmasken der Überschriften (SplitText, overflow: clip): Luft für Unterlängen,
+   Umlautpunkte und den Schlusspunkt, die bei der engen Zeilenhöhe über die Zeile
+   hinausragen. Die negativen Außenabstände halten Zeilenabstand, Zeilenbreite und Lage
+   der Überschrift unverändert. Nach der Einblendung entfällt das Beschneiden ganz (main.js). */
+.split-line-mask {
+  padding: 0.2em 0.1em;
+  margin: 0 -0.1em -0.4em;
+}
+
+.split-line-mask:first-child {
+  margin-top: -0.2em;
+}
+
+.split-line-mask:last-child {
+  margin-bottom: -0.2em;
+}
+
 .h3 {
   font-size: var(--fs-h3);
 }

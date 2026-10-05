@@ -164,11 +164,14 @@ function initReveals() {
     document.fonts.ready.then(() => {
       const split = SplitText.create(el, { type: 'lines', mask: 'lines', linesClass: 'split-line', autoSplit: true,
         onSplit(self) {
+          // Start unterhalb der Maske samt Luft für Umlautpunkte (siehe .split-line-mask);
+          // danach beschneidet die Maske nichts mehr, auch keine weit ausladenden Zeichen
           return gsap.from(self.lines, {
-            yPercent: 105,
+            yPercent: 145,
             duration: 1.1,
             ease: 'expo.out',
             stagger: 0.08,
+            onComplete: () => self.masks.forEach((m) => (m.style.overflow = 'visible')),
             scrollTrigger: { trigger: el, start: 'top 88%', once: true },
           });
         },
