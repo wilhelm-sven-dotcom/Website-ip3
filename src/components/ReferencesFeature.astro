@@ -1,13 +1,12 @@
 ---
 // Auswahl realisierter Projekte als Planmappe auf der Startseite
-import { referenzen } from '../data/referenzen.js';
+import { startseitenAuswahl, projektHref } from '../data/referenzen.js';
 import ReferenceSheet from './ReferenceSheet.astro';
 import Arrow from './Arrow.astro';
 
 const { nr = '04' } = Astro.props;
-const auswahl = ['stall-300', 'powerwall-3', 'ff-vohenstrauss', 'industrie-muenchen', 'allblack-altenstadt', 'carport-powerwall-weiden']
-  .map((id) => referenzen.find((r) => r.id === id))
-  .filter(Boolean);
+// Auswahl und Reihenfolge über das Feld startseite in src/data/referenzen.js
+const auswahl = startseitenAuswahl.slice(0, 6);
 // Spalten im 12er-Raster, daraus die Darstellungsbreite der Fotos
 const layout = [
   { cls: 'r1', size: 'l', sizes: '(max-width: 960px) 100vw, 56vw' },
@@ -36,7 +35,7 @@ const layout = [
       {
         auswahl.map((ref, i) => (
           <div class:list={['refs__cell', layout[i].cls]} data-parallax={i % 2 ? '6' : '0'}>
-            <ReferenceSheet ref={ref} index={i + 1} total={auswahl.length} size={layout[i].size} sizes={layout[i].sizes} />
+            <ReferenceSheet ref={ref} index={i + 1} total={auswahl.length} size={layout[i].size} sizes={layout[i].sizes} href={projektHref(ref)} />
           </div>
         ))
       }

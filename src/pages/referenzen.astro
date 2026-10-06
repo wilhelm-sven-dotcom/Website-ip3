@@ -1,17 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
-import ReferenceSheet from '../components/ReferenceSheet.astro';
+import ReferenceTile from '../components/ReferenceTile.astro';
 import Galerie from '../components/Galerie.astro';
-import { referenzen } from '../data/referenzen.js';
+import { veroeffentlicht, filterGruppen, gruppenVon } from '../data/referenzen.js';
 
-const filter = [
-  { key: 'alle', label: 'Alle' },
-  { key: 'frei', label: 'Freifläche', match: ['Freifläche'] },
-  { key: 'gewerbe', label: 'Gewerbe, Industrie und Landwirtschaft', match: ['Industrie', 'Gewerbe', 'Landwirtschaft', 'Carport'] },
-  { key: 'privat', label: 'Privat und Speicher', match: ['Privat', 'Speicher', 'Ladeinfrastruktur'] },
-];
-const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.kategorie.includes(m))).map((f) => f.key).join(' ');
+// Zunächst erscheinen so viele Projekte, der Rest auf Wunsch; ohne JavaScript alle
+const ZUERST = 9;
 ---
 
 <Base
@@ -25,36 +20,34 @@ const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.katego
     crumbs={[{ label: 'Referenzen' }]}
   />
 
-  <section class="section refs-page" data-theme="light" data-header-zone="light" aria-labelledby="refs-list-title" data-refs>
+  <section class="section refs-page" data-theme="light" data-header-zone="light" aria-labelledby="refs-list-title" data-refs data-zuerst={ZUERST}>
     <div class="wrap">
       <h2 id="refs-list-title" class="visually-hidden">Projektübersicht</h2>
-      <div class="filter" role="group" aria-label="Referenzen filtern">
+      <div class="filter" role="group" aria-label="Referenzen filtern" data-filterleiste hidden>
         {
-          filter.map((f, i) => (
+          filterGruppen.map((f, i) => (
             <button type="button" class="filter__btn" data-filter={f.key} aria-pressed={i === 0 ? 'true' : 'false'}>
               {f.label}
             </button>
           ))
         }
-        <p class="filter__count tech" aria-live="polite"><span data-count>{referenzen.length}</span> Projekte</p>
+        <p class="filter__count tech" aria-live="polite"><span data-count>{veroeffentlicht.length}</span> Projekte</p>
       </div>
 
-      <ul class="refs-page__grid" role="list">
+      <ul class="refs-page__grid" id="refs-liste" role="list" data-refs-liste>
         {
-          referenzen.map((r, i) => (
-            <li class:list={['refs-page__item', i % 3 === 0 ? 'wide' : '']} data-tags={tags(r)}>
-              <ReferenceSheet
-                ref={r}
-                index={i + 1}
-                total={referenzen.length}
-                size={i % 3 === 0 ? 'l' : 'm'}
-                sizes={i % 3 === 0 ? '(max-width: 860px) 100vw, 56vw' : '(max-width: 860px) 100vw, 46vw'}
-                headingLevel={3}
-              />
+          veroeffentlicht.map((r, i) => (
+            <li class="refs-page__item" data-tags={gruppenVon(r).join(' ')}>
+              <ReferenceTile ref={r} loading={i < 3 ? 'eager' : 'lazy'} />
             </li>
           ))
         }
       </ul>
+      <div class="refs-page__mehr" data-mehr-zeile hidden>
+        <button type="button" class="btn btn--ghost" data-mehr aria-controls="refs-liste">
+          <span data-mehr-text>Weitere Projekte anzeigen</span>
+        </button>
+      </div>
       <p class="refs-page__note muted">Ohne Foto: schematische Darstellung des Anlagentyps. Kennwerte, soweit veröffentlicht.</p>
     </div>
   </section>
@@ -70,6 +63,10 @@ const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.katego
     gap: 0.6rem;
     padding-bottom: 2rem;
     border-bottom: 1px solid var(--linie);
+  }
+
+  .filter[hidden] {
+    display: none;
   }
 
   .filter__btn {
@@ -106,34 +103,28 @@ const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.katego
 
   .refs-page__grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(2rem, 4vw, 3.5rem) var(--gutter);
-    margin-top: clamp(2.5rem, 5vw, 4rem);
-  }
-
-  .refs-page__item.wide {
-    grid-column: 1 / -1;
-  }
-
-  .refs-page__item.wide :global(.sheet) {
-    display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  }
-
-  .refs-page__item.wide :global(.sheet__block) {
-    border-top: 0;
-    border-left: 1px solid var(--linie);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  }
-
-  .refs-page__item.wide :global(.sheet__title) {
-    font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.6rem);
-    padding: 1.5rem 1.5rem 1.25rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.5rem, 2.6vw, 2.5rem) var(--gutter);
+    margin-top: clamp(2rem, 4vw, 3rem);
   }
 
   .refs-page__item[hidden] {
+    display: none;
+  }
+
+  /* Mit JavaScript stehen zunächst neun Projekte; das Skript übernimmt danach über hidden.
+     So springt die Liste beim Laden nicht von 18 auf 9. */
+  :global(html.js) .refs-page__grid:not([data-bereit]) > .refs-page__item:nth-child(n + 10) {
+    display: none;
+  }
+
+  .refs-page__mehr {
+    display: flex;
+    justify-content: center;
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  .refs-page__mehr[hidden] {
     display: none;
   }
 
@@ -142,18 +133,15 @@ const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.katego
     font-size: 0.85rem;
   }
 
-  @media (max-width: 860px) {
+  @media (max-width: 1080px) {
+    .refs-page__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
     .refs-page__grid {
       grid-template-columns: 1fr;
-    }
-
-    .refs-page__item.wide :global(.sheet) {
-      display: flex;
-    }
-
-    .refs-page__item.wide :global(.sheet__block) {
-      border-left: 0;
-      border-top: 1px solid var(--linie);
     }
 
     .filter__count {
@@ -164,30 +152,71 @@ const tags = (r) => filter.filter((f) => f.match && f.match.some((m) => r.katego
 </style>
 
 <script>
+  // Filter und schrittweises Anzeigen. Zustand je Sitzung gespeichert, damit die Liste nach
+  // dem Zurückkehren von einer Projektseite so aussieht wie vorher.
+  const SCHLUESSEL = 'ip3-referenzen';
+  const lesen = () => {
+    try {
+      return JSON.parse(sessionStorage.getItem(SCHLUESSEL) || '{}');
+    } catch {
+      return {};
+    }
+  };
+  const merken = (z) => {
+    try {
+      sessionStorage.setItem(SCHLUESSEL, JSON.stringify(z));
+    } catch {
+      /* ohne Speicher gilt die Standardansicht */
+    }
+  };
+
   document.querySelectorAll('[data-refs]').forEach((root) => {
+    const zuerst = Number(root.dataset.zuerst) || 9;
+    const liste = root.querySelector('[data-refs-liste]');
     const buttons = [...root.querySelectorAll('[data-filter]')];
     const items = [...root.querySelectorAll('[data-tags]')];
     const count = root.querySelector('[data-count]');
+    const mehrZeile = root.querySelector('[data-mehr-zeile]');
+    const mehr = root.querySelector('[data-mehr]');
+    const mehrText = root.querySelector('[data-mehr-text]');
+    const gespeichert = lesen();
+    let filter = buttons.some((b) => b.dataset.filter === gespeichert.filter) ? gespeichert.filter : 'alle';
+    let alle = gespeichert.alle === true;
+
+    const treffer = () => items.filter((it) => filter === 'alle' || it.dataset.tags.split(' ').includes(filter));
+
+    const zeigen = ({ fokus = false } = {}) => {
+      const t = treffer();
+      const vorher = new Set(items.filter((it) => !it.hidden));
+      items.forEach((it) => (it.hidden = true));
+      t.forEach((it, i) => (it.hidden = !alle && i >= zuerst));
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
+      if (count) count.textContent = String(t.length);
+      const rest = t.length - Math.min(t.length, alle ? t.length : zuerst);
+      mehrZeile.hidden = rest <= 0;
+      mehrText.textContent = rest === 1 ? 'Ein weiteres Projekt anzeigen' : `${rest} weitere Projekte anzeigen`;
+      if (fokus) {
+        const neu = t.find((it) => !it.hidden && !vorher.has(it));
+        neu?.querySelector('a')?.focus();
+      }
+      merken({ filter, alle });
+      document.dispatchEvent(new Event('layout:change'));
+    };
+
     buttons.forEach((b) =>
       b.addEventListener('click', () => {
-        const key = b.dataset.filter;
-        buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-        let n = 0;
-        items.forEach((it) => {
-          const show = key === 'alle' || it.dataset.tags.split(' ').includes(key);
-          it.hidden = !show;
-          if (show) {
-            n++;
-            const card = it.querySelector('[data-reveal]');
-            if (card) {
-              card.style.opacity = '1';
-              card.style.transform = 'none';
-            }
-          }
-        });
-        if (count) count.textContent = String(n);
-        document.dispatchEvent(new Event('layout:change'));
+        filter = b.dataset.filter;
+        alle = false;
+        zeigen();
       })
     );
+    mehr.addEventListener('click', () => {
+      alle = true;
+      zeigen({ fokus: true });
+    });
+
+    root.querySelector('[data-filterleiste]').hidden = false;
+    zeigen();
+    liste.dataset.bereit = '';
   });
 </script>

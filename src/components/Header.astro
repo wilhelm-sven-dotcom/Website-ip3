@@ -125,12 +125,11 @@ const isActive = (href) => (href === '/' ? path === '/' : path === href || path.
     box-shadow: 0 1px 0 var(--on-navy-line);
   }
 
-  /* Über der 3D-Inszenierung: halbtransparent, die Szene scheint durch */
+  /* Über der 3D-Inszenierung: halbtransparent, die Szene scheint durch. Ohne Weichzeichner,
+     der hinter einer laufenden Szene in jedem Bild neu berechnet werden müsste. */
   .site-header.is-solid.is-over-story[data-header-theme='dark'] {
-    background: rgb(12 26 61 / 0.5);
+    background: rgb(12 26 61 / 0.82);
     box-shadow: none;
-    backdrop-filter: blur(12px) saturate(1.1);
-    -webkit-backdrop-filter: blur(12px) saturate(1.1);
   }
 
   .site-header.is-solid[data-header-theme='light'] {

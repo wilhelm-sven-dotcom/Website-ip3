@@ -9,21 +9,21 @@ const dist = 'dist';
 const out = process.argv[2] || 'vorschau-offline';
 fs.mkdirSync(out, { recursive: true });
 
-// Quelle im Build → Dateiname der Offline-Fassung (alle in einem Ordner)
-const seiten = {
-  '/': 'index.html',
-  '/unsere-leistungen': 'unsere-leistungen.html',
-  '/unsere-leistungen/privat': 'unsere-leistungen-privat.html',
-  '/unsere-leistungen/industrie-gewerbe': 'unsere-leistungen-industrie-gewerbe.html',
-  '/unsere-leistungen/freiflaechen': 'unsere-leistungen-freiflaechen.html',
-  '/unsere-leistungen/batteriespeicher': 'unsere-leistungen-batteriespeicher.html',
-  '/referenzen': 'referenzen.html',
-  '/karriere': 'karriere.html',
-  '/ueber-uns': 'ueber-uns.html',
-  '/kontakt': 'kontakt.html',
-  '/impressum': 'impressum.html',
-  '/datenschutz': 'datenschutz.html',
-};
+// Alle Seiten im Build (ohne 404) → Dateiname der Offline-Fassung, alle in einem Ordner:
+// /unsere-leistungen/privat → unsere-leistungen-privat.html
+const htmlDateien = (ordner) =>
+  fs.readdirSync(ordner, { withFileTypes: true }).flatMap((e) => {
+    const p = path.join(ordner, e.name);
+    return e.isDirectory() ? htmlDateien(p) : e.name.endsWith('.html') ? [p] : [];
+  });
+const seiten = Object.fromEntries(
+  htmlDateien(dist)
+    .map((d) => '/' + path.relative(dist, d).split(path.sep).join('/').replace(/\.html$/, ''))
+    .filter((r) => r !== '/404')
+    .map((r) => (r === '/index' ? '/' : r))
+    .sort()
+    .map((r) => [r, r === '/' ? 'index.html' : r.slice(1).replaceAll('/', '-') + '.html'])
+);
 const quelle = (p) => (p === '/' ? 'index.html' : p.slice(1) + '.html');
 
 const mime = {

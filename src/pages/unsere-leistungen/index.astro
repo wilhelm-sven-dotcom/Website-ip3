@@ -9,7 +9,7 @@ import { weitereLeistungen } from '../../data/leistungen.js';
 
 <Base
   title="Unsere Leistungen"
-  description="Planung, Projektierung und Umsetzung von PV-Anlagen und Batteriespeichern, Betriebsführung, Gutachten und Analysen sowie Schulungen. Für Privat, Gewerbe, Industrie und Freiflächen."
+  description="Planung, Projektierung und Umsetzung von PV-Anlagen und Batteriespeichern, Solarpark-Monitoring und Erlösanalyse, Betriebsführung, Gutachten und Analysen sowie Schulungen. Für Privat, Gewerbe, Industrie und Freiflächen."
 >
   <PageHero
     kicker="Leistungen"
@@ -32,6 +32,11 @@ import { weitereLeistungen } from '../../data/leistungen.js';
                 <p class="tech extra__nr">{String(i + 1).padStart(2, '0')}</p>
                 <h3>{w.titel}</h3>
                 <p>{w.text}</p>
+                {w.href && (
+                  <a class="arrow-link extra__link" href={w.href}>
+                    {w.linkText} <span class="line" />
+                  </a>
+                )}
               </li>
             ))
           }
@@ -77,6 +82,11 @@ import { weitereLeistungen } from '../../data/leistungen.js';
   .extra__list p:not(.extra__nr) {
     margin-top: 0.7rem;
     color: var(--text-sec);
+  }
+
+  .extra__link {
+    margin-top: 0.4rem;
+    color: var(--blau);
   }
 
   @media (max-width: 1080px) {

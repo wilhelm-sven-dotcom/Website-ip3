@@ -30,9 +30,9 @@ export function initEnergiesystem(root) {
   const sonnePunkt = $('[data-es-sonne]');
   const ansage = $('[data-es-ansage]');
   const phasenTasten = [...root.querySelectorAll('[data-es-phasen] [data-phase]')];
-  const kabel = [...root.querySelectorAll('.es-kabel[data-link]')];
+  const kabel = [...root.querySelectorAll('.es-kabel[data-link]')].map((el) => ({ el, id: el.dataset.link, art: el.dataset.art, aktiv: el.dataset.aktiv }));
   const pegel = [...szene.querySelectorAll('.es-pegel')].map((p) => ({ el: p, def: daten.pegel[Number(p.dataset.pegelId)], wert: -1 }));
-  const markerPegel = [...root.querySelectorAll('[data-es-pegel]')].map((el) => ({ el, name: el.dataset.esPegel, quadrate: [...el.children] }));
+  const markerPegel = [...root.querySelectorAll('[data-es-pegel]')].map((el) => ({ el, name: el.dataset.esPegel, quadrate: [...el.children], n: -1 }));
   const rotoren = [...overlay.querySelectorAll('[data-rotor]')].map((el, i) => ({ el, winkel: [14, 52, 87][i] || 0 }));
   const liste = $('[data-es-liste]');
 
@@ -73,10 +73,17 @@ export function initEnergiesystem(root) {
 
   /* ---------- Darstellung ---------- */
 
+  // Nur schreiben, was sich geändert hat: jede Attributänderung an der Sektion stößt eine
+  // Stilberechnung für die ganze Szene an
+  const setze = (el, name, wert) => {
+    if (el.dataset[name] !== wert) el.dataset[name] = wert;
+  };
+  let markeX = '';
+
   function proSchritt() {
-    root.dataset.licht = String(m.licht);
-    root.dataset.sonne = String(sonnenStufe(m.sonne));
-    root.dataset.auto = m.autoDa ? '1' : '0';
+    setze(root, 'licht', String(m.licht));
+    setze(root, 'sonne', String(sonnenStufe(m.sonne)));
+    setze(root, 'auto', m.autoDa ? '1' : '0');
     uhr.textContent = uhrzeit(Math.floor(m.t * 4) / 4);
     if (m.phase !== phase) {
       phase = m.phase;
@@ -87,12 +94,15 @@ export function initEnergiesystem(root) {
     }
     regler.setAttribute('aria-valuetext', `${uhrzeit(Math.floor(m.t * 4) / 4)} ${ui.uhr}, ${phasen[phase].name}`);
     for (const k of kabel) {
-      const id = k.dataset.link;
-      k.dataset.art = m.art[id];
-      k.dataset.aktiv = m.richtung[id] ? '1' : '0';
+      const art = m.art[k.id];
+      const aktiv = m.richtung[k.id] ? '1' : '0';
+      if (art !== k.art) k.el.dataset.art = k.art = art;
+      if (aktiv !== k.aktiv) k.el.dataset.aktiv = k.aktiv = aktiv;
     }
     for (const mp of markerPegel) {
       const n = Math.round((fuellstandStufe(m.soc[mp.name]) / 4) * 5);
+      if (n === mp.n) continue;
+      mp.n = n;
       mp.quadrate.forEach((q, i) => q.classList.toggle('is-voll', i < n));
     }
     auswahl.aktualisiere();
@@ -100,8 +110,15 @@ export function initEnergiesystem(root) {
   }
 
   function stetig(dt) {
-    if (!ziehen) regler.value = String(Math.min(1425, Math.round((m.t * 60) / 15) * 15));
-    marke.style.left = `${((m.t / 24) * 100).toFixed(3)}%`;
+    if (!ziehen) {
+      const v = String(Math.min(1425, Math.round((m.t * 60) / 15) * 15));
+      if (regler.value !== v) regler.value = v;
+    }
+    const x = ((m.t / 24) * 100).toFixed(2);
+    if (x !== markeX) {
+      markeX = x;
+      marke.style.transform = `translateX(${x}%)`;
+    }
     for (const p of pegel) {
       const soc = m.soc[p.def[0]];
       if (Math.abs(soc - p.wert) < 0.004) continue;

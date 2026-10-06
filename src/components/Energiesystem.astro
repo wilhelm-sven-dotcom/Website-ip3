@@ -197,7 +197,7 @@ const einleitungHtml = einleitung
               <path class="es__achse" d={`M0 ${kurven.hoehe - 0.5}H${kurven.breite}`} />
               <path class="es__striche" d={Array.from({ length: 25 }, (_, i) => `M${(i / 24) * kurven.breite} ${kurven.hoehe}v${i % 6 === 0 ? -12 : -5}`).join('')} />
             </svg>
-            <span class="es__marke" style="left:54.17%" data-es-marke aria-hidden="true"></span>
+            <span class="es__marke" style="transform:translateX(54.17%)" data-es-marke aria-hidden="true"></span>
             <input class="es__regler" type="range" min="0" max="1425" step="15" value="780" aria-label={ui.uhrzeit} aria-valuetext={`13:00 ${ui.uhr}, ${phasen[phase13].name}`} hidden data-es-regler />
           </div>
           <ol class="es__stunden tech" aria-hidden="true">
@@ -555,18 +555,10 @@ const einleitungHtml = einleitung
     stroke: none;
   }
 
-  .es__szene :global(.es-fenster) {
-    transition: fill 600ms var(--ease-out);
-  }
-
   .es[data-licht='1'] .es__szene :global(.es-fenster[data-licht='1']),
   .es[data-licht='2'] .es__szene :global(.es-fenster:is([data-licht='1'], [data-licht='2'])),
   .es[data-licht='3'] .es__szene :global(.es-fenster) {
     fill: rgb(232 231 239 / 0.72);
-  }
-
-  .es__szene :global(.iso-panel) {
-    transition: fill 900ms var(--ease-out);
   }
 
   .es[data-sonne='0'] .es__szene :global(.iso-panel) {
@@ -972,24 +964,37 @@ const einleitungHtml = einleitung
     vector-effect: non-scaling-stroke;
   }
 
+  /* Zeitmarke: Ebene in voller Skalenbreite, verschoben per transform (Prozent der eigenen
+     Breite = Prozent der Skala); kein Layout pro Bild */
   .es__marke {
     position: absolute;
     top: -4px;
     bottom: 0;
-    width: 2px;
-    margin-left: -1px;
-    background: var(--akzent);
+    left: 0;
+    width: 100%;
     pointer-events: none;
+    will-change: transform;
+  }
+
+  .es__marke::before,
+  .es__marke::after {
+    content: '';
+    position: absolute;
+    background: var(--akzent);
   }
 
   .es__marke::before {
-    content: '';
-    position: absolute;
     top: -6px;
-    left: -5px;
+    left: -6px;
     width: 12px;
     height: 12px;
-    background: var(--akzent);
+  }
+
+  .es__marke::after {
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    width: 2px;
   }
 
   .es__regler {
@@ -1002,8 +1007,8 @@ const einleitungHtml = einleitung
     cursor: ew-resize;
   }
 
-  .es__regler:focus-visible ~ .es__marke,
-  .es__skala:has(.es__regler:focus-visible) .es__marke {
+  .es__regler:focus-visible ~ .es__marke::after,
+  .es__skala:has(.es__regler:focus-visible) .es__marke::after {
     outline: 2px solid var(--weiss);
     outline-offset: 3px;
   }

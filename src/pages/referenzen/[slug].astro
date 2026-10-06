@@ -1,0 +1,364 @@
+---
+// Projektseite je Referenz unter /referenzen/<slug>. Zeigt nur, was in src/data/referenzen.js
+// steht. Solange kein Projekttext vorliegt, bleibt die Seite für Suchmaschinen ausgeblendet.
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ReferenceTile from '../../components/ReferenceTile.astro';
+import Galerie from '../../components/Galerie.astro';
+import Foto from '../../components/Foto.astro';
+import Arrow from '../../components/Arrow.astro';
+import { drawing } from '../../lib/drawings.js';
+import { veroeffentlicht, gruppenVon, bereicheVon } from '../../data/referenzen.js';
+import { leistungen } from '../../data/leistungen.js';
+
+export function getStaticPaths() {
+  return veroeffentlicht.map((ref) => ({ params: { slug: ref.slug }, props: { ref } }));
+}
+
+const { ref } = Astro.props;
+const html = (t) => String(t).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+const name = `${ref.titel}${ref.ort ? `, ${ref.ort}` : ''}`;
+const hatText = Boolean(ref.text?.length);
+const beschreibung = hatText
+  ? ref.text[0].length > 160
+    ? ref.text[0].slice(0, ref.text[0].lastIndexOf(' ', 156)) + ' …'
+    : ref.text[0]
+  : `${name}: Referenzprojekt der ip³ Energietechnik GmbH aus der Oberpfalz, Kategorie ${ref.kategorie}.`;
+
+const felder = [
+  ['Kategorie', ref.kategorie],
+  ['Ort', ref.ort],
+  ['Baujahr', ref.jahr],
+  ['Leistung', ref.leistung],
+  ['Speicher', ref.speicher],
+  ['Module', ref.module],
+  ['Wechselrichter', ref.wechselrichter],
+  ['Komponenten', ref.komponenten],
+  ['Netzebene', ref.netzebene],
+].filter(([, v]) => v != null && v !== '');
+
+const bereiche = bereicheVon(ref)
+  .map((slug) => leistungen.find((l) => l.slug === slug))
+  .filter(Boolean);
+
+// Drei Projekte aus derselben Filtergruppe, solche mit Foto zuerst
+const gruppe = gruppenVon(ref)[0];
+const aehnliche = veroeffentlicht
+  .filter((r) => r !== ref && gruppenVon(r).includes(gruppe))
+  .sort((a, b) => Number(Boolean(b.bild)) - Number(Boolean(a.bild)))
+  .slice(0, 3);
+---
+
+<Base title={name} description={beschreibung} noindex={!hatText}>
+  <PageHero
+    kicker={`Referenz · ${ref.kategorie}`}
+    title={`${html(ref.titel)}<span class="dot">.</span>`}
+    crumbs={[{ label: 'Referenzen', href: '/referenzen' }, { label: ref.titel }]}
+  >
+    {ref.ort && <p class="projekt-ort tech">{ref.ort}</p>}
+  </PageHero>
+
+  <section class="section projekt" data-theme="light" data-header-zone="light" aria-labelledby="projekt-daten-titel">
+    <div class="wrap projekt__raster">
+      <figure class="projekt__blatt">
+        <span class="projekt__ecke projekt__ecke--tl" aria-hidden="true"></span>
+        <span class="projekt__ecke projekt__ecke--tr" aria-hidden="true"></span>
+        <span class="projekt__ecke projekt__ecke--bl" aria-hidden="true"></span>
+        <span class="projekt__ecke projekt__ecke--br" aria-hidden="true"></span>
+        {
+          ref.bild ? (
+            <Foto class="projekt__foto" src={ref.bild} alt={ref.bildAlt} sizes="(max-width: 960px) 100vw, 60vw" pos={ref.bildPos} loading="eager" />
+          ) : (
+            <div class="projekt__zeichnung" set:html={drawing(ref.zeichnung, `${name} (schematische Darstellung)`)} />
+          )
+        }
+        {!ref.bild && <figcaption class="projekt__hinweis muted">Schematische Darstellung des Anlagentyps</figcaption>}
+      </figure>
+
+      <div class="projekt__daten">
+        <h2 id="projekt-daten-titel" class="kicker">Projektdaten</h2>
+        <dl class="projekt__felder">
+          {
+            felder.map(([k, v]) => (
+              <div class="projekt__feld">
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        {
+          ref.umfang?.length > 0 && (
+            <div class="projekt__block">
+              <h3 class="kicker">Unsere Leistungen im Projekt</h3>
+              <ul class="projekt__umfang" role="list">
+                {ref.umfang.map((u) => (
+                  <li>{u}</li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+
+        {
+          bereiche.length > 0 && (
+            <div class="projekt__block">
+              <h3 class="kicker">Leistungsbereich</h3>
+              <ul class="projekt__bereiche" role="list">
+                {bereiche.map((l) => (
+                  <li>
+                    <a class="arrow-link" href={l.href}>
+                      {l.titel} <span class="line" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+      </div>
+    </div>
+
+    {
+      hatText && (
+        <div class="wrap projekt__text prose">
+          {ref.text.map((absatz, i) => (
+            <p class={i === 0 ? 'lead' : ''}>{absatz}</p>
+          ))}
+        </div>
+      )
+    }
+  </section>
+
+  {ref.fotos?.length > 0 && <Galerie name={`projekt-${ref.slug}`} titel="Weitere Fotos" bilder={ref.fotos} theme="hell" />}
+
+  {
+    aehnliche.length > 0 && (
+      <section class="section projekt-mehr" data-theme="hell" data-header-zone="hell" aria-labelledby="projekt-mehr-titel">
+        <div class="wrap">
+          <div class="projekt-mehr__kopf">
+            <h2 id="projekt-mehr-titel" class="h2">
+              Weitere Projekte<span class="dot">.</span>
+            </h2>
+            <a class="btn btn--ghost" href="/referenzen">
+              Alle Referenzen <Arrow />
+            </a>
+          </div>
+          <ul class="projekt-mehr__liste" role="list">
+            {aehnliche.map((r) => (
+              <li>
+                <ReferenceTile ref={r} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .projekt-ort {
+    margin-top: 1.25rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--on-navy-sec);
+  }
+
+  .projekt__raster {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 3rem var(--gutter);
+    align-items: start;
+  }
+
+  .projekt__blatt {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--linie);
+    background-color: var(--box);
+    background-image:
+      linear-gradient(rgb(47 36 130 / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(47 36 130 / 0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
+  }
+
+  .projekt__blatt :global(.projekt__foto) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .projekt__zeichnung {
+    position: absolute;
+    inset: 10% 12% 16%;
+    display: grid;
+    place-items: center;
+  }
+
+  .projekt__zeichnung :global(.iso) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .projekt__hinweis {
+    position: absolute;
+    left: 1.25rem;
+    bottom: 1rem;
+    font-size: 0.8rem;
+  }
+
+  .projekt__ecke {
+    position: absolute;
+    z-index: 1;
+    width: 18px;
+    height: 18px;
+    border: 0 solid var(--blau);
+    opacity: 0.55;
+  }
+
+  .projekt__blatt:has(:global(.projekt__foto)) .projekt__ecke {
+    border-color: var(--weiss);
+    opacity: 0.9;
+  }
+
+  .projekt__ecke--tl {
+    left: 12px;
+    top: 12px;
+    border-left-width: 1px;
+    border-top-width: 1px;
+  }
+
+  .projekt__ecke--tr {
+    right: 12px;
+    top: 12px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+  }
+
+  .projekt__ecke--bl {
+    left: 12px;
+    bottom: 12px;
+    border-left-width: 1px;
+    border-bottom-width: 1px;
+  }
+
+  .projekt__ecke--br {
+    right: 12px;
+    bottom: 12px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+  }
+
+  .projekt__felder {
+    margin: 1.25rem 0 0;
+    border-top: 1px solid var(--linie);
+  }
+
+  .projekt__feld {
+    display: grid;
+    grid-template-columns: minmax(7.5rem, 2fr) minmax(0, 3fr);
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--linie);
+  }
+
+  .projekt__feld dt {
+    font-family: var(--font-tech);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+    padding-top: 0.2rem;
+  }
+
+  .projekt__feld dd {
+    margin: 0;
+    font-family: var(--font-tech);
+    font-weight: 500;
+    font-size: 1.02rem;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .projekt__block {
+    margin-top: 2.25rem;
+  }
+
+  .projekt__umfang {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .projekt__umfang li {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid rgb(47 36 130 / 0.3);
+    color: var(--blau);
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  .projekt__bereiche {
+    margin-top: 0.6rem;
+    color: var(--blau);
+  }
+
+  .projekt__text {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    max-width: 46rem;
+  }
+
+  .projekt__text p:not(.lead) {
+    color: var(--text-sec);
+  }
+
+  .projekt-mehr__kopf {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1.5rem;
+  }
+
+  .projekt-mehr__liste {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gutter);
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  @media (max-width: 1080px) {
+    .projekt-mehr__liste {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .projekt-mehr__liste li:nth-child(3) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .projekt__raster {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .projekt-mehr__liste {
+      grid-template-columns: 1fr;
+    }
+
+    .projekt-mehr__liste li:nth-child(3) {
+      display: block;
+    }
+  }
+</style>

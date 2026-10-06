@@ -9,6 +9,7 @@ const {
   title,
   description = 'ip³ Energietechnik GmbH aus der Oberpfalz plant und baut Photovoltaikanlagen und Batteriespeicher: vom Hausdach über Gewerbe und Freifläche bis zum Großspeicher. Planung · Beratung · Umsetzung.',
   headerTheme = 'dark',
+  // true, false oder { kicker, titel, text } für einen eigenen Abschluss
   footerCta = true,
   ogImage = '/img/og-ip3.jpg',
   noindex = false,
@@ -65,7 +66,7 @@ const ogUrl = new URL(ogImage, Astro.site).href;
     <main id="inhalt" tabindex="-1">
       <slot />
     </main>
-    <Footer cta={footerCta} />
+    <Footer cta={Boolean(footerCta)} {...(typeof footerCta === 'object' ? footerCta : {})} />
     <script>
       import '../scripts/main.js';
     </script>

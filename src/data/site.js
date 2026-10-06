@@ -32,6 +32,49 @@ export const firma = {
   datenschutzbeauftragter: { name: 'Michael Schwenke', email: 'info@team-netz.net' },
 };
 
+// Verbund mit ENMAG (Co-Branding nach CD: beide Marken gleichwertig, ENMAG-Grün nur für
+// ENMAG-Elemente, beide Domains). Quellen: Angaben ip³ (06.10.2026), Handelsregister
+// (Amtsgericht Weiden, Eintragung 10.02.2026), Selbstdarstellung ENMAG auf enmag-naturstrom.de.
+// Die Registernummer erscheint erst nach Freigabe (registernummer: null).
+export const verbund = {
+  claim: 'Energietechnik von ip³ · Naturstrom von ENMAG.',
+  titel: 'Zwei Firmen. Eine Energie',
+  gesellschaft: {
+    name: 'ENMAG ip³ GmbH',
+    sitz: 'Weiden i.d.OPf.',
+    gegruendet: 2026,
+    geschaeftsfuehrung: ['Maximilian Burger', 'Sven Wilhelm'],
+    gegenstand: 'Planung, Errichtung und Betrieb von Anlagen zur Erzeugung von regenerativem Strom, insbesondere Solar-, Wind- und Speicherprojekten',
+    registernummer: null, // freigegeben: 'HRB 6711, Amtsgericht Weiden i.d.OPf.'
+  },
+  partner: [
+    {
+      name: 'ip³ Energietechnik',
+      rolle: 'Energietechnik',
+      aufgaben: [
+        'Planung von Anlagen für erneuerbare Energien',
+        'Mittel- und Niederspannung, Netzanschluss',
+        'Bau und Inbetriebnahme als beim Bayernwerk eingetragener Installateurbetrieb',
+        'Batteriespeicher vom Heimspeicher bis zum Großspeicher',
+      ],
+      web: 'www.ip3-energie.de',
+      url: null,
+    },
+    {
+      name: 'ENMAG',
+      rolle: 'Naturstrom',
+      aufgaben: [
+        'Inhabergeführtes Familienunternehmen aus Weiden',
+        'Projektentwicklung gemeinsam mit Flächeneigentümern',
+        'Verträge, Bauleitplanung und Netzverknüpfungspunkt',
+        'Betrieb von Solaranlagen',
+      ],
+      web: 'www.enmag-naturstrom.de',
+      url: 'https://www.enmag-naturstrom.de',
+    },
+  ],
+};
+
 // Kennzahlen wie auf der Startseite der bisherigen Website (Stand 05.10.2026).
 // Die Erfahrung zählt ab der Gründung und wird bei jedem Build neu berechnet (2026: 17 Jahre).
 export const kennzahlen = [
@@ -74,6 +117,11 @@ export const leistungenNav = [
     href: '/unsere-leistungen/batteriespeicher',
     label: 'Batteriespeicher',
     kurz: 'Vom Heimspeicher bis zum Großspeicher',
+  },
+  {
+    href: '/unsere-leistungen/monitoring',
+    label: 'Monitoring',
+    kurz: 'Solarpark-Monitoring und Erlösanalyse',
   },
 ];
 

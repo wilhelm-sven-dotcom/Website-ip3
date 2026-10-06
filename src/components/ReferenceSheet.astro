@@ -10,7 +10,8 @@ const breite = {
   m: '(max-width: 860px) 100vw, 46vw',
   tall: '(max-width: 960px) 100vw, 34vw',
 };
-const { ref, index = 1, total = 1, size = 'm', headingLevel = 3, sizes = breite[size] } = Astro.props;
+// href: Projektseite; der Titel wird zum Link über das ganze Blatt
+const { ref, index = 1, total = 1, size = 'm', headingLevel = 3, sizes = breite[size], href } = Astro.props;
 const H = `h${headingLevel}`;
 const blatt = `${String(index).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
 const felder = [
@@ -37,7 +38,17 @@ const felder = [
     <span class="sheet__sheetno tech" aria-hidden="true">Blatt {blatt}</span>
   </div>
   <div class="sheet__block">
-    <H class="sheet__title">{ref.titel}</H>
+    <H class="sheet__title">
+      {
+        href ? (
+          <a class="sheet__link" href={href}>
+            {ref.titel}
+          </a>
+        ) : (
+          ref.titel
+        )
+      }
+    </H>
     <dl class="sheet__fields">
       {
         felder.map((f) => (
@@ -59,14 +70,28 @@ const felder = [
     background: var(--weiss);
     border: 1px solid var(--linie);
     transform-style: preserve-3d;
-    transition:
-      box-shadow 600ms var(--ease-out),
-      border-color 600ms var(--ease-out);
+    transition: border-color 400ms var(--ease-out);
+  }
+
+  /* Schatten liegt fertig gezeichnet bereit und wird nur eingeblendet (Deckkraft statt
+     animiertem box-shadow, der in jedem Bild eine große Fläche neu zeichnen würde) */
+  .sheet::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    box-shadow: 0 40px 70px -40px rgb(12 26 61 / 0.35);
+    opacity: 0;
+    transition: opacity 400ms var(--ease-out);
+    pointer-events: none;
   }
 
   .sheet:hover {
     border-color: rgb(47 36 130 / 0.35);
-    box-shadow: 0 40px 70px -40px rgb(12 26 61 / 0.35);
+  }
+
+  .sheet:hover::after {
+    opacity: 1;
   }
 
   /* feste Proportion, damit Fotos im Raster gleich hoch sind; das Schriftfeld nimmt den Rest */
@@ -214,6 +239,34 @@ const felder = [
     font-size: clamp(1.25rem, 1.05rem + 0.6vw, 1.6rem);
     color: var(--blau);
     line-height: 1.15;
+  }
+
+  .sheet__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* ganze Fläche klickbar, Fokusrahmen um das Blatt */
+  .sheet__link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
+
+  .sheet__link:focus-visible {
+    outline: none;
+  }
+
+  .sheet:has(.sheet__link:focus-visible) {
+    outline: 2px solid var(--blau);
+    outline-offset: 4px;
+  }
+
+  .sheet:hover .sheet__link {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
   }
 
   .sheet__fields {

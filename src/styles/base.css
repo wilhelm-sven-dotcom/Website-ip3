@@ -563,13 +563,14 @@ sup {
   color: var(--weiss);
 }
 
-/* Zeichen 3 als großes, leises Hintergrundmotiv */
+/* Zeichen 3 als großes, leises Hintergrundmotiv; eigene Ebene für die Parallaxe */
 .zeichen {
   position: absolute;
   z-index: -1;
   pointer-events: none;
   user-select: none;
   height: auto;
+  will-change: transform;
 }
 
 .zeichen--light {
@@ -580,14 +581,32 @@ sup {
   opacity: 0.2;
 }
 
-/* Reveal-Grundzustände (nur wenn JS und Bewegung erlaubt) */
-.js-motion [data-reveal] {
+/* Reveal-Grundzustände (nur wenn JS und Bewegung erlaubt); nach der Einblendung setzt
+   main.js die Klasse is-sichtbar, damit der Startzustand nicht wieder greift */
+.js-motion [data-reveal]:not(.is-sichtbar) {
   opacity: 0;
   transform: translate3d(0, 28px, 0);
 }
 
-.js-motion [data-reveal='fade'] {
+.js-motion [data-reveal='fade']:not(.is-sichtbar) {
   transform: none;
+}
+
+/* Bildenthüllung: Vorhang über dem Motiv, gleitet per transform weg (Grafikkarte statt
+   Neuzeichnen). Farbe des Vorhangs = Fläche dahinter, über --vorhang anpassbar. */
+.js-motion [data-clip]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--vorhang, var(--weiss));
+  transform-origin: 50% 100%;
+  transition: transform 1.2s var(--ease-in-out);
+  pointer-events: none;
+}
+
+.js-motion [data-clip].is-enthuellt::after {
+  transform: scaleY(0);
 }
 
 .js-motion .dim__line[data-draw] {
@@ -663,6 +682,15 @@ sup {
 .iso-fine {
   stroke-width: calc(var(--iso-stroke) * 0.45);
   opacity: 0.7;
+}
+
+/* Detaillinien großer Zeichnungen: nicht eingezeichnet, sondern mit den Flächen eingeblendet */
+[data-draw-svg] [data-detail] {
+  transition: opacity 0.9s var(--ease-out);
+}
+
+.js-motion [data-draw-svg]:not(.is-flaechen):not(.is-drawn) [data-detail] {
+  opacity: 0;
 }
 
 .iso-dark {

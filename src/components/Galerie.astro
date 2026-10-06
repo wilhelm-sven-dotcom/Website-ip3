@@ -6,8 +6,9 @@ import Foto from './Foto.astro';
 import Arrow from './Arrow.astro';
 import { galerien } from '../data/galerien.js';
 
-const { name, theme = 'dark', nr } = Astro.props;
-const g = galerien[name];
+// name: Bildstrecke aus galerien.js; alternativ eigene bilder [{ src, alt }] mit titel (Projektseiten)
+const { name, theme = 'dark', nr, titel, bilder } = Astro.props;
+const g = bilder ? { titel: titel || 'Weitere Fotos', bilder } : galerien[name];
 const id = `bildstrecke-${name}`;
 const zwei = (n) => String(n).padStart(2, '0');
 ---

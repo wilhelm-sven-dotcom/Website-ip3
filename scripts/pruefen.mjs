@@ -3,6 +3,7 @@
 // Aufruf: node scripts/pruefen.mjs [baseUrl] [ausgabeordner]
 import { chromium } from 'playwright';
 import fs from 'node:fs';
+import { seiten as alleSeiten } from '../src/data/seiten.js';
 
 const base = process.argv[2] || 'http://127.0.0.1:8080';
 // Geschützte Testumgebung: PRUEF_LOGIN=benutzer:passwort
@@ -11,21 +12,11 @@ const zugang = nutzer ? { httpCredentials: { username: nutzer, password: pw.join
 const out = process.argv[3] || 'pruefung';
 fs.mkdirSync(out, { recursive: true });
 
-const seiten = [
-  '/',
-  '/unsere-leistungen',
-  '/unsere-leistungen/privat',
-  '/unsere-leistungen/industrie-gewerbe',
-  '/unsere-leistungen/freiflaechen',
-  '/unsere-leistungen/batteriespeicher',
-  '/referenzen',
-  '/karriere',
-  '/ueber-uns',
-  '/kontakt',
-  '/impressum',
-  '/datenschutz',
-  '/gibt-es-nicht',
-];
+// Seitenliste aus den Daten; Projektseiten sind gleich aufgebaut, geprüft wird eine
+// Stichprobe (PRUEF_ALLE=1 prüft alle)
+const projekte = alleSeiten.filter((s) => s.pfad.startsWith('/referenzen/'));
+const stichprobe = process.env.PRUEF_ALLE ? projekte : [projekte[0], projekte.find((p) => p.pfad.endsWith('einzelhandel-weiden'))].filter(Boolean);
+const seiten = [...alleSeiten.filter((s) => !s.pfad.startsWith('/referenzen/')), ...stichprobe].map((s) => s.pfad).concat('/gibt-es-nicht');
 const viewports = [
   { name: 'mobil', width: 390, height: 844, mobile: true },
   { name: 'tablet', width: 820, height: 1180, mobile: true },
@@ -78,6 +69,10 @@ for (const vp of viewports) {
     }
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await page.waitForTimeout(2000);
+    // laufende Einblendungen abwarten (in der Testumgebung ohne Grafikkarte deutlich langsamer)
+    await page
+      .waitForFunction(() => ![...document.querySelectorAll('[data-reveal]')].some((el) => el.style.transform || el.style.opacity), null, { timeout: 20000 })
+      .catch(() => {});
 
     const pruef = await page.evaluate(() => {
       const de = document.documentElement;
@@ -99,15 +94,31 @@ for (const vp of viewports) {
         const r = el.getBoundingClientRect();
         return r.height > 0 && parseFloat(getComputedStyle(el).opacity) < 0.05 && !el.closest('[hidden]');
       }).length;
+      // Eingeblendete Elemente stehen am Ziel: keine Restverschiebung, keine Inline-Reste
+      // (ein springender Endzustand war Ursache für Ruckeln beim Scrollen)
+      const versetzt = [...document.querySelectorAll('[data-reveal]')]
+        .filter((el) => {
+          if (el.closest('[hidden]') || !el.getBoundingClientRect().height) return false;
+          const t = getComputedStyle(el).transform;
+          const rest = t !== 'none' && !/^matrix\(1, 0, 0, 1, 0, 0\)$/.test(t);
+          return rest || el.style.transform || el.style.opacity;
+        })
+        .map((el) => `${el.tagName.toLowerCase()}.${[...el.classList].join('.')}`);
+      const geklippt = [...document.querySelectorAll('[data-clip]')].filter((el) => el.style.clipPath || !el.classList.contains('is-enthuellt')).length;
+      const ids = [...document.querySelectorAll('[id]')].map((el) => el.id);
+      const doppelteIds = [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))];
       const titel = document.title;
       const desc = document.querySelector('meta[name="description"]')?.content || '';
-      return { overflow, breit, h1, ohneAlt, defekt, links, unsichtbar, titel, desc };
+      return { overflow, breit, h1, ohneAlt, defekt, links, unsichtbar, versetzt, geklippt, doppelteIds, titel, desc };
     });
     note(pruef.overflow <= 1, `[${vp.name}] ${pfad} kein horizontaler Überlauf (${pruef.overflow}px) ${pruef.breit.join(' | ')}`);
     note(pruef.h1 === 1, `[${vp.name}] ${pfad} genau eine h1 (${pruef.h1})`);
     note(pruef.ohneAlt === 0, `[${vp.name}] ${pfad} alle Bilder mit alt (${pruef.ohneAlt} ohne)`);
     note(pruef.defekt.length === 0, `[${vp.name}] ${pfad} keine defekten Bilder ${pruef.defekt.join(', ')}`);
     note(pruef.unsichtbar === 0, `[${vp.name}] ${pfad} keine hängenden Reveal-Elemente (${pruef.unsichtbar})`);
+    note(pruef.versetzt.length === 0, `[${vp.name}] ${pfad} Einblendungen ohne Restverschiebung ${pruef.versetzt.slice(0, 4).join(', ')}`);
+    note(pruef.geklippt === 0, `[${vp.name}] ${pfad} Bildenthüllungen abgeschlossen, kein Inline-Clip (${pruef.geklippt})`);
+    note(pruef.doppelteIds.length === 0, `[${vp.name}] ${pfad} keine doppelten IDs ${pruef.doppelteIds.join(', ')}`);
     note(!!pruef.titel && pruef.desc.length > 50, `[${vp.name}] ${pfad} Titel und Beschreibung`);
     note(kaputt.length === 0, `[${vp.name}] ${pfad} keine fehlerhaften Ressourcen ${kaputt.join(', ')}`);
     note(logs.length === 0, `[${vp.name}] ${pfad} Konsole sauber ${logs.join(' | ')}`);

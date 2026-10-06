@@ -48,6 +48,11 @@ Ohne PHP genügt `npm run build && npm run preview`. Das Formular meldet dann eh
 | `src/lib/energiesystem-modell.js` | Tagesmodell: Profile, Speicherregeln, Flüsse auf allen Leitungen, deterministisch |
 | `src/lib/energiesystem-szene.js` | Isometrische Landschaft, Leitungen mit sichtbaren Abschnitten, Marker, Zustand um 13:00 Uhr |
 | `src/scripts/energiesystem/` | Laufzeit im Browser: Uhr und Zeitleiste, Teilchen, Auswahl und Infokarte |
+| `src/components/Erloesanalyse.astro` | Beispielauswertung „Ein Tag am Netzanschluss“ auf der Seite Monitoring |
+| `src/lib/monitoring-modell.js`, `monitoring-diagramm.js` | Beispieltag am Netzanschluss (deterministisch) und die Diagramme dazu, beim Build als SVG |
+| `src/lib/monitoring-szene.js` | Isometrische Zeichnung der Leistung Monitoring (eigenes Modul, `iso.js` bleibt unverändert) |
+| `src/pages/referenzen/[slug].astro` | Projektseite je Referenz unter `/referenzen/<slug>` |
+| `src/data/seiten.js` | Liste aller Seiten für Sitemap, Prüfungen und Offline-Fassung, aus den Daten abgeleitet |
 | `src/data/` | Unternehmensdaten, Team, Leistungen, Referenzen, Bildstrecken, Partnerlogos |
 | `src/assets/fotos/` | Projektfotos und Porträts (JPEG), beim Build in WebP-Dateien mehrerer Breiten umgerechnet |
 | `public/img/partner/` | Partnerlogos (WebP, weißer Rand entfernt) |
@@ -56,24 +61,31 @@ Ohne PHP genügt `npm run build && npm run preview`. Das Formular meldet dann eh
 | `public/.htaccess` | Saubere URLs und Caching für Apache |
 | `scripts/` | Prüf- und Renderwerkzeuge (Standbilder, Icons, Browserprüfung, Video) |
 | `docs/INHALTE.md` | Herkunft der Inhalte und offene Punkte |
+| `docs/vorlagen/ip3-referenzen-erfassung.xlsx` | Excel-Vorlage, mit der ip³ Angaben zu den Referenzen liefert |
 
 ## Inhalte pflegen
 
 - **Kontaktdaten, Impressum:** `src/data/site.js`
-- **Referenzen:** `src/data/referenzen.js`. Für ein Projektfoto die JPEG-Datei nach `src/assets/fotos/referenzen/` legen und bei der Referenz `bild: 'referenzen/dateiname'` (ohne Endung) und `bildAlt` mit einer Beschreibung des Fotos eintragen, mindestens 1.600 px breit. Breite Planblätter (jedes dritte auf `/referenzen`) brauchen Querformate, `bildPos` verschiebt den Ausschnitt. Kennwerte über `leistung` und `komponenten`. Keine Kundennamen in Titeln, Dateinamen und Fotos.
+- **Referenzen:** `src/data/referenzen.js`, die Felder sind am Dateianfang beschrieben. Die Reihenfolge der Liste ist die Reihenfolge auf `/referenzen`; zunächst erscheinen neun Projekte, diese brauchen ein Foto. Jede Referenz hat eine Projektseite unter `/referenzen/<slug>`; erst mit `text` wird sie für Suchmaschinen freigegeben und in die Sitemap aufgenommen. `startseite: 1` bis `6` wählt die Auswahl auf der Startseite, `freigabe: false` blendet ein Projekt überall aus. Für ein Foto die JPEG-Datei nach `src/assets/fotos/referenzen/` legen und `bild: 'referenzen/dateiname'` (ohne Endung) mit `bildAlt` eintragen, mindestens 1.600 px breit; weitere Fotos über `fotos: [{ src, alt }]`. Keine Kundennamen in Titeln, Dateinamen und Fotos. Angaben von ip³ kommen über die Excel-Vorlage in `docs/vorlagen/`.
 - **Bildstrecken:** `src/data/galerien.js`, Fotos in `src/assets/fotos/galerie/`. Astro erzeugt WebP in 640, 1.024 und 1.600 px Breite und lässt Metadaten weg.
 - **Team:** `src/data/site.js`, Porträts quadratisch in `src/assets/fotos/team/`. Ohne Foto erscheint ein Monogramm.
 - **Partnerlogos:** `src/data/partner.js`, Dateien in `public/img/partner/`.
-- **Leistungstexte:** `src/data/leistungen.js` und die Seiten in `src/pages/unsere-leistungen/`
+- **Leistungstexte:** `src/data/leistungen.js` und die Seiten in `src/pages/unsere-leistungen/`. Ein neuer Leistungsbereich braucht einen Eintrag in `leistungen.js` und in `leistungenNav` (`src/data/site.js`), Menü, Fußzeile, Sitemap und Prüfungen ziehen nach.
+- **Verbund mit ENMAG:** `verbund` in `src/data/site.js`. ENMAG-Grün nur für ENMAG-Elemente; das Logo erst einsetzen, wenn die Datei von ENMAG vorliegt, dann beide Logos gleich groß.
+- **Kontaktformular:** Auswahl „Interesse an“ in `src/components/ContactForm.astro` und gleichlautend in der Positivliste von `public/kontakt-senden.php`; `scripts/pruefen-daten.mjs` vergleicht beide.
 - **Energiesystem:** Texte, Begriffe der Einleitung, Lagesätze und Leistungen in `src/data/energiesystem.js`. Für jeden Zustandsschlüssel des Tagesmodells muss ein Lagesatz vorhanden sein, das prüft `node scripts/pruefen-energiesystem.mjs`.
 
 ## Energiesystem
 
 Ein deterministisches Tagesmodell (96 Viertelstunden, schematischer Frühlingstag) berechnet Erzeugung, Speicher und die Flüsse auf 17 Leitungen. Beim Build entstehen daraus die Landschaft und der Zustand um 13:00 Uhr mit Richtungspfeilen, damit die Grafik auch ohne JavaScript verständlich ist. Im Browser läuft der Tag in rund 32 Sekunden: Quadrate wandern über die sichtbaren Abschnitte der Leitungen (gefüllt Grünstrom, hohl Netzstrom, rot das gewählte Element), Speicher füllen sich, Fenster leuchten abends. Die Uhr läuft nur, solange die Grafik im Bild ist; bei reduzierter Bewegung, Pause oder ohne JavaScript zeigen Pfeile die Richtung. Marker, Elemente der Grafik und die Begriffe im Text öffnen eine Infokarte, beim Überfahren als Vorschau, per Klick, Antippen oder Enter angeheftet. Zum Testen stellt `/?debug` die Steuerung unter `window.__energiesystem` bereit.
 
+## Monitoring
+
+Die Seite `/unsere-leistungen/monitoring` folgt dem Text von ip³. Die Beispielauswertung „Ein Tag am Netzanschluss“ beruht auf einem deterministischen, schematischen Beispieltag ohne Zahlen und Einheiten: Ausfall von Wechselrichter 6 am Vormittag, Vorgabe des Netzbetreibers um die Mittagszeit (zeitweise durch eine Wolke nicht wirksam), Abregelung durch den Direktvermarkter bei negativen Preisen. Am Desktop klebt die Auswertung rechts und zeigt das Diagramm des Kapitels in der Bildmitte; ein Zeitlineal (Tastatur, Maus) liest den Tag in Worten ab. Am Handy und ohne JavaScript steht jedes Diagramm im Kapitel, dazu der Verlauf in Worten als Tabelle. Farben nach CD-Diagrammfolge, zusätzlich Schraffur 45° für den Netzbetreiber und 135° für den Direktvermarkter.
+
 ## Inszenierung auf der Startseite
 
-Die Szene wird erst geladen, wenn WebGL verfügbar ist, und rendert nur, solange sie im Bild ist. Bei `prefers-reduced-motion`, fehlendem WebGL, schwacher Hardware oder zu langsamer Darstellung zeigt die Seite automatisch eine statische Bildfolge mit denselben Texten. Zum Testen: `/?static`.
+Die Szene wird erst geladen, wenn WebGL verfügbar ist, und rendert nur, solange sie im Bild ist. Bei `prefers-reduced-motion`, fehlendem WebGL oder schwacher Hardware zeigt die Seite eine statische Bildfolge mit denselben Texten. Ist die Darstellung zu langsam, bleibt das letzte Bild stehen und der Wechsel auf die statische Fassung geschieht erst, wenn die Inszenierung aus dem Bild gescrollt ist; die Leseposition bleibt dabei erhalten. Zum Testen: `/?static`.
 
 Die Standbilder für Poster und statische Variante werden aus der Szene gerendert:
 
@@ -85,13 +97,16 @@ npm run bilder       # Standbilder, Favicons, Social-Media-Bild (benötigt Playw
 ## Prüfen
 
 ```bash
+node scripts/pruefen-daten.mjs           # Referenzen, Fotos, Navigation, Formularoptionen, ohne Browser
 node scripts/pruefen-energiesystem.mjs   # Tagesmodell, Texte und Geometrie der Grafik, ohne Browser
+node scripts/pruefen-monitoring.mjs      # Beispieltag Monitoring, Diagramme, gebaute Seite, ohne Browser
 npm run vorschau                         # in einem Terminal
 node scripts/pruefen.mjs                 # Browserprüfung aller Seiten in drei Gerätegrößen
-node scripts/pruefen-interaktion.mjs     # Tastatur, Menüs, Formular, Filter, Energiesystem, Fallbacks
+node scripts/pruefen-interaktion.mjs     # Tastatur, Menüs, Formular, Referenzen, Energiesystem, Monitoring
+node scripts/messen-scrollen.mjs         # Bildzeiten beim Scrollen mit gedrosselter CPU (Entwicklungswerkzeug)
 ```
 
-Geprüft werden Statuscodes, Konsole, fehlerhafte Ressourcen, horizontaler Überlauf, Überschriftenstruktur, Alternativtexte, Meta-Angaben und alle internen Links, dazu die Bedienung per Maus, Tastatur und Touch.
+Geprüft werden Statuscodes, Konsole, fehlerhafte Ressourcen, horizontaler Überlauf, Überschriftenstruktur, doppelte IDs, Alternativtexte, Meta-Angaben und alle internen Links, dazu dass Einblendungen ohne Restverschiebung enden, und die Bedienung per Maus, Tastatur und Touch. `pruefen.mjs` prüft von den Projektseiten eine Stichprobe, `PRUEF_ALLE=1` alle.
 
 ## Testumgebung
 

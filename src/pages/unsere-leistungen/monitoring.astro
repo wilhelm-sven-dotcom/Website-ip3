@@ -1,0 +1,196 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ServiceDetail from '../../components/ServiceDetail.astro';
+import Erloesanalyse from '../../components/Erloesanalyse.astro';
+
+// Texte von ip³ (06.10.2026). Messkette und Beispielauswertung sind schematisch.
+const messkette = [
+  { titel: 'Module und Sensoren', text: 'Einstrahlung und Temperaturen auf der Fläche' },
+  { titel: 'Wechselrichter', text: 'Leistung und Betriebszustand jedes Geräts' },
+  { titel: 'Messung am Netzanschluss', text: 'Einspeisung und Messwerte an der Übergabe' },
+  { titel: 'Datenerfassung vor Ort', text: 'Hardware von ip³, erfasst auch die Leistungsvorgaben von Netzbetreiber und Direktvermarkter' },
+  { titel: 'Zentrale Auswertung', text: 'Software von ip³: Anlagenbetrieb, Abregelungen und wirtschaftliche Kennzahlen, verbunden mit Markt- und Preisdaten' },
+];
+const ueberblick = [
+  'Anbindung und Zusammenführung relevanter Anlagendaten',
+  'Überwachung von Einspeisung, Wechselrichtern und Betriebszuständen',
+  'Darstellung und Zuordnung von Abregelungen',
+  'Berechnung abregelungsbedingter Energiemengen',
+  'Marktwertvergleiche und vorläufige Erlösbewertungen',
+  'Prüfung von Vermarktungs- und Netzbetreiberabrechnungen',
+  'Technische Betriebsführung und Vermarktungsberatung',
+  'Wirtschaftlichkeitsprüfung für Batteriespeicher',
+];
+---
+
+<Base
+  title="Solarpark-Monitoring und Erlösanalyse"
+  description="Solarpark-Monitoring und Erlösanalyse von ip³: eigene Hard- und Software für Einspeisung, Abregelungen durch Netzbetreiber und Direktvermarkter, entgangene Energie und vorläufige Erlöse, dazu die Prüfung Ihrer Abrechnungen."
+  footerCta={{
+    kicker: 'Solarpark-Monitoring',
+    titel: 'Mehr Klarheit über Ihren Solarpark',
+    text: 'Lassen Sie uns gemeinsam prüfen, welche Daten Ihre Anlage bereitstellt und wie Sie diese für Betrieb und Wirtschaftlichkeit nutzen können.',
+  }}
+>
+  <PageHero
+    kicker="Leistungen · Monitoring"
+    title={'Solarpark-Monitoring und Erlösanalyse<span class="dot">.</span>'}
+    lead="Verstehen, was Ihre Anlage leistet. Nachvollziehen, was sie erwirtschaftet."
+    art="monitoring"
+    crumbs={[{ label: 'Leistungen', href: '/unsere-leistungen' }, { label: 'Monitoring' }]}
+  />
+  <ServiceDetail
+    slug="monitoring"
+    intro={[
+      'Wie viel Strom speist Ihr Solarpark ein? Welche Leistung wäre unter den aktuellen Bedingungen möglich? Und welchen Einfluss haben Eingriffe des Netzbetreibers oder Direktvermarkters auf Ihre Erzeugung?',
+      'Mit unserer eigenen Hardware- und Softwarelösung führen wir diese Informationen zusammen. ip³ verbindet die Datenerfassung vor Ort mit einer zentralen Auswertung von Anlagenbetrieb, Abregelungen und wirtschaftlichen Kennzahlen. Die Lösung wird von uns entwickelt und kontinuierlich erweitert.',
+    ]}
+  >
+    <div slot="rechts" class="messkette">
+      <h2 class="kicker messkette__titel">Vom Modul bis zur Auswertung</h2>
+      <ol class="messkette__liste" role="list">
+        {
+          messkette.map((m, i) => (
+            <li class:list={['messkette__glied', { 'messkette__glied--ip3': i >= 3 }]} data-reveal>
+              <span class="messkette__nr tech">{String(i + 1).padStart(2, '0')}</span>
+              <span class="messkette__inhalt">
+                <strong>{m.titel}</strong>
+                <span>{m.text}</span>
+              </span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <Erloesanalyse />
+
+    <section class="section mon-umfang" data-theme="hell" data-header-zone="hell" aria-labelledby="mon-umfang-title">
+      <div class="wrap">
+        <div class="dim"><span>Leistungsumfang</span><span class="dim__line" data-draw></span></div>
+        <h2 id="mon-umfang-title" class="h2 mon-umfang__titel" data-split>Unsere Leistungen im Überblick<span class="dot">.</span></h2>
+        <ol class="mon-umfang__liste" role="list">
+          {
+            ueberblick.map((u, i) => (
+              <li data-reveal>
+                <span class="tech">{String(i + 1).padStart(2, '0')}</span>
+                <span>{u}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </section>
+  </ServiceDetail>
+</Base>
+
+<style>
+  .messkette {
+    padding-top: 0.35rem;
+  }
+
+  .messkette__liste {
+    position: relative;
+    margin-top: 1.4rem;
+  }
+
+  /* senkrechte Leitung durch alle Glieder */
+  .messkette__liste::before {
+    content: '';
+    position: absolute;
+    left: calc(1.1rem - 0.5px);
+    top: 1.2rem;
+    bottom: 1.2rem;
+    width: 1px;
+    background: var(--blau);
+  }
+
+  .messkette__glied {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.2rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    padding: 0.7rem 0;
+  }
+
+  .messkette__nr {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid var(--blau);
+    background: var(--weiss);
+    font-size: 0.8rem;
+    color: var(--blau);
+  }
+
+  /* Glieder von ip³: gefüllt */
+  .messkette__glied--ip3 .messkette__nr {
+    background: var(--blau);
+    color: var(--weiss);
+  }
+
+  .messkette__glied:last-child .messkette__nr::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--akzent);
+  }
+
+  .messkette__inhalt {
+    display: grid;
+    gap: 0.2rem;
+    padding-top: 0.15rem;
+  }
+
+  .messkette__inhalt strong {
+    font-size: 1.08rem;
+    color: var(--blau);
+  }
+
+  .messkette__inhalt span {
+    color: var(--text-sec);
+  }
+
+  .mon-umfang__titel {
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+    max-width: 16ch;
+  }
+
+  .mon-umfang__liste {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 var(--gutter);
+    margin-top: clamp(2rem, 4vw, 3rem);
+    border-top: 1px solid rgb(12 26 61 / 0.2);
+  }
+
+  .mon-umfang__liste li {
+    display: grid;
+    grid-template-columns: 2.8rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgb(12 26 61 / 0.2);
+    font-size: 1.08rem;
+    line-height: 1.45;
+  }
+
+  .mon-umfang__liste .tech {
+    color: var(--akzent-text);
+    font-size: 0.9rem;
+    padding-top: 0.15rem;
+  }
+
+  @media (max-width: 760px) {
+    .mon-umfang__liste {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

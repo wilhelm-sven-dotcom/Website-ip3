@@ -1,0 +1,898 @@
+---
+// „Ein Tag am Netzanschluss“: schematische Beispielauswertung eines Solarparks in fünf Kapiteln,
+// Texte von ip³. Am Desktop klebt die Auswertung rechts und wechselt mit dem Kapitel, das in
+// der Bildmitte steht (nur Deckkraft, kein Eingriff ins Scrollen). Ein Zeitlineal liest den
+// Tag in Worten ab, ein feiner Zeiger führt es mit. Am Handy und ohne JavaScript steht unter
+// jedem Kapitel sein eigenes Diagramm. Keine Zahlen, keine Einheiten, kein Produktname.
+import { simuliereTag, verlauf, uhrzeit, lage } from '../lib/monitoring-modell.js';
+import { muster, diagrammBegrenzung, diagrammPotenzial, diagrammPreis, diagrammErloes, diagrammeWechselrichter, diagrammBilanz } from '../lib/monitoring-diagramm.js';
+
+const { nr = null } = Astro.props;
+const tag = simuliereTag();
+const d = {
+  begrenzung: diagrammBegrenzung(tag),
+  potenzial: diagrammPotenzial(tag),
+  preis: diagrammPreis(tag),
+  erloes: diagrammErloes(tag),
+};
+const wr = diagrammeWechselrichter(tag);
+const bilanz = diagrammBilanz(tag);
+const abschnitte = verlauf(tag);
+const ablesen = tag.map((x) => `${uhrzeit(x.i / 4)} Uhr: ${lage(x)}`);
+
+const kapitel = [
+  {
+    id: 'begrenzung',
+    titel: 'Erkennen, wer Ihre Anlage begrenzt',
+    text: [
+      'Wir erfassen die Leistungsvorgaben von Netzbetreiber und Direktvermarkter und stellen sie der tatsächlichen Einspeisung gegenüber. So wird sichtbar, wann eine Begrenzung vorliegt und welche Vorgabe wirksam ist. Der zeitliche Verlauf macht die Eingriffe auch im Nachhinein nachvollziehbar.',
+    ],
+    zeit: 12,
+  },
+  {
+    id: 'potenzial',
+    titel: 'Erzeugungspotenzial und entgangene Energie im Blick',
+    text: [
+      'Aus Einstrahlung und Betriebsdaten ermitteln wir die voraussichtlich mögliche Erzeugung Ihrer Anlage. Der Vergleich mit der tatsächlichen Einspeisung bildet die Grundlage für die Berechnung abregelungsbedingter Energiemengen. Diese werden getrennt nach Netzbetreiber und Direktvermarkter dargestellt.',
+    ],
+    zeit: 14,
+  },
+  {
+    id: 'wirtschaft',
+    titel: 'Die wirtschaftlichen Auswirkungen verstehen',
+    text: [
+      'Unsere Auswertung verbindet Energiemengen mit Markt- und Preisdaten. Sie zeigt rechnerische Energiewerte und vorläufige Erlöse und schafft damit eine Grundlage für die wirtschaftliche Beurteilung Ihres Solarparks.',
+      'Darauf aufbauend prüfen wir Ihre Abrechnungen aus Direktvermarktung, Marktprämie und Ausfallenergie unter Berücksichtigung der jeweiligen Vertrags- und Vergütungsbedingungen. Auffälligkeiten bereiten wir nachvollziehbar für die Klärung mit dem Abrechnungspartner auf.',
+    ],
+    zeit: 14.5,
+  },
+  {
+    id: 'technik',
+    titel: 'Auch die Technik im Detail verfolgen',
+    text: [
+      'Neben der Gesamteinspeisung betrachten wir einzelne Wechselrichter, Einstrahlung, Temperaturen und Messwerte am Netzanschluss. Dadurch lassen sich Abweichungen erkennen und technische Ursachen gezielter untersuchen. Erzeugungsprognosen ergänzen den Blick auf den laufenden Betrieb.',
+    ],
+    zeit: 9.25,
+  },
+  {
+    id: 'entscheidung',
+    titel: 'Daten auswerten. Entscheidungen fundiert treffen',
+    text: [
+      'Wir unterstützen Sie in der technischen Betriebsführung und beraten Sie zur Vermarktung Ihrer Anlage. Für eine mögliche Speichererweiterung nutzen wir die Betriebsdaten als Grundlage einer individuellen Wirtschaftlichkeitsbetrachtung.',
+    ],
+    zeit: 15,
+    link: { href: '/unsere-leistungen/batteriespeicher', text: 'Batteriespeicher' },
+  },
+];
+const nn = (i) => String(i + 1).padStart(2, '0');
+const stunden = [0, 6, 12, 18, 24];
+---
+
+<section class="section ea" data-theme="light" data-header-zone="light" aria-labelledby="ea-title" data-ea>
+  <svg class="ea__muster" width="0" height="0" aria-hidden="true" focusable="false"><Fragment set:html={muster} /></svg>
+  <div class="wrap">
+    <div class="dim">{nr && <span class="dim__num">{nr}</span>}<span>Beispielauswertung</span><span class="dim__line" data-draw></span></div>
+    <div class="ea__kopf">
+      <h2 id="ea-title" class="h1 ea__titel" data-split>Ein Tag am Netzanschluss<span class="dot">.</span></h2>
+      <p class="lead ea__lead">
+        Ein Beispieltag, schematisch und ohne Zahlen: Wer begrenzt wann, was wäre möglich gewesen, was bedeutet das wirtschaftlich, und was zeigt die Technik im Detail.
+      </p>
+    </div>
+
+    <nav class="ea__sprung" aria-label="Kapitel der Beispielauswertung">
+      <ol role="list">
+        {
+          kapitel.map((k, i) => (
+            <li>
+              <a href={`#ea-${k.id}`} data-ea-sprung={i + 1}>
+                <span class="tech">{nn(i)}</span> {k.titel}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <div class="ea__raster">
+      <div class="ea__kapitel">
+        {
+          kapitel.map((k, i) => (
+            <article class="ea-kapitel" id={`ea-${k.id}`} data-kapitel={i + 1} data-zeit={k.zeit} aria-labelledby={`ea-${k.id}-titel`}>
+              <p class="ea-kapitel__nr tech">{nn(i)}</p>
+              <h3 id={`ea-${k.id}-titel`} class="ea-kapitel__titel">
+                {k.titel}{i === kapitel.length - 1 && <span class="dot">.</span>}
+              </h3>
+              {k.text.map((t) => (
+                <p class="ea-kapitel__text">{t}</p>
+              ))}
+              {k.link && (
+                <a class="arrow-link ea-kapitel__link" href={k.link.href}>
+                  {k.link.text} <span class="line" />
+                </a>
+              )}
+              <div class="ea-platz" data-ea-platz={i + 1}>
+                {i === 0 && (
+                  <figure class="ea-grafik" data-in="1">
+                    <div class="ea-zeitbild">
+                    <div class="ea-diagramm" style={`aspect-ratio: 600 / ${d.begrenzung.hoehe}`}>
+                      <svg viewBox={`0 0 600 ${d.begrenzung.hoehe}`} aria-hidden="true" focusable="false" set:html={d.begrenzung.svg} />
+                      <div class="ea-labels" aria-hidden="true">
+                        {d.begrenzung.labels.filter((l) => l.art !== 'achse').map((l) => (
+                          <span class={`ea-label ea-label--${l.art}`} style={`left:${l.x};top:${l.y}`}>{l.text}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div class="ea-stunden tech" aria-hidden="true">{stunden.map((h) => <span style={`left:${(h / 24) * 100}%`}>{h}</span>)}</div>
+                    </div>
+                    <ul class="ea-legende" role="list" aria-hidden="true">
+                      <li class="ea-legende--einspeisung">Einspeisung</li>
+                      <li class="ea-legende--vorgabe-nb">Vorgabe Netzbetreiber</li>
+                      <li class="ea-legende--vorgabe-dv">Vorgabe Direktvermarkter</li>
+                      <li class="ea-legende--nb">wirksam: Netzbetreiber</li>
+                      <li class="ea-legende--dv">wirksam: Direktvermarkter</li>
+                    </ul>
+                    <figcaption id="ea-cap-1" class="ea-grafik__text">
+                      Einspeisung und Leistungsvorgaben über den Tag. Die Leiste unten zeigt, wann eine Vorgabe wirksam ist: am späten Vormittag die des Netzbetreibers, am frühen Nachmittag die des Direktvermarkters. Kurz vor Mittag liegt die Vorgabe des Netzbetreibers an, eine Wolke hält die Erzeugung aber darunter.
+                    </figcaption>
+                  </figure>
+                )}
+                {i === 1 && (
+                  <figure class="ea-grafik" data-in="2">
+                    <div class="ea-zeitbild">
+                    <div class="ea-diagramm" style={`aspect-ratio: 600 / ${d.potenzial.hoehe}`}>
+                      <svg viewBox={`0 0 600 ${d.potenzial.hoehe}`} aria-hidden="true" focusable="false" set:html={d.potenzial.svg} />
+                      <div class="ea-labels" aria-hidden="true">
+                        {d.potenzial.labels.filter((l) => l.art !== 'achse').map((l) => (
+                          <span class={`ea-label ea-label--${l.art}`} style={`left:${l.x};top:${l.y}`}>{l.text}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div class="ea-stunden tech" aria-hidden="true">{stunden.map((h) => <span style={`left:${(h / 24) * 100}%`}>{h}</span>)}</div>
+                    </div>
+                    <ul class="ea-legende" role="list" aria-hidden="true">
+                      <li class="ea-legende--moeglich">mögliche Erzeugung</li>
+                      <li class="ea-legende--einspeisung">Einspeisung</li>
+                      <li class="ea-legende--nb">abgeregelt durch den Netzbetreiber</li>
+                      <li class="ea-legende--dv">abgeregelt durch den Direktvermarkter</li>
+                      <li class="ea-legende--technik">technisch bedingt</li>
+                    </ul>
+                    <figcaption id="ea-cap-2" class="ea-grafik__text">
+                      Mögliche Erzeugung gestrichelt, Einspeisung durchgezogen. Die Flächen dazwischen sind entgangene Energie, getrennt nach Ursache: Netzbetreiber, Direktvermarkter und am Vormittag ein ausgefallener Wechselrichter.
+                    </figcaption>
+                  </figure>
+                )}
+                {i === 2 && (
+                  <figure class="ea-grafik" data-in="3">
+                    <div class="ea-zeitbild ea-zeitbild--doppelt">
+                    <p class="ea-grafik__kopf tech" aria-hidden="true">Börsenpreis</p>
+                    <div class="ea-diagramm ea-diagramm--flach" style={`aspect-ratio: 600 / ${d.preis.hoehe}`}>
+                      <svg viewBox={`0 0 600 ${d.preis.hoehe}`} aria-hidden="true" focusable="false" set:html={d.preis.svg} />
+                      <div class="ea-labels" aria-hidden="true">
+                        {d.preis.labels.map((l) => (
+                          <span class={`ea-label ea-label--${l.art}`} style={`left:${l.x};top:${l.y}`}>{l.text}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <p class="ea-grafik__kopf tech" aria-hidden="true">Rechnerische Werte je Stunde</p>
+                    <div class="ea-diagramm ea-diagramm--flach" style={`aspect-ratio: 600 / ${d.erloes.hoehe}`}>
+                      <svg viewBox={`0 0 600 ${d.erloes.hoehe}`} aria-hidden="true" focusable="false" set:html={d.erloes.svg} />
+                      <div class="ea-labels" aria-hidden="true">
+                        {d.erloes.labels.map((l) => (
+                          <span class={`ea-label ea-label--${l.art}`} style={`left:${l.x};top:${l.y}`}>{l.text}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div class="ea-stunden tech" aria-hidden="true">{stunden.map((h) => <span style={`left:${(h / 24) * 100}%`}>{h}</span>)}</div>
+                    </div>
+                    <ul class="ea-legende" role="list" aria-hidden="true">
+                      <li class="ea-legende--einspeisung">vorläufiger Erlös aus der Einspeisung</li>
+                      <li class="ea-legende--nb">rechnerischer Wert der Ausfallenergie beim Netzbetreiber</li>
+                      <li class="ea-legende--abgeregelt">abgeregelt bei negativen Preisen, kein negativer Erlös</li>
+                    </ul>
+                    <figcaption id="ea-cap-3" class="ea-grafik__text">
+                      Oben der Börsenpreis mit negativen Stunden am frühen Nachmittag, unten die rechnerischen Werte je Stunde. Während der negativen Preise regelt der Direktvermarkter ab, es entsteht kein negativer Erlös. Für die Abregelung durch den Netzbetreiber wird der Wert der Ausfallenergie ermittelt, als Grundlage für die Prüfung der Abrechnung.
+                    </figcaption>
+                  </figure>
+                )}
+                {i === 3 && (
+                  <figure class="ea-grafik" data-in="4">
+                    <ul class="ea-wr" role="list" aria-hidden="true">
+                      {wr.map((w) => (
+                        <li class:list={['ea-wr__eintrag', { 'is-auffaellig': w.auffaellig }]}>
+                          <p class="ea-wr__name tech">Wechselrichter {w.nr}</p>
+                          <div class="ea-diagramm ea-diagramm--klein" style="aspect-ratio: 160 / 64">
+                            <svg viewBox={w.viewBox} aria-hidden="true" focusable="false" set:html={w.svg} />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    <ul class="ea-legende" role="list" aria-hidden="true">
+                      <li class="ea-legende--moeglich">erwartet</li>
+                      <li class="ea-legende--einspeisung">tatsächlich</li>
+                      <li class="ea-legende--technik">Ausfall</li>
+                    </ul>
+                    <figcaption id="ea-cap-4" class="ea-grafik__text">
+                      Acht Wechselrichter einzeln: erwartete Leistung gestrichelt, unter Berücksichtigung der Vorgaben, tatsächliche durchgezogen. Wechselrichter 6 liefert am Vormittag eine Zeit lang nichts, die übrigen laufen wie erwartet. Die Abregelung am Nachmittag betrifft alle gleich und ist kein technischer Fehler.
+                    </figcaption>
+                  </figure>
+                )}
+                {i === 4 && (
+                  <figure class="ea-grafik" data-in="5">
+                    <p class="ea-grafik__kopf tech" aria-hidden="true">Tagesbilanz der möglichen Erzeugung</p>
+                    <div class="ea-diagramm ea-diagramm--bilanz" style="aspect-ratio: 600 / 44">
+                      <svg viewBox={bilanz.viewBox} aria-hidden="true" focusable="false" set:html={bilanz.svg} />
+                    </div>
+                    <ul class="ea-legende ea-legende--bilanz" role="list" aria-hidden="true">
+                      {bilanz.teile.map((t) => (
+                        <li class={`ea-legende--${t.key}`}>{t.text}</li>
+                      ))}
+                    </ul>
+                    <figcaption id="ea-cap-5" class="ea-grafik__text">
+                      Die mögliche Erzeugung des Beispieltags aufgeteilt: der größte Teil eingespeist, der zweitgrößte Teil wegen negativer Preise abgeregelt, kleinere Teile durch den Netzbetreiber und den Ausfall eines Wechselrichters. Solche Anteile über Monate sind eine Grundlage, um zum Beispiel eine Speichererweiterung zu bewerten.
+                    </figcaption>
+                  </figure>
+                )}
+              </div>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="ea__panel" data-ea-panel hidden>
+        <!-- Lineal über dem Diagramm: Beim Kapitelwechsel ändert sich nur, was darunter liegt -->
+        <div class="ea__lineal">
+          <div class="ea__lineal-zeile">
+            <label class="ea__lineal-label tech" for="ea-zeit">Uhrzeit ablesen</label>
+            <input id="ea-zeit" class="ea__regler" type="range" min="0" max="95" step="1" value="48" data-ea-regler />
+          </div>
+          <p class="ea__ablesen" data-ea-ablesen>{ablesen[48]}</p>
+        </div>
+        <div class="ea__buehne" data-ea-buehne></div>
+      </div>
+    </div>
+
+    <details class="ea__worte">
+      <summary id="ea-worte-titel">Verlauf des Beispieltags in Worten</summary>
+      <table class="ea__tabelle">
+        <caption class="visually-hidden">Verlauf des Beispieltags am Netzanschluss</caption>
+        <thead>
+          <tr><th scope="col">Zeit</th><th scope="col">Lage</th></tr>
+        </thead>
+        <tbody>
+          {
+            abschnitte.map((a) => (
+              <tr>
+                <th scope="row" class="tech">{uhrzeit(a.von)} bis {uhrzeit(a.bis)} Uhr</th>
+                <td>{a.text}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </details>
+  </div>
+  <script type="application/json" data-ea-daten set:html={JSON.stringify(ablesen)} />
+</section>
+
+<style>
+  .ea {
+    --nb: #2f2482;
+    --dv: #c83c30;
+    --einspeisung: #0c1a3d;
+    --moeglich: #8d8ab8;
+    --technik: #e8a49c;
+  }
+
+  .ea__muster {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .ea__kopf {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 1.5rem var(--gutter);
+    align-items: end;
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .ea__titel {
+    max-width: 12ch;
+  }
+
+  .ea__lead {
+    color: var(--text-sec);
+  }
+
+  .ea__sprung ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+
+  .ea__sprung a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid rgb(47 36 130 / 0.25);
+    color: var(--blau);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background-color var(--dur-fast),
+      color var(--dur-fast),
+      border-color var(--dur-fast);
+  }
+
+  .ea__sprung a .tech {
+    color: var(--akzent-text);
+  }
+
+  .ea__sprung a:hover {
+    border-color: var(--blau);
+  }
+
+  .ea__sprung a[aria-current='true'] {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: var(--weiss);
+  }
+
+  .ea__sprung a[aria-current='true'] .tech {
+    color: var(--weiss);
+  }
+
+  .ea__raster {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .ea-kapitel {
+    padding: 2rem 0 2.5rem;
+    border-top: 1px solid var(--linie);
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+
+  .ea-kapitel__nr {
+    font-size: 0.9rem;
+    color: var(--akzent-text);
+  }
+
+  .ea-kapitel__titel {
+    margin-top: 0.5rem;
+    max-width: 22ch;
+    font-size: clamp(1.5rem, 1.15rem + 1.2vw, 2.25rem);
+    line-height: 1.12;
+    color: var(--blau);
+  }
+
+  .ea-kapitel__text {
+    margin-top: 1rem;
+    max-width: 38rem;
+    color: var(--text-sec);
+  }
+
+  .ea-kapitel__text:first-of-type {
+    color: var(--text);
+  }
+
+  .ea-kapitel__link {
+    margin-top: 0.75rem;
+    color: var(--blau);
+  }
+
+  .ea-platz {
+    margin-top: 1.75rem;
+  }
+
+  /* Diagramme */
+  .ea-grafik {
+    margin: 0;
+  }
+
+  .ea-grafik__kopf {
+    margin: 1.25rem 0 0.4rem;
+    font-size: var(--fs-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .ea-grafik__kopf:first-child {
+    margin-top: 0;
+  }
+
+  .ea-diagramm {
+    position: relative;
+    width: 100%;
+  }
+
+  .ea-diagramm svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .ea-diagramm :global(.ea-gitter) {
+    fill: none;
+    stroke: var(--linie);
+    stroke-width: 1;
+  }
+
+  .ea-diagramm :global(.ea-bezug) {
+    fill: none;
+    stroke: #b9b8c9;
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+  }
+
+  .ea-diagramm :global(.ea-achse),
+  .ea-diagramm :global(.ea-null) {
+    fill: none;
+    stroke: #8c8c8c;
+    stroke-width: 1;
+  }
+
+  .ea-labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .ea-label {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transform: translateY(-100%);
+    font-family: var(--font-tech);
+    font-size: 0.78rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    color: var(--text);
+  }
+
+  .ea-label::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    flex: none;
+    background: var(--farbe, transparent);
+  }
+
+  .ea-label--nb {
+    --farbe: var(--nb);
+  }
+
+  .ea-label--dv {
+    --farbe: var(--dv);
+  }
+
+  .ea-label--einspeisung {
+    --farbe: var(--einspeisung);
+  }
+
+  .ea-label--moeglich {
+    --farbe: var(--moeglich);
+  }
+
+  .ea-label--bezug,
+  .ea-label--leiste {
+    color: var(--text-sec);
+  }
+
+  .ea-label--bezug::before,
+  .ea-label--leiste::before {
+    display: none;
+  }
+
+  .ea-label--leiste {
+    transform: none;
+  }
+
+  .ea-stunden {
+    position: relative;
+    height: 1.2rem;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--text-sec);
+  }
+
+  .ea-stunden span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  .ea-stunden span:first-child {
+    transform: none;
+  }
+
+  .ea-stunden span:last-child {
+    transform: translateX(-100%);
+  }
+
+  .ea-stunden span:last-child::after {
+    content: ' Uhr';
+  }
+
+  .ea-legende {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text);
+  }
+
+  .ea-legende li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .ea-legende li::before {
+    content: '';
+    width: 14px;
+    height: 10px;
+    flex: none;
+  }
+
+  .ea-legende--nb::before {
+    background: repeating-linear-gradient(45deg, var(--nb) 0 2px, rgb(47 36 130 / 0.14) 2px 5px);
+  }
+
+  .ea-legende--dv::before {
+    background: repeating-linear-gradient(-45deg, var(--dv) 0 2px, rgb(200 60 48 / 0.12) 2px 5px);
+  }
+
+  .ea-legende--technik::before {
+    background: radial-gradient(circle, var(--dv) 1px, transparent 1.5px) 0 0 / 5px 5px, rgb(232 164 156 / 0.55);
+  }
+
+  .ea-legende--einspeisung::before {
+    background: var(--einspeisung);
+  }
+
+  .ea-legende--vorgabe-nb::before,
+  .ea-legende--vorgabe-dv::before,
+  .ea-legende--abgeregelt::before {
+    height: 3px;
+    background: var(--nb);
+  }
+
+  .ea-legende--vorgabe-dv::before,
+  .ea-legende--abgeregelt::before {
+    background: var(--dv);
+  }
+
+  .ea-legende--moeglich::before {
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--moeglich) 0 4px, transparent 4px 7px);
+  }
+
+  .ea-grafik__text {
+    margin-top: 1rem;
+    font-size: 0.92rem;
+    color: var(--text-sec);
+    max-width: 44rem;
+  }
+
+  /* Wechselrichter als kleine Vielfache */
+  .ea-wr {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem 1.25rem;
+  }
+
+  .ea-wr__name {
+    margin-bottom: 0.3rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .ea-wr__eintrag.is-auffaellig .ea-wr__name {
+    color: var(--akzent-text);
+    font-weight: 700;
+  }
+
+  .ea-legende--bilanz {
+    margin-top: 0.9rem;
+  }
+
+  /* Zeitlineal: Zeiger über jedem Zeitdiagramm */
+  .ea-diagramm::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--ea-t, 0.5) * 100%);
+    width: 2px;
+    margin-left: -1px;
+    background: var(--akzent);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ea--lineal .ea__buehne .ea-diagramm:not(.ea-diagramm--bilanz)::after {
+    opacity: 1;
+  }
+
+  .ea__ablesen {
+    min-height: 2.9em;
+    margin-top: 0.45rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: var(--text);
+  }
+
+  .ea__lineal-zeile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .ea__lineal-label {
+    flex: none;
+    font-size: var(--fs-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .ea__regler {
+    flex: 1;
+    min-width: 0;
+    min-height: 32px;
+    margin: 0;
+    accent-color: var(--akzent);
+  }
+
+  .ea__worte {
+    margin-top: clamp(2rem, 4vw, 3rem);
+    border-top: 1px solid var(--linie);
+    border-bottom: 1px solid var(--linie);
+  }
+
+  .ea__worte summary {
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    font-weight: 600;
+    color: var(--blau);
+    cursor: pointer;
+  }
+
+  .ea__tabelle {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+
+  .ea__tabelle th,
+  .ea__tabelle td {
+    padding: 0.6rem 1rem 0.6rem 0;
+    border-bottom: 1px solid var(--linie);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .ea__tabelle thead th {
+    font-family: var(--font-tech);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+  }
+
+  .ea__tabelle tbody th {
+    width: 14rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Desktop mit JavaScript: Kapitel links, Auswertung klebt rechts */
+  @media (min-width: 1081px) {
+    .ea--klebend .ea__raster {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 0 var(--gutter);
+      align-items: start;
+    }
+
+    .ea--klebend .ea-kapitel {
+      min-height: 62vh;
+    }
+
+    .ea--klebend .ea-platz {
+      display: none;
+    }
+
+    .ea--klebend .ea__panel {
+      position: sticky;
+      top: calc(var(--header-h) + 1.5rem);
+      padding-top: 1.25rem;
+      border-top: 2px solid var(--blau);
+    }
+
+    /* in der Auswertung etwas kompakter, damit alles in niedrige Fenster passt */
+    .ea__buehne :global(.ea-legende) {
+      gap: 0.25rem 1rem;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .ea__buehne :global(.ea-grafik__kopf) {
+      margin: 0.8rem 0 0.25rem;
+    }
+
+    .ea__buehne :global(.ea-grafik__kopf:first-child) {
+      margin-top: 0;
+    }
+
+    /* sichtbar nur das Diagramm des aktiven Kapitels, kurz eingeblendet */
+    .ea__buehne > :global(.ea-grafik) {
+      display: none;
+    }
+
+    .ea__panel[data-zustand='1'] :global(.ea-grafik[data-in='1']),
+    .ea__panel[data-zustand='2'] :global(.ea-grafik[data-in='2']),
+    .ea__panel[data-zustand='3'] :global(.ea-grafik[data-in='3']),
+    .ea__panel[data-zustand='4'] :global(.ea-grafik[data-in='4']),
+    .ea__panel[data-zustand='5'] :global(.ea-grafik[data-in='5']) {
+      display: block;
+      animation: ea-ein 450ms var(--ease-out);
+    }
+
+    .ea__lineal {
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--linie);
+    }
+
+    /* Erläuterung steht links im Kapitel; in der Auswertung nur für Vorlesehilfen */
+    .ea__buehne :global(.ea-grafik__text) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* Breite so begrenzen, dass die Auswertung auch in niedrigen Fenstern ganz zu sehen ist;
+       Preis und Erlös stehen untereinander und brauchen mehr Höhe */
+    .ea__buehne :global(.ea-zeitbild) {
+      width: min(100%, calc((100svh - 19.5rem) * 2.3));
+    }
+
+    .ea__buehne :global(.ea-zeitbild--doppelt) {
+      width: min(100%, calc((100svh - 26rem) * 1.76));
+    }
+  }
+
+  @media (max-width: 1080px) {
+    .ea__kopf {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .ea-wr {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ea__tabelle tbody th {
+      width: auto;
+      white-space: normal;
+    }
+
+    .ea-label {
+      font-size: 0.7rem;
+    }
+
+    .ea-label--nb,
+    .ea-label--dv,
+    .ea-label--einspeisung,
+    .ea-label--moeglich {
+      display: none;
+    }
+  }
+
+  @keyframes ea-ein {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ea__panel :global(.ea-grafik) {
+      animation: none !important;
+    }
+  }
+</style>
+
+<script>
+  // Desktop: Diagramme wandern in die klebende Auswertung, das Kapitel in der Bildmitte
+  // bestimmt, welches sichtbar ist. Handy und ohne JavaScript: Diagramme bleiben im Kapitel.
+  document.querySelectorAll('[data-ea]').forEach((root) => {
+    const panel = root.querySelector('[data-ea-panel]');
+    const buehne = root.querySelector('[data-ea-buehne]');
+    const regler = root.querySelector('[data-ea-regler]');
+    const ausgabe = root.querySelector('[data-ea-ablesen]');
+    const texte = JSON.parse(root.querySelector('[data-ea-daten]').textContent);
+    const kapitel = [...root.querySelectorAll('[data-kapitel]')];
+    const plaetze = [...root.querySelectorAll('[data-ea-platz]')];
+    const grafiken = plaetze.map((p) => p.querySelector('.ea-grafik'));
+    const sprung = [...root.querySelectorAll('[data-ea-sprung]')];
+    const breit = matchMedia('(min-width: 1081px)');
+    const fein = matchMedia('(hover: hover) and (pointer: fine)');
+    let aktiv = 0;
+
+    const lesen = (i) => {
+      const n = Math.max(0, Math.min(95, i));
+      regler.value = String(n);
+      root.style.setProperty('--ea-t', ((n + 0.5) / 96).toFixed(4));
+      ausgabe.textContent = texte[n];
+      regler.setAttribute('aria-valuetext', texte[n]);
+    };
+
+    const setzeKapitel = (n) => {
+      if (n === aktiv) return;
+      aktiv = n;
+      panel.dataset.zustand = String(n);
+      sprung.forEach((a) => (Number(a.dataset.eaSprung) === n ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
+      const zeit = Number(kapitel[n - 1].dataset.zeit);
+      if (!Number.isNaN(zeit)) lesen(Math.round(zeit * 4));
+    };
+
+    const io = new IntersectionObserver(
+      (eintraege) => {
+        for (const e of eintraege) if (e.isIntersecting) setzeKapitel(Number(e.target.dataset.kapitel));
+      },
+      { rootMargin: '-45% 0px -50% 0px' }
+    );
+
+    const anordnen = () => {
+      if (breit.matches) {
+        grafiken.forEach((g) => buehne.append(g));
+        panel.hidden = false;
+        root.classList.add('ea--klebend', 'ea--lineal');
+        kapitel.forEach((k) => io.observe(k));
+        if (!aktiv) setzeKapitel(1);
+      } else {
+        grafiken.forEach((g, i) => plaetze[i].append(g));
+        panel.hidden = true;
+        root.classList.remove('ea--klebend', 'ea--lineal');
+        io.disconnect();
+      }
+      document.dispatchEvent(new Event('layout:change'));
+    };
+
+    regler.addEventListener('input', () => lesen(Number(regler.value)));
+
+    // Feiner Zeiger: Lineal folgt der Maus über einem Zeitdiagramm
+    buehne.addEventListener('pointermove', (e) => {
+      if (!fein.matches || e.pointerType !== 'mouse') return;
+      const d = e.target.closest('.ea-diagramm:not(.ea-diagramm--bilanz)');
+      if (!d) return;
+      const r = d.getBoundingClientRect();
+      lesen(Math.floor(((e.clientX - r.left) / r.width) * 96));
+    });
+
+    breit.addEventListener('change', anordnen);
+    lesen(Number(regler.value));
+    anordnen();
+  });
+</script>

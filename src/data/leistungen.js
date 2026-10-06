@@ -38,12 +38,23 @@ export const leistungen = [
     kurz: 'Speicher für Eigenverbrauch, Gewerbe und netzgekoppelte Großspeicher im zweistelligen Megawattbereich.',
     zeichnung: 'speicher',
   },
+  {
+    slug: 'monitoring',
+    href: '/unsere-leistungen/monitoring',
+    nr: '05',
+    titel: 'Monitoring',
+    untertitel: 'Solarpark-Monitoring und Erlösanalyse',
+    kurz: 'Eigene Hard- und Software: Einspeisung, Abregelungen und Erlöse Ihres Solarparks nachvollziehbar ausgewertet.',
+    zeichnung: 'monitoring',
+  },
 ];
 
 export const weitereLeistungen = [
   {
     titel: 'Betriebsführung',
-    text: 'Wir begleiten Ihre Anlage nach der Inbetriebnahme: Überwachung, Auswertung und Ansprechpartner, wenn etwas nicht läuft wie geplant.',
+    text: 'Wir begleiten Ihre Anlage nach der Inbetriebnahme: Überwachung, Auswertung und Ansprechpartner, wenn etwas nicht läuft wie geplant. Für Solarparks mit eigener Hard- und Software.',
+    href: '/unsere-leistungen/monitoring',
+    linkText: 'Solarpark-Monitoring und Erlösanalyse',
   },
   {
     titel: 'Gutachten und Analysen',

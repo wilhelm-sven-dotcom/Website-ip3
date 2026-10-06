@@ -3,10 +3,42 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import Arrow from '../components/Arrow.astro';
 import Foto from '../components/Foto.astro';
-import { team } from '../data/site.js';
+import { team, verbund } from '../data/site.js';
 
 const kurzname = (name) => name.split(',')[0];
 const initialen = (name) => kurzname(name).split(' ').map((t) => t[0]).join('');
+
+// Herkunft als Maßkette: drei Abschnitte ohne Jahreszahlen
+const herkunft = [
+  {
+    mass: 'Planung',
+    titel: 'Ingenieurbüro für erneuerbare Energien',
+    text: 'ip³ ist als Ingenieurbüro gestartet: Planung von Anlagen für erneuerbare Energien sowie für Mittel- und Niederspannung. Dieses Fundament prägt bis heute, wie wir an Projekte herangehen.',
+    fuerSie: 'eine Planung, die Erzeugung, Speicher und Netzanschluss bis in die Mittelspannung zusammen denkt.',
+  },
+  {
+    mass: 'Ausführung',
+    titel: 'Beim Bayernwerk eingetragener Installateurbetrieb',
+    text: 'Aus dem Ingenieurbüro wurde ein Installateurbetrieb, der beim Bayernwerk eingetragen ist. Wir planen Ihre Anlage nicht nur, wir errichten sie auch und nehmen sie in Betrieb.',
+    fuerSie: 'ein Ansprechpartner von der Planung bis zur Inbetriebnahme.',
+  },
+  {
+    mass: 'Verbund',
+    titel: 'Gemeinsame Gesellschaft mit ENMAG',
+    text: 'Mit ENMAG aus Weiden haben wir die ENMAG ip³ GmbH gegründet. ENMAG entwickelt Projekte gemeinsam mit Flächeneigentümern, ip³ bringt Planung und Ausführung ein.',
+    fuerSie: 'von der Fläche bis zum Netzanschluss in einem Verbund.',
+    anker: '#verbund',
+  },
+];
+
+const g = verbund.gesellschaft;
+const gesellschaftsDaten = [
+  ['Sitz', g.sitz],
+  ['Gegründet', g.gegruendet],
+  ['Geschäftsführung', g.geschaeftsfuehrung.join(', ')],
+  ['Register', g.registernummer],
+  ['Gegenstand', g.gegenstand],
+].filter(([, v]) => v);
 
 const werte = [
   {
@@ -26,39 +58,99 @@ const werte = [
 
 <Base
   title="Über uns"
-  description="ip³ Energietechnik GmbH aus Theisseil bei Weiden: 2009 als Ingenieurbüro gestartet, heute Fachunternehmen für schlüsselfertige Photovoltaikanlagen und Batteriespeicher."
+  description="ip³ Energietechnik GmbH aus Theisseil bei Weiden: als Ingenieurbüro gestartet, heute beim Bayernwerk eingetragener Installateurbetrieb für Photovoltaik und Batteriespeicher. Gemeinsame Gesellschaft mit ENMAG aus Weiden."
 >
   <PageHero
     kicker="Über uns"
     title={'Energie, die aus der Region kommt<span class="dot">.</span>'}
-    lead="ip³ ist ein Fachbetrieb für erneuerbare Energien aus der Oberpfalz. 2009 als Ingenieurbüro gestartet, haben wir uns zu Energieeffizienzexperten und zum Dienstleistungspartner für schlüsselfertige Energielösungen weiterentwickelt. Wir sind eingetragener Partner beim Bayernwerk."
+    lead="ip³ ist ein Fachbetrieb für erneuerbare Energien aus der Oberpfalz. Als Ingenieurbüro gestartet, sind wir heute ein beim Bayernwerk eingetragener Installateurbetrieb. Mit ENMAG aus Weiden bilden wir einen Verbund für Projekte von der Fläche bis zum Netz."
     crumbs={[{ label: 'Über uns' }]}
   />
 
-  <section class="section story-about" data-theme="light" data-header-zone="light" aria-labelledby="weg-title">
+  <section class="section herkunft" data-theme="light" data-header-zone="light" aria-labelledby="herkunft-title">
     <div class="wrap">
-      <div class="dim"><span class="dim__num">01</span><span>Unser Weg</span><span class="dim__line" data-draw></span></div>
-      <div class="weg">
-        <h2 id="weg-title" class="display weg__title" data-split>Vom Ingenieurbüro zum Fachbetrieb<span class="dot">.</span></h2>
-        <ol class="weg__line" role="list">
-          <li data-reveal>
-            <p class="weg__year tech">2009</p>
-            <h3>Start als Ingenieurbüro</h3>
-            <p>Gestartet als Ingenieurbüro in der Oberpfalz.</p>
-          </li>
-          <li data-reveal>
-            <p class="weg__year tech">Heute</p>
-            <h3>Planung, Beratung und Umsetzung</h3>
-            <p>Der gesamte Projektzyklus von der Grundlagenermittlung über Planung und Bauüberwachung bis zur Inbetriebnahme und Schulung des Personals. Schlüsselfertig für Privat, Gewerbe, Industrie und Freiflächen, bis zum Großspeicher im zweistelligen Megawattbereich.</p>
-          </li>
-        </ol>
+      <div class="dim"><span class="dim__num">01</span><span>Herkunft</span><span class="dim__line" data-draw></span></div>
+      <h2 id="herkunft-title" class="display herkunft__title" data-split>Aus der Planung gewachsen<span class="dot">.</span></h2>
+      <ol class="kette" role="list">
+        {
+          herkunft.map((h, i) => (
+            <li class="kette__teil" data-reveal>
+              <p class="kette__mass tech">
+                <span class="kette__nr">{String(i + 1).padStart(2, '0')}</span>
+                {h.mass}
+              </p>
+              <h3 class="kette__titel">{h.titel}</h3>
+              <p class="kette__text">{h.text}</p>
+              <p class="kette__fuer">
+                <span class="kette__fuer-label">Für Ihr Projekt:</span> {h.fuerSie}
+              </p>
+              {h.anker && (
+                <a class="arrow-link kette__link" href={h.anker}>
+                  Zum Verbund <span class="line" />
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section id="verbund" class="section verbund" data-theme="dark" data-header-zone="dark" aria-labelledby="verbund-title">
+    <div class="wrap">
+      <div class="dim"><span class="dim__num">02</span><span>Verbund</span><span class="dim__line" data-draw></span></div>
+      <p class="kicker verbund__claim">{verbund.claim}</p>
+      <h2 id="verbund-title" class="display verbund__title" data-split>{verbund.titel}<span class="dot">.</span></h2>
+      <p class="lead verbund__lead" data-reveal>
+        Mit ENMAG aus Weiden haben wir eine gemeinsame Gesellschaft gegründet, die ENMAG ip³ GmbH. Beide Unternehmen bleiben eigenständig, die Aufgaben sind klar verteilt.
+      </p>
+
+      <div class="verbund__partner">
+        {
+          verbund.partner.map((pt, i) => (
+            <article class:list={['partnerspalte', { 'partnerspalte--enmag': i === 1 }]} aria-labelledby={`partner-${i}`} data-reveal>
+              <p class="partnerspalte__rolle tech">{pt.rolle}</p>
+              <h3 id={`partner-${i}`} class="partnerspalte__name">
+                {pt.name}
+              </h3>
+              <ul class="partnerspalte__aufgaben" role="list">
+                {pt.aufgaben.map((a) => (
+                  <li>{a}</li>
+                ))}
+              </ul>
+              {pt.url ? (
+                <a class="partnerspalte__web tech" href={pt.url} target="_blank" rel="noopener">
+                  {pt.web}
+                  <span class="visually-hidden"> (Website von ENMAG, neues Fenster)</span>
+                </a>
+              ) : (
+                <p class="partnerspalte__web tech">{pt.web}</p>
+              )}
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="verbund__blatt" data-reveal>
+        <p class="verbund__blatt-kopf tech">Gemeinsame Gesellschaft</p>
+        <p class="verbund__firma">{g.name}</p>
+        <dl class="verbund__daten">
+          {
+            gesellschaftsDaten.map(([k, v]) => (
+              <div class:list={['verbund__feld', { 'verbund__feld--breit': k === 'Gegenstand' }]}>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))
+          }
+        </dl>
       </div>
     </div>
   </section>
 
   <section class="section werte-sec" data-theme="hell" data-header-zone="hell" aria-labelledby="werte-title">
     <div class="wrap">
-      <div class="dim"><span class="dim__num">02</span><span>Arbeitsweise</span><span class="dim__line" data-draw></span></div>
+      <div class="dim"><span class="dim__num">03</span><span>Arbeitsweise</span><span class="dim__line" data-draw></span></div>
       <h2 id="werte-title" class="h2 werte__title" data-split>Aktiv planen heißt Zukunft gestalten<span class="dot">.</span></h2>
       <ol class="werte" role="list">
         {
@@ -79,7 +171,7 @@ const werte = [
     <div class="wrap">
       <div class="team__head">
         <div>
-          <div class="dim"><span class="dim__num">03</span><span>Menschen</span><span class="dim__line" data-draw></span></div>
+          <div class="dim"><span class="dim__num">04</span><span>Menschen</span><span class="dim__line" data-draw></span></div>
           <h2 id="team-title" class="h2 team__title" data-split>Ihre Ansprechpartner<span class="dot">.</span></h2>
         </div>
         <p class="lead team__lead" data-reveal>
@@ -129,63 +221,252 @@ const werte = [
 </Base>
 
 <style>
-  .weg {
+  .herkunft__title {
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+    max-width: 12ch;
+  }
+
+  /* Maßkette: eine Linie, drei Abschnitte mit Begrenzungsstrichen wie auf einer Zeichnung */
+  .kette {
     display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    gap: 3rem var(--gutter);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: clamp(2.5rem, 5vw, 4.5rem);
-    align-items: end;
   }
 
-  .weg__title {
-    max-width: 11ch;
-  }
-
-  .weg__line {
+  .kette__teil {
     position: relative;
-    display: grid;
-    gap: 2.5rem;
-    padding-left: 2rem;
-    border-left: 1px solid var(--linie);
+    padding: 0 clamp(1rem, 2.4vw, 2.25rem) 0.5rem;
   }
 
-  .weg__line li {
-    position: relative;
-  }
-
-  .weg__line li::before {
+  .kette__teil::before,
+  .kette__teil:last-child::after {
     content: '';
     position: absolute;
-    left: calc(-2rem - 6px);
-    top: 0.45rem;
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    background: var(--weiss);
-    border: 1px solid var(--blau);
+    top: 2.15rem;
+    width: 1px;
+    height: 22px;
+    margin-top: -11px;
+    background: var(--blau);
+    transform: rotate(45deg);
   }
 
-  .weg__line li:last-child::before {
-    background: var(--akzent);
-    border-color: var(--akzent);
+  .kette__teil::before {
+    left: 0;
   }
 
-  .weg__year {
-    font-size: 2rem;
+  .kette__teil:last-child::after {
+    right: 0;
+  }
+
+  .kette__mass {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    height: 2.15rem;
+    margin: 0 calc(-1 * clamp(1rem, 2.4vw, 2.25rem));
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--blau);
+    font-size: var(--fs-label);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--blau);
+  }
+
+  .kette__nr {
+    color: var(--akzent-text);
+  }
+
+  .kette__titel {
+    margin-top: 1.6rem;
+    font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.75rem);
+    line-height: 1.2;
+    color: var(--blau);
+  }
+
+  .kette__text {
+    margin-top: 0.85rem;
+    color: var(--text-sec);
+  }
+
+  .kette__fuer {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--linie);
+  }
+
+  .kette__fuer-label {
     font-weight: 700;
     color: var(--blau);
-    line-height: 1;
   }
 
-  .weg__line h3 {
+  .kette__link {
     margin-top: 0.6rem;
-    font-size: 1.3rem;
     color: var(--blau);
   }
 
-  .weg__line p:not(.weg__year) {
-    margin-top: 0.5rem;
-    color: var(--text-sec);
+  /* Verbund mit ENMAG: Navy, zwei gleichwertige Spalten, ENMAG-Grün nur für ENMAG */
+  .verbund {
+    --enmag: #4c9b3b;
+  }
+
+  .verbund__claim {
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .verbund__title {
+    margin-top: 1rem;
+    max-width: 13ch;
+  }
+
+  .verbund__lead {
+    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+    max-width: 44rem;
+    color: var(--on-navy-sec);
+  }
+
+  .verbund__partner {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: clamp(2.5rem, 5vw, 4.5rem);
+    border-top: 1px solid var(--on-navy-line-strong);
+    border-bottom: 1px solid var(--on-navy-line-strong);
+  }
+
+  .partnerspalte {
+    padding: clamp(1.75rem, 3.5vw, 3rem) clamp(1.25rem, 3.5vw, 3.5rem) clamp(1.75rem, 3.5vw, 3rem) 0;
+  }
+
+  .partnerspalte + .partnerspalte {
+    padding-left: clamp(1.25rem, 3.5vw, 3.5rem);
+    padding-right: 0;
+    border-left: 1px solid var(--on-navy-line-strong);
+  }
+
+  .partnerspalte__rolle {
+    font-size: var(--fs-label);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--on-navy-sec);
+  }
+
+  .partnerspalte__name {
+    margin-top: 0.6rem;
+    font-size: clamp(2rem, 1.4rem + 2.2vw, 3.25rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--weiss);
+  }
+
+  /* ENMAG-Name in ENMAG-Grün, ab 24 px: 4,9:1 auf Navy */
+  .partnerspalte--enmag .partnerspalte__name {
+    color: var(--enmag);
+  }
+
+  .partnerspalte__aufgaben {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 1.5rem;
+  }
+
+  .partnerspalte__aufgaben li {
+    display: grid;
+    grid-template-columns: 1.1rem minmax(0, 1fr);
+    color: var(--weiss);
+  }
+
+  .partnerspalte__aufgaben li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    margin-top: 0.6em;
+    background: var(--on-navy-line-strong);
+  }
+
+  .partnerspalte--enmag .partnerspalte__aufgaben li::before {
+    background: var(--enmag);
+  }
+
+  .partnerspalte__web {
+    display: inline-block;
+    margin-top: 1.75rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    color: var(--on-navy-sec);
+  }
+
+  a.partnerspalte__web {
+    min-height: 44px;
+    padding-top: 0.7rem;
+    margin-top: 1.05rem;
+    color: var(--weiss);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+    text-decoration-color: var(--enmag);
+  }
+
+  a.partnerspalte__web:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .verbund__blatt {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    border: 1px solid var(--on-navy-line-strong);
+  }
+
+  .verbund__blatt-kopf {
+    padding: 0.9rem 1.25rem 0;
+    font-size: var(--fs-label);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--on-navy-sec);
+  }
+
+  .verbund__firma {
+    padding: 0.35rem 1.25rem 1rem;
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: clamp(1.4rem, 1.15rem + 0.9vw, 2rem);
+    letter-spacing: -0.02em;
+    color: var(--weiss);
+  }
+
+  .verbund__daten {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--on-navy-line-strong);
+  }
+
+  .verbund__feld {
+    padding: 0.8rem 1.25rem 0.95rem;
+    border-right: 1px solid var(--on-navy-line-strong);
+  }
+
+  .verbund__feld:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .verbund__feld--breit {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--on-navy-line-strong);
+    border-right: 0;
+  }
+
+  .verbund__feld dt {
+    font-family: var(--font-tech);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--on-navy-sec);
+  }
+
+  .verbund__feld dd {
+    margin: 0.25rem 0 0;
+    font-family: var(--font-tech);
+    font-weight: 500;
+    color: var(--weiss);
   }
 
   .werte__title {
@@ -362,7 +643,6 @@ const werte = [
   }
 
   @media (max-width: 960px) {
-    .weg,
     .team__head,
     .karriere__grid {
       grid-template-columns: 1fr;
@@ -370,6 +650,65 @@ const werte = [
 
     .werte {
       grid-template-columns: 1fr;
+    }
+
+    /* Maßkette senkrecht: Linie links, Abschnitte untereinander */
+    .kette {
+      grid-template-columns: 1fr;
+      border-left: 1px solid var(--blau);
+    }
+
+    .kette__teil {
+      padding: 0 0 2.25rem 1.6rem;
+    }
+
+    .kette__teil::before {
+      top: 0.55rem;
+      left: -1px;
+      transform: rotate(-45deg);
+    }
+
+    .kette__teil:last-child::after {
+      display: none;
+    }
+
+    .kette__mass {
+      justify-content: flex-start;
+      height: auto;
+      margin: 0;
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .kette__titel {
+      margin-top: 0.75rem;
+    }
+
+    .verbund__partner {
+      grid-template-columns: 1fr;
+    }
+
+    .partnerspalte,
+    .partnerspalte + .partnerspalte {
+      padding: 1.75rem 0;
+      border-left: 0;
+    }
+
+    .partnerspalte + .partnerspalte {
+      border-top: 1px solid var(--on-navy-line-strong);
+    }
+
+    .verbund__daten {
+      grid-template-columns: 1fr;
+    }
+
+    .verbund__feld {
+      border-right: 0;
+      border-top: 1px solid var(--on-navy-line-strong);
+    }
+
+    .verbund__feld:first-child {
+      border-top: 0;
     }
   }
 

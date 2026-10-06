@@ -2,6 +2,7 @@
 // Voraussetzung: Vorschau mit PHP läuft auf http://127.0.0.1:8080 (npm run vorschau),
 // für den Formularversand mit umgeleitetem sendmail (siehe README).
 import { chromium } from 'playwright';
+import { seiten } from '../src/data/seiten.js';
 
 const base = process.argv[2] || 'http://127.0.0.1:8080';
 // Geschützte Testumgebung: PRUEF_LOGIN=benutzer:passwort
@@ -59,35 +60,91 @@ const browser = await chromium.launch({ args: gl });
   await ctx.close();
 }
 
-/* 3. Referenzfilter */
+/* 3. Referenzen: erst neun Kacheln, Filter, weitere anzeigen */
 {
   const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
   await page.goto(base + '/referenzen', { waitUntil: 'load' });
+  const stand = () =>
+    page.evaluate(() => ({
+      sichtbar: [...document.querySelectorAll('[data-tags]')].filter((e) => !e.hidden && e.getBoundingClientRect().height > 0).length,
+      zahl: document.querySelector('[data-count]').textContent,
+      mehr: !document.querySelector('[data-mehr-zeile]').hidden,
+      mehrText: document.querySelector('[data-mehr-text]').textContent,
+    }));
+  let z = await stand();
+  note(z.sichtbar === 9 && z.zahl === '18' && z.mehr && z.mehrText.startsWith('9 weitere'), `Referenzen: zunächst 9 von 18, Knopf „${z.mehrText}“ (${z.sichtbar}, Zähler ${z.zahl})`);
+  const links = await page.$$eval('[data-tags] .kachel__link', (as) => as.map((a) => a.getAttribute('href')));
+  note(links.length === 18 && links.every((h) => /^\/referenzen\/[a-z0-9-]+$/.test(h)), `Referenzen: jede Kachel verlinkt ihre Projektseite (${links.length})`);
   await page.click('[data-filter="frei"]');
-  const sichtbar = await page.$$eval('[data-tags]', (els) => els.filter((e) => !e.hidden).length);
-  const zahl = await page.textContent('[data-count]');
-  note(sichtbar === 4 && zahl === '4', `Filter Freifläche zeigt 4 Projekte (${sichtbar}, Zähler ${zahl})`);
+  z = await stand();
+  note(z.sichtbar === 4 && z.zahl === '4' && !z.mehr, `Filter Freifläche zeigt 4 Projekte ohne Knopf (${z.sichtbar}, Zähler ${z.zahl})`);
   await page.click('[data-filter="alle"]');
-  note((await page.$$eval('[data-tags]', (els) => els.filter((e) => !e.hidden).length)) === 18, 'Filter Alle zeigt 18 Projekte');
+  z = await stand();
+  note(z.sichtbar === 9 && z.mehr, `Filter Alle zeigt wieder die ersten 9 (${z.sichtbar})`);
+  await page.click('[data-mehr]');
+  z = await stand();
+  const fokus = await page.evaluate(() => {
+    const li = document.activeElement.closest('[data-tags]');
+    return li ? [...document.querySelectorAll('[data-tags]')].indexOf(li) : -1;
+  });
+  note(z.sichtbar === 18 && !z.mehr && fokus === 9, `Weitere anzeigen: alle 18, Fokus auf dem zehnten Projekt (${z.sichtbar}, Fokus ${fokus + 1})`);
+
+  /* 3c. Zurück von einer Projektseite: Ansicht bleibt erhalten */
+  const ziel = await page.$eval('[data-tags]:nth-child(12) .kachel__link', (a) => ({ href: a.getAttribute('href'), titel: a.textContent.trim() }));
+  await page.click('[data-tags]:nth-child(12) .kachel__link');
+  await page.waitForURL('**' + ziel.href);
+  const h1 = (await page.textContent('h1')).replace(/\.\s*$/, '').trim();
+  note(h1 === ziel.titel, `Projektseite öffnet mit Titel „${h1}“`);
+  await page.goBack({ waitUntil: 'load' });
+  z = await stand();
+  note(z.sichtbar === 18, `Zurück zur Übersicht: weiterhin alle 18 sichtbar (${z.sichtbar})`);
+  await page.click('[data-filter="privat"]');
+  await page.click('[data-tags]:not([hidden]) .kachel__link');
+  await page.waitForLoadState('load');
+  await page.goBack({ waitUntil: 'load' });
+  const filter = await page.$eval('[data-filter][aria-pressed="true"]', (b) => b.dataset.filter);
+  z = await stand();
+  note(filter === 'privat' && z.zahl === '9', `Zurück zur Übersicht: Filter bleibt gewählt (${filter}, ${z.zahl})`);
   await page.close();
 }
 
-/* 3b. Referenzfilter am Touchgerät: nachgerückte Planblätter werden beim Scrollen enthüllt */
+/* 3b. Referenzen am Touchgerät: Kacheln und Fotos sichtbar, ohne Enthüllungseffekte */
 {
   const ctx = await browser.newContext({ ...zugang, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();
   await page.goto(base + '/referenzen', { waitUntil: 'load' });
   await page.waitForTimeout(800);
   await page.tap('[data-filter="frei"]');
-  await page.waitForTimeout(500);
-  const platten = await page.$$('[data-tags]:not([hidden]) [data-clip]');
-  let offen = 0;
-  for (const platte of platten) {
-    await platte.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-    await page.waitForTimeout(1800);
-    if (!(await platte.evaluate((el) => getComputedStyle(el).clipPath)).includes('100%')) offen++;
+  await page.waitForTimeout(300);
+  const kacheln = await page.$$('[data-tags]:not([hidden]) .kachel');
+  let gut = 0;
+  for (const k of kacheln) {
+    await k.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await page.waitForFunction((el) => { const i = el.querySelector('img'); return !i || (i.complete && i.naturalWidth > 0); }, k, { timeout: 10000 }).catch(() => {});
+    const ok = await k.evaluate((el) => {
+      const i = el.querySelector('img');
+      return getComputedStyle(el).opacity === '1' && (!i || (i.complete && i.naturalWidth > 0)) && !el.querySelector('[data-clip], [data-reveal]');
+    });
+    if (ok) gut++;
   }
-  note(platten.length === 4 && offen === platten.length, `Filter am Touchgerät: Planblätter enthüllt (${offen} von ${platten.length})`);
+  note(kacheln.length === 4 && gut === 4, `Filter am Touchgerät: Kacheln mit Foto sichtbar (${gut} von ${kacheln.length})`);
+  await ctx.close();
+}
+
+/* 3d. Referenzen ohne JavaScript: alle Projekte, keine toten Bedienelemente */
+{
+  const ctx = await browser.newContext({ ...zugang, viewport: { width: 1440, height: 900 }, javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto(base + '/referenzen', { waitUntil: 'load' });
+  const ohne = await page.evaluate(() => ({
+    sichtbar: [...document.querySelectorAll('[data-tags]')].filter((e) => e.getBoundingClientRect().height > 0).length,
+    filter: document.querySelector('[data-filterleiste]').getBoundingClientRect().height,
+    mehr: document.querySelector('[data-mehr-zeile]').getBoundingClientRect().height,
+  }));
+  note(ohne.sichtbar === 18 && ohne.filter === 0 && ohne.mehr === 0, `Ohne JavaScript: alle 18 Projekte, Filter und Knopf ausgeblendet (${ohne.sichtbar})`);
+  await page.goto(base + '/referenzen/einzelhandel-weiden', { waitUntil: 'load' });
+  const projekt = await page.evaluate(() => ({ h1: document.querySelector('h1').textContent.trim(), felder: document.querySelectorAll('.projekt__feld').length, robots: document.querySelector('meta[name="robots"]')?.content || '' }));
+  note(projekt.h1.startsWith('Photovoltaik im Einzelhandel') && projekt.felder >= 2 && projekt.robots === 'noindex', `Projektseite ohne JavaScript lesbar, ohne Text auf noindex (${projekt.felder} Felder, ${projekt.robots})`);
   await ctx.close();
 }
 
@@ -279,6 +336,106 @@ const browser = await chromium.launch({ args: gl });
   await page.close();
 }
 
+/* 5b. Kontaktformular: Anfrage zum Solarpark-Monitoring wird echt versendet */
+{
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
+  await page.goto(base + '/kontakt', { waitUntil: 'load' });
+  await page.fill('#cf-name', 'Test Monitoring');
+  await page.fill('#cf-email', 'monitoring@example.org');
+  await page.fill('#cf-msg', 'Automatische Prüfung: Anfrage zum Solarpark-Monitoring.');
+  await page.check('input[name="datenschutz"]');
+  await page.check('input[value="Solarpark-Monitoring"]', { force: true });
+  await page.waitForTimeout(3200);
+  await page.click('[data-submit]');
+  await page.waitForFunction(() => document.querySelector('[data-status]').textContent.length > 0, null, { timeout: 15000 });
+  const status = await page.textContent('[data-status]');
+  note(status.includes('Vielen Dank'), `Versand mit Interesse „Solarpark-Monitoring“ bestätigt`);
+  await page.close();
+}
+
+/* 12. Monitoring: klebende Auswertung, Kapitel, Sprungmarken, Zeitlineal */
+{
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
+  await page.goto(base + '/unsere-leistungen/monitoring', { waitUntil: 'load' });
+  const zustand = () => page.$eval('[data-ea-panel]', (p) => p.dataset.zustand);
+  const aufbau = await page.evaluate(() => {
+    const panel = document.querySelector('[data-ea-panel]');
+    return { sichtbar: !panel.hidden, sticky: getComputedStyle(panel).position, grafiken: panel.querySelectorAll('.ea-grafik').length };
+  });
+  note(aufbau.sichtbar && aufbau.sticky === 'sticky' && aufbau.grafiken === 5, `Monitoring Desktop: Auswertung klebt rechts mit allen fünf Diagrammen (${aufbau.sticky}, ${aufbau.grafiken})`);
+  const ergebnis = [];
+  for (const [k, n] of [['potenzial', '2'], ['technik', '4'], ['begrenzung', '1']]) {
+    await page.evaluate((id) => document.getElementById(id).scrollIntoView({ block: 'center', behavior: 'instant' }), `ea-${k}`);
+    await page.waitForFunction((x) => document.querySelector('[data-ea-panel]').dataset.zustand === x, n, { timeout: 5000 }).catch(() => {});
+    ergebnis.push((await zustand()) === n);
+  }
+  note(ergebnis.every(Boolean), `Monitoring: Kapitel in der Bildmitte bestimmt das Diagramm (${ergebnis.join('/')})`);
+  const sichtbarImPanel = await page.$$eval('[data-ea-panel] .ea-grafik', (gs) => gs.filter((g) => getComputedStyle(g).display !== 'none').map((g) => g.dataset.in));
+  note(sichtbarImPanel.length === 1 && sichtbarImPanel[0] === '1', `Monitoring: genau ein Diagramm sichtbar (${sichtbarImPanel.join(',')})`);
+  await page.evaluate(() => scrollTo({ top: document.querySelector('.ea__sprung').getBoundingClientRect().top + scrollY - 200, behavior: 'instant' }));
+  await page.click('[data-ea-sprung="3"]');
+  await page.waitForFunction(() => document.querySelector('[data-ea-panel]').dataset.zustand === '3', null, { timeout: 6000 }).catch(() => {});
+  note(page.url().endsWith('#ea-wirtschaft') && (await zustand()) === '3', `Monitoring: Sprungmarke 03 führt zum Kapitel Wirtschaft (${await zustand()})`);
+  await page.focus('[data-ea-regler]');
+  await page.keyboard.press('End');
+  const ende = await page.evaluate(() => ({ text: document.querySelector('[data-ea-ablesen]').textContent, aria: document.querySelector('[data-ea-regler]').getAttribute('aria-valuetext') }));
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowRight');
+  const anfang = await page.textContent('[data-ea-ablesen]');
+  note(ende.text.startsWith('23:45 Uhr') && ende.aria === ende.text && anfang.startsWith('00:15 Uhr'), `Monitoring: Zeitlineal per Tastatur, Ablesefeld in Worten („${anfang.slice(0, 36)}…“)`);
+  const zeiger = await page.$eval('[data-ea-panel] .ea-grafik[data-in="3"] .ea-diagramm', (d) => getComputedStyle(d, '::after').opacity);
+  note(zeiger === '1', 'Monitoring: Zeiger im Diagramm sichtbar');
+  const box = await page.$eval('[data-ea-panel]', (p) => p.getBoundingClientRect().toJSON());
+  await page.mouse.move(box.left + box.width / 2, box.top + 120);
+  const y0 = await page.evaluate(() => scrollY);
+  await page.mouse.wheel(0, 400);
+  await page.waitForTimeout(700);
+  note((await page.evaluate(() => scrollY)) > y0 + 150, 'Monitoring: Mausrad über der Auswertung scrollt die Seite');
+  await page.close();
+
+  // niedriges Fenster: Auswertung samt Lineal passt in jedes Kapitel
+  const p2 = await browser.newPage({ ...zugang, viewport: { width: 1366, height: 650 } });
+  await p2.goto(base + '/unsere-leistungen/monitoring', { waitUntil: 'load' });
+  const passt = [];
+  for (const k of ['begrenzung', 'potenzial', 'wirtschaft', 'technik', 'entscheidung']) {
+    await p2.evaluate((id) => document.getElementById(id).scrollIntoView({ block: 'center', behavior: 'instant' }), `ea-${k}`);
+    // am Anfang des Abschnitts liegt die Auswertung noch im Fluss; gemessen wird, sobald sie klebt
+    await p2.evaluate(() => {
+      const p = document.querySelector('[data-ea-panel]');
+      const oben = parseFloat(getComputedStyle(p).top);
+      const d = p.getBoundingClientRect().top - oben;
+      if (d > 1) scrollBy({ top: d, behavior: 'instant' });
+    });
+    await p2.waitForTimeout(500);
+    passt.push(await p2.$eval('[data-ea-panel]', (p) => Math.round(p.getBoundingClientRect().bottom) <= innerHeight + 1));
+  }
+  note(passt.every(Boolean), `Monitoring 1366 × 650: Auswertung in allen Kapiteln vollständig im Bild (${passt.join('/')})`);
+  await p2.close();
+
+  // Handy: kein Kleben, jedes Kapitel mit eigenem Diagramm
+  const ctx = await browser.newContext({ ...zugang, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const p3 = await ctx.newPage();
+  await p3.goto(base + '/unsere-leistungen/monitoring', { waitUntil: 'load' });
+  const mobil = await p3.evaluate(() => ({
+    panel: document.querySelector('[data-ea-panel]').hidden,
+    imKapitel: [...document.querySelectorAll('[data-kapitel]')].every((k) => k.querySelector('.ea-grafik')),
+    breit: document.documentElement.scrollWidth <= innerWidth,
+  }));
+  note(mobil.panel && mobil.imKapitel && mobil.breit, 'Monitoring Handy: kein klebendes Panel, jedes Kapitel mit eigenem Diagramm, kein Überlauf');
+  await ctx.close();
+
+  // ohne JavaScript: Diagramme in den Kapiteln, Tabelle in Worten vorhanden
+  const ctx2 = await browser.newContext({ ...zugang, viewport: { width: 1440, height: 900 }, javaScriptEnabled: false });
+  const p4 = await ctx2.newPage();
+  await p4.goto(base + '/unsere-leistungen/monitoring', { waitUntil: 'load' });
+  const ohne = await p4.evaluate(() => ({
+    grafiken: [...document.querySelectorAll('[data-kapitel] .ea-grafik')].filter((g) => g.getBoundingClientRect().height > 50).length,
+    zeilen: document.querySelectorAll('.ea__tabelle tbody tr').length,
+  }));
+  note(ohne.grafiken === 5 && ohne.zeilen >= 8, `Monitoring ohne JavaScript: fünf Diagramme in den Kapiteln, Verlauf in Worten (${ohne.zeilen} Zeilen)`);
+  await ctx2.close();
+}
+
 /* 6. Inszenierung: reduzierte Bewegung und fehlendes WebGL */
 {
   const ctx = await browser.newContext({ ...zugang, viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
@@ -355,6 +512,8 @@ const browser = await chromium.launch({ args: gl });
   note(logos.length === 15 && logos.every(Boolean), `Partnerlogos: ${logos.filter(Boolean).length} von 15 geladen, mit Namen`);
   note((await page.$$eval('.partner__gruppe', (g) => g.length)) === 2, 'Partnerlogos in zwei Gruppen');
   note((await page.$$eval('.refs .sheet--photo', (s) => s.length)) === 6, 'Startseite: sechs Referenzen mit Foto');
+  const blattLinks = await page.$$eval('.refs .sheet__link', (as) => as.map((a) => a.getAttribute('href')));
+  note(blattLinks.length === 6 && blattLinks.every((h) => h.startsWith('/referenzen/')), `Startseite: Referenzen verlinken ihre Projektseiten (${blattLinks.length})`);
   await page.close();
 }
 
@@ -368,6 +527,23 @@ const browser = await chromium.launch({ args: gl });
     monogramm: document.querySelectorAll('.kontakt__monogramm').length,
   }));
   note(team.n === 12 && team.fotos === 11 && team.monogramm === 1, `Team: ${team.n} Ansprechpartner, ${team.fotos} Porträts, ${team.monogramm} Monogramm`);
+  const vb = await page.evaluate(() => {
+    const enmag = document.querySelector('.partnerspalte--enmag .partnerspalte__name');
+    const link = document.querySelector('.partnerspalte--enmag a[href^="https://www.enmag-naturstrom.de"]');
+    const gruen = [...document.querySelectorAll('body *')].filter((el) => getComputedStyle(el).color === 'rgb(76, 155, 59)' && !el.closest('.partnerspalte--enmag'));
+    return {
+      kette: document.querySelectorAll('.kette__teil').length,
+      jahre: /\b(19|20)\d\d\b/.test(document.querySelector('.herkunft').textContent),
+      anker: !!document.querySelector('.kette a[href="#verbund"]') && !!document.getElementById('verbund'),
+      farbe: enmag && getComputedStyle(enmag).color,
+      groesse: enmag && parseFloat(getComputedStyle(enmag).fontSize),
+      link: link ? link.target === '_blank' && link.relList.contains('noopener') : false,
+      gruenAusserhalb: gruen.length,
+      spalten: document.querySelectorAll('.partnerspalte').length,
+    };
+  });
+  note(vb.kette === 3 && !vb.jahre && vb.anker, `Über uns: Herkunft in drei Abschnitten ohne Jahreszahlen, Anker zum Verbund (${vb.kette})`);
+  note(vb.spalten === 2 && vb.farbe === 'rgb(76, 155, 59)' && vb.groesse >= 24 && vb.link && vb.gruenAusserhalb === 0, `Über uns: Verbund mit zwei gleichwertigen Spalten, ENMAG-Grün nur bei ENMAG (${vb.groesse} px), Link in neuem Fenster`);
   await page.close();
 }
 
@@ -377,7 +553,7 @@ for (const vp of [{ width: 1440, height: 900 }, { width: 390, height: 844, mobil
   const page = await ctx.newPage();
   await page.goto(base + '/ueber-uns', { waitUntil: 'load' });
   const offen = [];
-  for (const sel of ['#weg-title', '#karriere-title']) {
+  for (const sel of ['#herkunft-title', '#verbund-title', '#karriere-title']) {
     await page.evaluate((s) => document.querySelector(s).scrollIntoView({ block: 'center', behavior: 'instant' }), sel);
     await page.waitForFunction((s) => [...document.querySelectorAll(s + ' .split-line-mask')].some((m) => m.style.overflow === 'visible'), sel, { timeout: 8000 }).catch(() => {});
     offen.push(await page.$$eval(sel + ' .split-line-mask', (ms) => ms.length > 0 && ms.every((m) => getComputedStyle(m).overflow === 'visible')));
@@ -392,11 +568,11 @@ for (const vp of [{ width: 1440, height: 900 }, { width: 390, height: 844, mobil
 {
   const namen = /beierl|netto|fristo|forster/i;
   let treffer = [];
-  for (const pfad of ['/', '/referenzen', '/unsere-leistungen/industrie-gewerbe', '/unsere-leistungen/privat']) {
+  for (const pfad of seiten.map((x) => x.pfad)) {
     const r = await fetch(base + pfad, { headers: nutzer ? { Authorization: 'Basic ' + Buffer.from(process.env.PRUEF_LOGIN).toString('base64') } : {} });
     if (namen.test(await r.text())) treffer.push(pfad);
   }
-  note(treffer.length === 0, `Keine Kundennamen im Quelltext ${treffer.join(', ')}`);
+  note(treffer.length === 0, `Keine Kundennamen im Quelltext (${seiten.length} Seiten) ${treffer.join(', ')}`);
   const efre = await fetch(base + '/efre-foerderhinweis', { redirect: 'manual', headers: nutzer ? { Authorization: 'Basic ' + Buffer.from(process.env.PRUEF_LOGIN).toString('base64') } : {} });
   note(efre.status === 404, `EFRE-Förderhinweis entfernt (Status ${efre.status})`);
 }

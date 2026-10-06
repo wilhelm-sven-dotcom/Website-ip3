@@ -14,24 +14,38 @@ function initHeader() {
   const header = document.querySelector('[data-header]');
   if (!header) return;
   const initial = header.dataset.initialTheme || 'dark';
-  const zones = () => [...document.querySelectorAll('[data-header-zone]')];
+  // Lage der Zonen in Dokumentkoordinaten; gemessen beim Start, bei Größenänderungen und nach
+  // ScrollTrigger.refresh. Pro Scrollbild wird nur noch verglichen, nicht gemessen.
+  let zonen = [];
+  let probe = 38;
   let ticking = false;
+  const zustand = { thema: null, solid: null, story: null };
 
   const update = () => {
     ticking = false;
-    const probeY = header.offsetHeight * 0.5;
-    let theme = initial;
-    let overStory = false;
-    for (const z of zones()) {
-      const r = z.getBoundingClientRect();
-      if (r.top <= probeY && r.bottom > probeY) {
-        theme = z.dataset.headerZone;
-        overStory = z.hasAttribute('data-story') && z.classList.contains('is-live');
+    const y = window.scrollY + probe;
+    let thema = initial;
+    let ueberStory = false;
+    for (const z of zonen) {
+      if (z.oben <= y && z.unten > y) {
+        thema = z.thema;
+        ueberStory = z.story && z.el.classList.contains('is-live');
       }
     }
-    header.dataset.headerTheme = theme;
-    header.classList.toggle('is-solid', window.scrollY > 24);
-    header.classList.toggle('is-over-story', overStory);
+    const solid = window.scrollY > 24;
+    if (thema !== zustand.thema) header.dataset.headerTheme = zustand.thema = thema;
+    if (solid !== zustand.solid) header.classList.toggle('is-solid', (zustand.solid = solid));
+    if (ueberStory !== zustand.story) header.classList.toggle('is-over-story', (zustand.story = ueberStory));
+  };
+
+  const messen = () => {
+    probe = header.offsetHeight * 0.5;
+    const y0 = window.scrollY;
+    zonen = [...document.querySelectorAll('[data-header-zone]')].map((el) => {
+      const r = el.getBoundingClientRect();
+      return { el, oben: r.top + y0, unten: r.bottom + y0, thema: el.dataset.headerZone, story: el.hasAttribute('data-story') };
+    });
+    update();
   };
 
   const onScroll = () => {
@@ -42,9 +56,11 @@ function initHeader() {
   };
 
   window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll);
-  document.addEventListener('header:update', onScroll);
-  update();
+  window.addEventListener('resize', messen);
+  document.addEventListener('header:update', messen);
+  ScrollTrigger.addEventListener('refresh', messen);
+  new ResizeObserver(() => messen()).observe(document.body);
+  messen();
 }
 
 /* ---------- Untermenü Leistungen (Disclosure + Hover) ---------- */
@@ -181,6 +197,12 @@ function initReveals() {
     });
   });
 
+  // Endzustand über die Klasse is-sichtbar: Der Startzustand im CSS gilt nur ohne sie, deshalb
+  // springt nach dem Löschen der Inline-Werte nichts zurück
+  const sichtbar = (els) => {
+    els.forEach((el) => el.classList.add('is-sichtbar'));
+    gsap.set(els, { clearProps: 'opacity,transform' });
+  };
   ScrollTrigger.batch('[data-reveal]', {
     start: 'top 90%',
     once: true,
@@ -189,7 +211,7 @@ function initReveals() {
       // oberhalb liegt; gestaffelt erscheint nur, was im Bild ist
       const vorbei = batch.filter((el) => el.getBoundingClientRect().bottom <= 0);
       const imBild = batch.filter((el) => !vorbei.includes(el));
-      if (vorbei.length) gsap.set(vorbei, { opacity: 1, y: 0, clearProps: 'transform' });
+      if (vorbei.length) sichtbar(vorbei);
       if (imBild.length) {
         gsap.to(imBild, {
           opacity: 1,
@@ -198,7 +220,7 @@ function initReveals() {
           ease: 'expo.out',
           stagger: 0.08,
           overwrite: true,
-          clearProps: 'transform',
+          onComplete: () => sichtbar(imBild),
         });
       }
     },
@@ -214,20 +236,29 @@ function initReveals() {
     });
   });
 
-  // SVG-Linienzeichnungen: Strichlänge in Bildschirmeinheiten (non-scaling-stroke)
+  // SVG-Linienzeichnungen: Strichlänge in Bildschirmeinheiten (non-scaling-stroke). Die Längen
+  // werden einmal gelesen und danach nur noch geschrieben, ohne Lesen und Schreiben im Wechsel.
   document.querySelectorAll('[data-draw-svg]').forEach((svg) => {
     const paths = [...svg.querySelectorAll('[data-stroke]')];
     const rendered = () => svg.getBoundingClientRect().width > 0 && !!svg.getScreenCTM();
+    let laengen = null;
+    let massstab = 0;
     const prepare = () => {
       const k = Math.abs(svg.getScreenCTM().a) || 1;
-      paths.forEach((p) => {
-        let len = 0;
-        try {
-          len = p.getTotalLength() * k + 2;
-        } catch {
-          len = 0;
-        }
-        if (!len) return;
+      if (!laengen) {
+        laengen = paths.map((p) => {
+          try {
+            return p.getTotalLength();
+          } catch {
+            return 0;
+          }
+        });
+      }
+      if (Math.abs(k - massstab) < massstab * 0.02) return;
+      massstab = k;
+      paths.forEach((p, i) => {
+        if (!laengen[i]) return;
+        const len = laengen[i] * k + 2;
         p.style.strokeDasharray = `${len} ${len}`;
         p.style.strokeDashoffset = `${len}`;
       });
@@ -266,6 +297,8 @@ function initReveals() {
           stagger: { amount: Math.min(1.2, paths.length * 0.012) },
           onComplete: done,
         });
+        // Detaillinien blenden mit den Flächen ein (CSS-Übergang über die Klasse)
+        gsap.delayedCall(0.8, () => svg.classList.add('is-flaechen'));
         if (fillEls.length) {
           gsap.to(fillEls, { fillOpacity: 1, duration: 0.9, ease: 'power1.out', delay: 0.8, stagger: { amount: 0.4 }, clearProps: 'fillOpacity' });
         }
@@ -273,29 +306,25 @@ function initReveals() {
     });
   });
 
-  // Bildenthüllungen
+  // Bildenthüllungen: Ein Vorhang (CSS, transform) gibt das Motiv frei. Kein animierter
+  // clip-path mehr, den der Browser bei jedem Bild neu zeichnen müsste.
   document.querySelectorAll('[data-clip]').forEach((el) => {
-    gsap.fromTo(
-      el,
-      { clipPath: 'inset(0 0 100% 0)' },
-      {
-        clipPath: 'inset(0 0 0% 0)',
-        duration: 1.4,
-        ease: 'expo.inOut',
-        scrollTrigger: { trigger: el, start: 'top 85%', once: true },
-      }
-    );
+    ScrollTrigger.create({ trigger: el, start: 'top 85%', once: true, onEnter: () => el.classList.add('is-enthuellt') });
   });
 
-  // Dezente Parallaxe (nur Translation, Ausrichtung bleibt)
+  // Dezente Parallaxe (nur Translation, Ausrichtung bleibt); eigene Ebene, damit beim Scrollen
+  // nichts neu gerastert wird. data-parallax="0" schaltet sie ab.
   document.querySelectorAll('[data-parallax]').forEach((el) => {
-    const amount = parseFloat(el.dataset.parallax) || 10;
+    const roh = el.dataset.parallax;
+    const amount = roh === '' ? 10 : parseFloat(roh);
+    if (!amount) return;
     gsap.fromTo(
       el,
       { yPercent: -amount / 2 },
       {
         yPercent: amount / 2,
         ease: 'none',
+        force3D: true,
         scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true },
       }
     );
@@ -311,15 +340,21 @@ function initTilt() {
     const max = parseFloat(el.dataset.tilt) || 3;
     const qx = gsap.quickTo(el, 'rotationY', { duration: 0.6, ease: 'power3.out' });
     const qy = gsap.quickTo(el, 'rotationX', { duration: 0.6, ease: 'power3.out' });
-    gsap.set(el, { transformPerspective: 1200 });
+    // Maße einmal beim Eintreten statt bei jeder Mausbewegung
+    let r = null;
+    el.addEventListener('pointerenter', () => {
+      gsap.set(el, { transformPerspective: 1200 });
+      r = el.getBoundingClientRect();
+    });
     el.addEventListener('pointermove', (e) => {
-      const r = el.getBoundingClientRect();
+      if (!r) r = el.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - 0.5;
       const y = (e.clientY - r.top) / r.height - 0.5;
       qx(x * max);
       qy(-y * max);
     });
     el.addEventListener('pointerleave', () => {
+      r = null;
       qx(0);
       qy(0);
     });

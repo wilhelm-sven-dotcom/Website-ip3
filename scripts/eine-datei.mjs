@@ -70,8 +70,10 @@ let icons = '';
 for (const datei of dateien) {
   let html = fs.readFileSync(path.join(quelle, datei), 'utf8');
   if (datei === 'index.html') icons = (html.match(/<link rel="icon"[^>]*>/g) || []).join('');
-  // große Skripte zuerst (sie können selbst Data-URLs enthalten), danach eingebettete Dateien
+  // große Skripte und Stylesheets zuerst (sie können selbst Data-URLs enthalten), danach
+  // eingebettete Dateien. Stylesheets teilen sich alle Seiten, sie stehen so nur einmal in der Datei.
   html = html.replace(/(<script>)([\s\S]*?)(<\/script>)/g, (m, a, code, b) => (code.length > 2000 ? a + platzhalter(code) + b : m));
+  html = html.replace(/(<style[^>]*>)([\s\S]*?)(<\/style>)/g, (m, a, css, b) => (css.length > 2000 ? a + platzhalter(css) + b : m));
   html = html.replace(/data:[a-z0-9.+/-]+;base64,[a-z0-9+/=]+/gi, (m) => (m.length > 1000 ? platzhalter(m) : m));
   const ende = html.lastIndexOf('</body>');
   seiten[datei] = html.slice(0, ende) + kind + html.slice(ende);
@@ -174,7 +176,7 @@ function zeigen(neu) {
   aktuell = z.datei;
   const f = document.createElement('iframe');
   f.title = 'Website ip³ Energietechnik GmbH';
-  f.srcdoc = VORBEREITEN(SEITEN[z.datei]).replace(/@@ip3:(\\d+)@@/g, (_, i) => DATEN[+i]);
+  f.srcdoc = VORBEREITEN(SEITEN[z.datei].replace(/@@ip3:(\\d+)@@/g, (_, i) => DATEN[+i]));
   f.addEventListener('load', () => {
     springen();
     f.contentWindow.focus();

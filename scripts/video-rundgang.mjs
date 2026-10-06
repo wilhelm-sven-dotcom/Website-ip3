@@ -1,6 +1,7 @@
 // Rundgang durch die mobile Fassung als Video: Startseite mit Inszenierung und Energiesystem, Menü,
-// Referenzen mit Filter und Bildstrecke, Kontaktformular mit Versand. Bild für Bild mit angehaltener Seitenuhr aufgenommen,
-// dadurch flüssig auch auf langsamen Rechnern. Entwicklungswerkzeug.
+// Referenzen mit Filter, weiteren Projekten und Projektseite, Monitoring mit Beispielauswertung,
+// Über uns mit dem Verbund, Kontaktformular mit Versand. Bild für Bild mit angehaltener Seitenuhr
+// aufgenommen, dadurch flüssig auch auf langsamen Rechnern. Entwicklungswerkzeug.
 // Voraussetzung: Vorschau mit PHP läuft (npm run vorschau), für den Formularversand mit
 // umgeleitetem sendmail (siehe README). Aufruf: node scripts/video-rundgang.mjs [basisUrl] [ausgabe.mp4]
 import { chromium } from 'playwright';
@@ -161,7 +162,7 @@ for (const selektor of ['.sheet', '#ablauf', '.partner__liste']) {
   await halten(1.1);
 }
 
-// 2. Menü, Referenzen, Filter
+// 2. Menü, Referenzen: Filter, weitere Projekte, Projektseite
 await tippen('[data-menu-toggle]');
 await halten(1.2);
 await tippen('#mobile-menu a[href="/referenzen"]', { seitenwechsel: true });
@@ -171,15 +172,47 @@ await halten(0.5);
 await tippen('[data-filter="frei"]');
 await halten(1.2);
 await scrollen((await page.evaluate(() => scrollY)) + 1.3 * vh, 2.4);
-await halten(1);
-await insBild('[data-spur]', 2.6, 0.5);
 await halten(0.8);
-await wischenQuer('[data-spur]', 1.1);
+await insBild('[data-filter="alle"]', 1.6, 0.3);
+await tippen('[data-filter="alle"]');
 await halten(0.6);
-await wischenQuer('[data-spur]', 1.1);
+await insBild('[data-mehr]', 3.2, 0.6);
+await halten(0.6);
+await tippen('[data-mehr]');
 await halten(1);
+await scrollen((await page.evaluate(() => scrollY)) + 0.9 * vh, 1.8);
+await halten(0.6);
+await insBild('[data-tags]:nth-child(2) .kachel__link', 2.4, 0.5);
+await tippen('[data-tags]:nth-child(2) .kachel__link', { seitenwechsel: true });
+await halten(1.6);
+await insBild('.projekt__daten', 1.8, 0.45);
+await halten(2);
 
-// 3. Kontakt: Formular ausfüllen und absenden
+// 3. Monitoring: Messkette und Beispielauswertung
+await tippen('[data-menu-toggle]');
+await halten(1);
+await tippen('#mobile-menu a[href="/unsere-leistungen/monitoring"]', { seitenwechsel: true });
+await halten(1.8);
+await insBild('.messkette', 2.4, 0.45);
+await halten(1.4);
+for (const selektor of ['#ea-begrenzung .ea-grafik', '#ea-potenzial .ea-grafik', '#ea-technik .ea-grafik', '#ea-entscheidung .ea-grafik']) {
+  await insBild(selektor, 2.4, 0.45);
+  await halten(1.6);
+}
+
+// 4. Über uns: Herkunft und Verbund mit ENMAG
+await tippen('[data-menu-toggle]');
+await halten(1);
+await tippen('#mobile-menu a[href="/ueber-uns"]', { seitenwechsel: true });
+await halten(1.2);
+await insBild('.kette', 2.4, 0.45);
+await halten(1.4);
+for (const selektor of ['.verbund__title', '.partnerspalte--enmag', '.verbund__blatt']) {
+  await insBild(selektor, 2.2, 0.45);
+  await halten(1.4);
+}
+
+// 5. Kontakt: Formular ausfüllen und absenden
 await tippen('[data-menu-toggle]');
 await halten(1);
 await tippen('#mobile-menu a[href="/kontakt"]', { seitenwechsel: true });
@@ -188,9 +221,9 @@ await insBild('#cf-name', 2, 0.3);
 await tippen2('#cf-name', 'Max Mustermann');
 await tippen2('#cf-email', 'max@example.org');
 await insBild('#cf-msg', 1.2, 0.4);
-await tippen2('#cf-msg', 'Wir planen einen Speicher zur PV-Anlage auf dem Hallendach.');
-await insBild('label.chip:has(input[value="Batteriespeicher"])', 1, 0.45);
-await tippen('label.chip:has(input[value="Batteriespeicher"])');
+await tippen2('#cf-msg', 'Wir möchten Einspeisung und Abregelungen unseres Solarparks auswerten.');
+await insBild('label.chip:has(input[value="Solarpark-Monitoring"])', 1, 0.45);
+await tippen('label.chip:has(input[value="Solarpark-Monitoring"])');
 await insBild('[data-submit]', 1.2, 0.62);
 await tippen('input[name="datenschutz"]');
 await halten(0.4);

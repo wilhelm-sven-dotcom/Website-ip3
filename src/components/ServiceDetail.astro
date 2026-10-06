@@ -1,15 +1,16 @@
 ---
 // Inhaltsbaustein der Leistungsseiten: Einleitung, Leistungsumfang als nummerierte
 // Liste, optional Phasen, passende Referenzen, eine Bildstrecke und Verweise auf die
-// übrigen Bereiche.
+// übrigen Bereiche. Der Slot "rechts" ersetzt bei Bedarf die Umfangsliste neben der
+// Einleitung, der unbenannte Slot steht zwischen Phasen und Referenzen.
 import { leistungen } from '../data/leistungen.js';
-import { referenzen } from '../data/referenzen.js';
+import { referenz, projektHref } from '../data/referenzen.js';
 import ReferenceSheet from './ReferenceSheet.astro';
 import Galerie from './Galerie.astro';
 import Arrow from './Arrow.astro';
 
 const { slug, intro = [], umfang = [], umfangTitel = 'Leistungsumfang', phasen = [], phasenTitel = '', refIds = [], galerie } = Astro.props;
-const refs = refIds.map((id) => referenzen.find((r) => r.id === id)).filter(Boolean);
+const refs = refIds.map(referenz).filter(Boolean);
 const andere = leistungen.filter((l) => l.slug !== slug);
 ---
 
@@ -19,19 +20,21 @@ const andere = leistungen.filter((l) => l.slug !== slug);
     <div class="sd-intro__text prose">
       {intro.map((p, i) => <p class={i === 0 ? 'lead' : ''} data-reveal set:html={p} />)}
     </div>
-    <div class="sd-umfang">
-      <h2 class="sd-umfang__title kicker">{umfangTitel}</h2>
-      <ol class="sd-umfang__list" role="list">
-        {
-          umfang.map((u, i) => (
-            <li data-reveal>
-              <span class="tech">{String(i + 1).padStart(2, '0')}</span>
-              <span set:html={u} />
-            </li>
-          ))
-        }
-      </ol>
-    </div>
+    <slot name="rechts">
+      <div class="sd-umfang">
+        <h2 class="sd-umfang__title kicker">{umfangTitel}</h2>
+        <ol class="sd-umfang__list" role="list">
+          {
+            umfang.map((u, i) => (
+              <li data-reveal>
+                <span class="tech">{String(i + 1).padStart(2, '0')}</span>
+                <span set:html={u} />
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </slot>
   </div>
 </section>
 
@@ -74,7 +77,7 @@ const andere = leistungen.filter((l) => l.slug !== slug);
         </div>
         <div class:list={['sd-refs__grid', `n${Math.min(refs.length, 3)}`]}>
           {refs.map((r, i) => (
-            <ReferenceSheet ref={r} index={i + 1} total={refs.length} size="m" sizes="(max-width: 960px) 100vw, 32vw" />
+            <ReferenceSheet ref={r} index={i + 1} total={refs.length} size="m" sizes="(max-width: 960px) 100vw, 32vw" href={projektHref(r)} />
           ))}
         </div>
       </div>
@@ -87,7 +90,7 @@ const andere = leistungen.filter((l) => l.slug !== slug);
 <section class="section sd-more" data-theme="hell" data-header-zone="hell" aria-labelledby="sd-more-title">
   <div class="wrap">
     <h2 id="sd-more-title" class="kicker">Weitere Leistungsbereiche</h2>
-    <ul class="sd-more__list" role="list">
+    <ul class:list={['sd-more__list', `n${andere.length}`]} role="list">
       {
         andere.map((l) => (
           <li>
@@ -232,6 +235,10 @@ const andere = leistungen.filter((l) => l.slug !== slug);
     margin-top: 1.5rem;
   }
 
+  .sd-more__list.n4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .sd-more__link {
     position: relative;
     display: grid;
@@ -298,6 +305,12 @@ const andere = leistungen.filter((l) => l.slug !== slug);
     transform: scaleX(1);
   }
 
+  @media (max-width: 1200px) {
+    .sd-more__list.n4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   @media (max-width: 960px) {
     .sd-intro__grid {
       grid-template-columns: 1fr;
@@ -309,7 +322,8 @@ const andere = leistungen.filter((l) => l.slug !== slug);
       max-width: 640px;
     }
 
-    .sd-more__list {
+    .sd-more__list,
+    .sd-more__list.n4 {
       grid-template-columns: 1fr;
     }
   }

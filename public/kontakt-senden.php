@@ -21,6 +21,7 @@ const INTERESSEN = [
     'PV-Anlage für Industrie und Gewerbe',
     'PV-Anlage auf Freiflächen',
     'Batteriespeicher',
+    'Solarpark-Monitoring',
     'Sonstiges',
 ];
 // ---------------------------------------------------------------------------

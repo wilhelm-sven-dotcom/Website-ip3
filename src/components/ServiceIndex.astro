@@ -121,7 +121,7 @@ const { nr = '02', theme = 'hell', heading = true } = Astro.props;
     padding: 1.5rem 0;
     text-decoration: none;
     color: inherit;
-    transition: color 420ms var(--ease-out), padding 620ms var(--ease-out);
+    transition: color 420ms var(--ease-out);
   }
 
   .svc__nr {
@@ -135,6 +135,12 @@ const { nr = '02', theme = 'hell', heading = true } = Astro.props;
     display: grid;
     gap: 0.4rem;
     max-width: 58%;
+  }
+
+  /* Einrücken beim Überfahren per transform statt padding: kein Layout pro Bild */
+  .svc__nr,
+  .svc__body {
+    transition: transform 620ms var(--ease-out);
   }
 
   .svc__title {
@@ -203,11 +209,9 @@ const { nr = '02', theme = 'hell', heading = true } = Astro.props;
     transform: translate3d(0, -50%, 0) scale(0.96);
     opacity: 0;
     pointer-events: none;
-    clip-path: inset(0 0 100% 0);
     transition:
       opacity 420ms var(--ease-out),
-      transform 720ms var(--ease-out),
-      clip-path 720ms var(--ease-out);
+      transform 720ms var(--ease-out);
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -220,7 +224,11 @@ const { nr = '02', theme = 'hell', heading = true } = Astro.props;
     .svc:hover .svc__link,
     .svc:focus-within .svc__link {
       color: var(--weiss);
-      padding-left: 1.5rem;
+    }
+
+    .svc:hover :is(.svc__nr, .svc__body),
+    .svc:focus-within :is(.svc__nr, .svc__body) {
+      transform: translateX(1.5rem);
     }
 
     .svc:hover .svc__title,
@@ -245,7 +253,6 @@ const { nr = '02', theme = 'hell', heading = true } = Astro.props;
     .svc:focus-within .svc__art {
       opacity: 1;
       transform: translate3d(0, -50%, 0) scale(1);
-      clip-path: inset(0 0 0% 0);
     }
 
     .svc:hover .svc__art :global(.iso),

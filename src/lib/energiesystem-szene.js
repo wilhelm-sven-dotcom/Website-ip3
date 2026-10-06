@@ -435,8 +435,12 @@ export function energiesystemSzene() {
     return { matrix: [r1(c * 100) / 100, r1(s * 100) / 100, 0, -SKALA, r1(ex), r1(ey)], radius: ROTOR };
   });
 
-  // Einzeichnen nur für Umrisse: Detail-, Fein-, Zaun- und Pegellinien erscheinen mit den Flächen
-  const ohneStrich = (html) => html.replace(/<path class="(iso-detail|iso-fence|iso-pegel|iso-ground)([^"]*)"([^>]*?) data-stroke/g, '<path class="$1$2"$3');
+  // Einzeichnen nur für Umrisse: Detail-, Fein- und Zaunlinien blenden mit den Flächen ein
+  // (data-detail), Boden und Pegel erscheinen allein über ihre Füllung
+  const ohneStrich = (html) =>
+    html
+      .replace(/<path class="(iso-detail|iso-fence|iso-fine)([^"]*)"([^>]*?) data-stroke/g, '<path class="$1$2"$3 data-detail')
+      .replace(/<path class="(iso-pegel|iso-ground)([^"]*)"([^>]*?) data-stroke/g, '<path class="$1$2"$3');
   const ebenen = Object.fromEntries(Object.entries(r.ebenen).map(([k, v]) => [k, ohneStrich(v)]));
   return { ...r, ebenen, reihenfolge, box, linien, marker, rotoren, pegel: PEGEL.slice(), koerper: sc.koerper, leitungenWelt: LEITUNGEN };
 }

@@ -86,12 +86,53 @@ export async function initStory() {
   const lowPower = (navigator.hardwareConcurrency || 4) <= 2 || (navigator.deviceMemory && navigator.deviceMemory <= 2) || navigator.connection?.saveData;
   const forceStatic = params.has('static');
 
+  // Der Wechsel auf die statische Fassung verkürzt den Abschnitt um mehrere Bildschirmhöhen.
+  // Damit die Leseposition erhalten bleibt, steht nach dem Umbau derselbe Inhalt an derselben
+  // Stelle: im Abschnitt Einstieg, Schritt oder folgender Abschnitt, darunter das Element in
+  // der Bildmitte. Bei zu langsamer Darstellung geschieht der Wechsel erst außer Sicht.
+  let statisch = false;
+  const anker = () => {
+    const r0 = section.getBoundingClientRect();
+    const mitte = window.innerHeight / 2;
+    if (r0.top >= window.innerHeight) return null; // darunter: oberhalb ändert sich nichts
+    if (r0.bottom <= 0) {
+      const el = document.elementFromPoint(window.innerWidth / 2, mitte);
+      return el && !section.contains(el) ? { el, oben: el.getBoundingClientRect().top, frei: true } : null;
+    }
+    let bester = null;
+    let abstand = Infinity;
+    for (const el of [...section.querySelectorAll('.story__intro, .story__step'), section.nextElementSibling]) {
+      if (!el) continue;
+      const r = el.getBoundingClientRect();
+      const d = r.top > mitte ? r.top - mitte : r.bottom < mitte ? mitte - r.bottom : 0;
+      if (d < abstand) {
+        abstand = d;
+        bester = { el, oben: r.top, frei: el === section.nextElementSibling };
+      }
+    }
+    return bester;
+  };
+  const halten = (a) => {
+    if (!a) return;
+    const r = a.el.getBoundingClientRect();
+    // Schritte der Inszenierung im Bild halten: höchstens zur Hälfte oberhalb, Oberkante
+    // höchstens in der Bildmitte. Inhalte außerhalb des Abschnitts bleiben exakt stehen.
+    const ziel = a.frei ? a.oben : Math.min(Math.max(a.oben, -r.height / 2), window.innerHeight / 2);
+    const d = r.top - ziel;
+    if (Math.abs(d) > 1) window.scrollBy({ top: d, behavior: 'instant' });
+    a.oben = ziel;
+  };
   const goStatic = (reason) => {
+    if (statisch) return;
+    const a = anker();
+    statisch = true;
     section.classList.add('is-static');
     section.classList.remove('is-live');
     section.dataset.staticReason = reason;
+    halten(a);
     document.dispatchEvent(new Event('header:update'));
     ScrollTrigger.refresh();
+    halten(a);
   };
 
   if (forceStatic || reduce || lowPower || !webglAvailable()) {
@@ -125,6 +166,8 @@ export async function initStory() {
   let width = 0;
   let height = 0;
   let capturing = false;
+  // zu langsam: letztes Bild bleibt stehen, Wechsel auf die statische Fassung außer Sicht
+  let langsam = false;
 
   const resize = () => {
     const r = stage.getBoundingClientRect();
@@ -148,7 +191,8 @@ export async function initStory() {
     end: 'bottom bottom',
     onUpdate: (self) => {
       target = self.progress;
-      if (!running && !capturing) frame(performance.now());
+      // nach dem Wechsel auf die statische Fassung oder bei zu langsamer Darstellung nichts mehr rendern
+      if (!running && !capturing && !statisch && !langsam) frame(performance.now());
     },
   });
   target = st.progress;
@@ -197,6 +241,7 @@ export async function initStory() {
   }
 
   function frame(now) {
+    if (statisch || langsam) return;
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
     time += dt;
@@ -218,7 +263,8 @@ export async function initStory() {
       if (dt > 0.075) slowFrames++;
       if (slowFrames > 45 && !params.has('capture')) {
         stop();
-        goStatic('slow');
+        langsam = true;
+        if (!visible) goStatic('slow');
         return;
       }
     }
@@ -231,7 +277,7 @@ export async function initStory() {
   }
 
   function start() {
-    if (running || !visible || document.hidden) return;
+    if (running || statisch || langsam || !visible || document.hidden) return;
     running = true;
     last = performance.now();
     raf = requestAnimationFrame(loop);
@@ -246,7 +292,8 @@ export async function initStory() {
   const io = new IntersectionObserver(
     ([entry]) => {
       visible = entry.isIntersecting;
-      visible ? start() : stop();
+      if (langsam && !visible) goStatic('slow');
+      else visible ? start() : stop();
     },
     { rootMargin: '80px 0px' }
   );
