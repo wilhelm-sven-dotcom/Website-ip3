@@ -1,7 +1,7 @@
 // Szene der Startseiten-Inszenierung: vom einzelnen PV-Modul über die Zelle
 // zum Energiesystem aus PV-Generator, Batteriespeicher und Netzanschluss.
 import * as THREE from 'three';
-import { createCellMaterial, cellCenterMM, MODULE } from './cellMaterial.js';
+import { createCellMaterial, createCellMaterialLite, cellCenterMM, MODULE } from './cellMaterial.js';
 import { createModuleGeometry, createModuleMaterials, GLASS_Z } from './module.js';
 import { createLayout, createPlant } from './plant.js';
 import { createPhotons } from './photons.js';
@@ -110,8 +110,16 @@ export function createStoryScene(canvas, quality) {
   const heroGeo = createModuleGeometry({ detail: true });
   const liteGeo = createModuleGeometry({ detail: false });
 
-  const plant = createPlant({ layout, moduleGeometry: liteGeo, moduleMaterials: materials, heroIndex, quality });
+  // Reihe im Einstieg mit leichtem Zellmaterial (unbeleuchtet, Spiegelung der Umgebung); die Rahmen
+  // haben wenig Bildfläche und bleiben metallisch beleuchtet
+  const rowMaterials = [
+    createCellMaterialLite(scene.environment),
+    new THREE.MeshStandardMaterial({ color: '#c3c8d0', metalness: 1.0, roughness: 0.3 }),
+    materials[2],
+  ];
+  const plant = createPlant({ layout, moduleGeometry: liteGeo, moduleMaterials: materials, rowMaterials, heroIndex, quality });
   scene.add(plant.group);
+  scene.add(plant.reihe);
 
   const heroSlot = layout.modules[heroIndex].position.clone();
   const hero = new THREE.Group();
@@ -279,12 +287,13 @@ export function createStoryScene(canvas, quality) {
     // die Umgebung langsam hin und her, der helle Streifen wandert als Sonnenreflex über die Reihe.
     scene.environmentIntensity = 1 - 0.58 * range(p, 0.7, 0.86);
     scene.environmentRotation.y = Math.sin(time * 0.32) * 0.26 * (1 - range(p, 0.04, 0.12));
+    rowMaterials[0].envMapRotation.copy(scene.environmentRotation);
 
     // Nebel skaliert mit dem Kameraabstand: Tiefe ohne Verlauf im Bild. Im Einstieg kurz,
     // die Reihe verläuft hinter dem Hauptmodul ins Navy.
     const nah = 1 - range(p, 0.27, 0.42);
     scene.fog.near = THREE.MathUtils.lerp(dist * 1.6 + 40, dist, nah);
-    scene.fog.far = THREE.MathUtils.lerp(dist * 5.5 + 260, dist + 24, nah);
+    scene.fog.far = THREE.MathUtils.lerp(dist * 5.5 + 260, dist + 17, nah);
 
     // Sonne folgt dem Bildausschnitt, damit Schatten scharf bleiben
     const sunTarget = b > 0.01 ? plantCenter : moduleCenter;
@@ -300,11 +309,12 @@ export function createStoryScene(canvas, quality) {
     photons.uniforms.uPixelRatio.value = renderer.getPixelRatio();
     photons.uniforms.uScale.value = height / 900;
 
-    // Aufbau der Anlage; die Reihe des Hauptmoduls steht von Anfang an. Schatten erst mit dem
-    // Aufbau (im Einstieg gibt es noch keinen Boden, der sie aufnimmt)
+    // Reihe des Hauptmoduls im Einstieg; verschwindet, bevor die Kamera in die Zelle taucht
+    // (dann ist nur noch das Hauptmodul im Bild). Danach baut sich die Anlage um das Modul auf.
+    plant.reihe.visible = p < 0.41;
     const build = range(p, 0.655, 0.865);
-    plant.setBuild(build, { value: true, changed: false }, 1);
-    plant.modules.castShadow = plant.tables.castShadow = quality.shadows && build > 0;
+    plant.group.visible = build > 0.0005;
+    plant.setBuild(build, { value: true, changed: false });
     plant.setStage({
       grid: range(p, 0.69, 0.8),
       inverters: range(p, 0.775, 0.85),
@@ -361,6 +371,7 @@ export function createStoryScene(canvas, quality) {
   // Shader vorab kompilieren, damit der erste Scroll nicht ruckelt
   function warmup() {
     plant.group.visible = true;
+    plant.reihe.visible = true;
     photons.group.visible = true;
     renderer.compile(scene, camera);
   }
@@ -377,6 +388,7 @@ export function createStoryScene(canvas, quality) {
     const old = scene.environment;
     const strip = { ...st, pos: Array.isArray(st.pos) ? new THREE.Vector3(...st.pos) : st.pos };
     scene.environment = buildEnvironment(renderer, strip);
+    rowMaterials[0].envMap = scene.environment;
     old && old.dispose();
   }
 

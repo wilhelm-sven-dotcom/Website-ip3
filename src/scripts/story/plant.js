@@ -566,7 +566,7 @@ function groundGrid() {
 }
 
 /* ---------- Gesamtanlage ---------- */
-export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex, quality }) {
+export function createPlant({ layout, moduleGeometry, moduleMaterials, rowMaterials = moduleMaterials, heroIndex, quality }) {
   const L = layout;
   const mats = modelMaterials();
   const group = new THREE.Group();
@@ -841,18 +841,13 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
   const clamp01 = (x) => Math.min(1, Math.max(0, x));
   const tableQuat = new THREE.Quaternion();
 
-  // Reihe des Hauptmoduls: steht schon im Einstieg, der Aufbau wächst später um sie herum
-  const heroRow = L.modules[heroIndex].r;
   let lastBuild = -1;
-  let lastRow = -1;
-  function setBuild(build, hideHero, row = 0) {
-    if (Math.abs(build - lastBuild) < 1e-5 && Math.abs(row - lastRow) < 1e-5 && !hideHero.changed) return;
+  function setBuild(build, hideHero) {
+    if (Math.abs(build - lastBuild) < 1e-5 && !hideHero.changed) return;
     lastBuild = build;
-    lastRow = row;
     for (let i = 0; i < count; i++) {
       const md = L.modules[i];
       let k = i === heroIndex ? 0 : easeOut(clamp01((build - delays[i]) / 0.14));
-      if (md.r === heroRow && i !== heroIndex) k = Math.max(k, row);
       if (i === heroIndex && hideHero.value) k = 0;
       s.setScalar(Math.max(k, 1e-4));
       p.copy(md.position);
@@ -862,8 +857,7 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
     }
     modules.instanceMatrix.needsUpdate = true;
     L.tables.forEach((t, i) => {
-      let k = easeOut(clamp01((build - tableDelays[i] + 0.04) / 0.16));
-      if (t.r === heroRow) k = Math.max(k, row);
+      const k = easeOut(clamp01((build - tableDelays[i] + 0.04) / 0.16));
       // noch nicht begonnene Tische ganz ausblenden (sonst liegen sie flach auf dem Boden)
       const xz = k > 0.001 ? 1 : 1e-4;
       s.set(xz, Math.max(k, 1e-4), xz);
@@ -890,6 +884,22 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
     dach.instanceMatrix.needsUpdate = true;
     dach.visible = k > 0.45;
   }
+
+  // Reihe des Hauptmoduls für den Einstieg: eigene kleine Instanzen, damit die Anlage bis zum
+  // Aufbau verborgen bleibt und nichts kostet. Nur der Tisch des Hauptmoduls, sein Ende verläuft im
+  // Nebel. Keine Schatten (im Einstieg gibt es keinen Boden).
+  const heroModul = L.modules[heroIndex];
+  const reiheModule = L.modules.filter((md, i) => i !== heroIndex && md.r === heroModul.r && md.t === heroModul.t);
+  const reiheTische = L.tables.filter((t) => t.r === heroModul.r && t.t === heroModul.t);
+  const reihe = new THREE.Group();
+  reihe.name = 'reihe';
+  const eins = new THREE.Vector3(1, 1, 1);
+  const reiheM = new THREE.InstancedMesh(moduleGeometry, rowMaterials, reiheModule.length);
+  reiheModule.forEach((md, i) => reiheM.setMatrixAt(i, m4.compose(md.position, q, eins)));
+  const reiheT = new THREE.InstancedMesh(tableMesh.geometry, mats.steel, reiheTische.length);
+  reiheTische.forEach((t, i) => reiheT.setMatrixAt(i, m4.compose(p.set(t.center.x, 0, t.center.z), tableQuat, eins)));
+  reiheM.frustumCulled = reiheT.frustumCulled = false;
+  reihe.add(reiheM, reiheT);
 
   const grow = (obj, k) => {
     obj.scale.y = Math.max(easeOut(clamp01(k)), 1e-4);
@@ -932,6 +942,7 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
     site,
     setBuild,
     setStage,
+    reihe,
     heroPosition: heroPos.clone(),
   };
 }

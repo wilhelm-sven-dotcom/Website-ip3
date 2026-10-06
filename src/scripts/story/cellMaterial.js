@@ -38,17 +38,8 @@ export function cellCenterMM(col, row) {
   return new THREE.Vector2(x, y);
 }
 
-const glslPattern = /* glsl */ `
-uniform vec2 uModuleSize;
-uniform float uTime;
-uniform float uFlow;
-uniform float uFingerFlow;
-uniform vec3 uCellColor;
-uniform vec3 uBackColor;
-uniform vec3 uMetalColor;
-uniform vec3 uPulseColor;
-varying vec2 vMM;
-
+// Gefilterte Linien, Kanten und Zufallswert je Zelle (gemeinsam für beide Materialvarianten)
+const glslHelpers = /* glsl */ `
 float ip3PulseInt(float x, float w) {
   return floor(x) * w + min(fract(x), w);
 }
@@ -76,7 +67,20 @@ float ip3Hash(vec2 p) {
   return fract(p.x * p.y);
 }
 
-struct Ip3Cell {
+`;
+
+const glslPattern = /* glsl */ `
+uniform vec2 uModuleSize;
+uniform float uTime;
+uniform float uFlow;
+uniform float uFingerFlow;
+uniform vec3 uCellColor;
+uniform vec3 uBackColor;
+uniform vec3 uMetalColor;
+uniform vec3 uPulseColor;
+varying vec2 vMM;
+
+${glslHelpers}struct Ip3Cell {
   float cell;     // Zellfläche
   float metal;    // Finger, Busbars, Querverbinder
   float bus;      // nur Busbars
@@ -180,6 +184,84 @@ Ip3Cell ip3Pattern(vec2 mm) {
   return r;
 }
 `;
+
+// Leichte Variante: Zellen, Zwischenräume, Busbars und Querverbinder; ohne Finger, Mikrostruktur
+// und Energiefluss. Ergebnis: x = Zellfläche, y = Metall, z = Helligkeitsvariation je Zelle
+const glslPatternLite = /* glsl */ `
+uniform vec3 uCellColor;
+uniform vec3 uBackColor;
+uniform vec3 uMetalColor;
+varying vec2 vMM;
+${glslHelpers}
+vec3 ip3PatternLite(vec2 mm) {
+  vec2 fw = max(fwidth(mm), vec2(1e-4));
+  float pitchX = ${(M.cellW + M.gapX).toFixed(4)};
+  float pitchY = ${(M.cellH + M.gapY).toFixed(4)};
+  float cellsW = ${cellsW.toFixed(4)};
+  float halfH = ${halfH.toFixed(4)};
+  float midY = ${(marginY + halfH + M.midGap / 2).toFixed(4)};
+  float lx = mm.x - ${marginX.toFixed(4)};
+  float insideX = ip3Box(0.0, cellsW, lx, fw.x);
+  float gapX = ip3Lines(lx, pitchX, ${M.gapX.toFixed(3)}, ${M.cellW.toFixed(3)}, fw.x);
+  float upper = step(midY, mm.y);
+  float ly = mm.y - mix(${marginY.toFixed(4)}, ${(marginY + halfH + M.midGap).toFixed(4)}, upper);
+  float insideY = ip3Box(0.0, halfH, ly, fw.y);
+  float gapY = ip3Lines(ly, pitchY, ${M.gapY.toFixed(3)}, ${M.cellH.toFixed(3)}, fw.y);
+  float cell = insideX * insideY * (1.0 - gapX) * (1.0 - gapY);
+  cell = mix(cell, 1.0, smoothstep(5.0, 40.0, max(fw.x, fw.y)) * 0.55 * insideX * insideY);
+  float bbPitch = ${(M.cellW / M.busbars).toFixed(4)};
+  float bus = ip3Lines(mod(lx, pitchX), bbPitch, 0.42, bbPitch * 0.5 - 0.21, fw.x);
+  bus *= insideX * (1.0 - gapX) * ip3Box(-7.0, halfH + 7.0, ly, fw.y);
+  float ribbon = ip3Box(${(marginY - 7.4).toFixed(3)}, ${(marginY - 2.6).toFixed(3)}, mm.y, fw.y);
+  ribbon += ip3Box(midY - 2.6, midY + 2.6, mm.y, fw.y);
+  ribbon += ip3Box(${(M.h - marginY + 2.6).toFixed(3)}, ${(M.h - marginY + 7.4).toFixed(3)}, mm.y, fw.y);
+  ribbon *= ip3Box(-2.0, cellsW + 2.0, lx, fw.x);
+  vec2 cid = vec2(floor(lx / pitchX), floor(ly / pitchY) + upper * 20.0);
+  return vec3(cell, clamp(max(bus, ribbon), 0.0, 1.0), (ip3Hash(cid) - 0.5) * 0.12);
+}
+`;
+
+/**
+ * Leichtes Vorderseiten-Material für Module, die nur aus einiger Entfernung zu sehen sind (Reihe
+ * im Einstieg): unbeleuchtet, Zellbild ohne Feinheiten, Glasreflexion als Spiegelung der Umgebung
+ * (envMap, Drehung wie scene.environmentRotation setzen). Rechnet je Pixel nur einen Bruchteil.
+ */
+export function createCellMaterialLite(envMap) {
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, envMap, combine: THREE.AddOperation, reflectivity: 0.32 });
+  // unbeleuchtet: Rückseitenfolie und Metall dunkler als im beleuchteten Material
+  const uniforms = {
+    uModuleSize: { value: new THREE.Vector2(M.w, M.h) },
+    uCellColor: { value: new THREE.Color('#0d1730') },
+    uBackColor: { value: new THREE.Color('#737885') },
+    uMetalColor: { value: new THREE.Color('#7b808a') },
+  };
+  mat.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nuniform vec2 uModuleSize;\nvarying vec2 vMM;')
+      .replace('#include <uv_vertex>', '#include <uv_vertex>\nvMM = uv * uModuleSize;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\n' + glslPatternLite)
+      .replace(
+        '#include <color_fragment>',
+        /* glsl */ `#include <color_fragment>
+        vec3 ip3 = ip3PatternLite(vMM);
+        diffuseColor.rgb = mix(mix(uBackColor, uCellColor * (1.0 + ip3.z), ip3.x), uMetalColor, ip3.y);`
+      )
+      .replace(
+        '#include <roughnessmap_fragment>',
+        /* glsl */ `#include <roughnessmap_fragment>
+        roughnessFactor = mix(mix(0.62, 0.22, ip3.x), 0.2, ip3.y);`
+      )
+      .replace(
+        '#include <metalnessmap_fragment>',
+        /* glsl */ `#include <metalnessmap_fragment>
+        metalnessFactor = mix(0.0, 0.92, ip3.y);`
+      );
+  };
+  mat.customProgramCacheKey = () => 'ip3-cell-lite-v1';
+  return mat;
+}
 
 /**
  * Erzeugt das Vorderseiten-Material. Basis ist MeshPhysicalMaterial,
