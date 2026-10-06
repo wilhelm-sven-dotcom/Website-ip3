@@ -48,6 +48,7 @@ export const legende = [
   { art: 'gruen', titel: 'Grünstrom', text: 'aus Sonne und Wind, auch über Speicher, die nur damit laden' },
   { art: 'netz', titel: 'Netzstrom', text: 'Herkunft gemischt, auch aus dem Graustromspeicher' },
   { art: 'wahl', titel: 'Gewählt', text: 'Flüsse des gewählten Elements' },
+  { art: 'pegel', titel: 'Füllstand', text: 'wie voll ein Speicher gerade ist' },
 ];
 
 export const ui = {

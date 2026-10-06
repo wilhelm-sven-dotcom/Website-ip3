@@ -93,7 +93,17 @@ const einleitungHtml = einleitung
         {
           legende.map((l) => (
             <li class={`es__legende-eintrag es__legende-eintrag--${l.art}`}>
-              <span class="es__legende-zeichen" aria-hidden="true" />
+              {l.art === 'pegel' ? (
+                <span class="es__legende-zeichen es-batterie" aria-hidden="true">
+                  <i class="is-voll" />
+                  <i class="is-voll" />
+                  <i class="is-voll" />
+                  <i />
+                  <i />
+                </span>
+              ) : (
+                <span class="es__legende-zeichen" aria-hidden="true" />
+              )}
               <span>
                 <strong>{l.titel}</strong> {l.text}
               </span>
@@ -147,7 +157,7 @@ const einleitungHtml = einleitung
                       {e.kurz}
                     </span>
                     {e.speicher && (
-                      <span class="es-marker__pegel" aria-hidden="true" data-es-pegel={e.speicher}>
+                      <span class="es-marker__pegel es-batterie" aria-hidden="true" data-es-pegel={e.speicher}>
                         {quadrate(stufe(e)).map((voll) => (
                           <i class={voll ? 'is-voll' : undefined} />
                         ))}
@@ -452,7 +462,7 @@ const einleitungHtml = einleitung
 
   .es__legende-eintrag {
     display: grid;
-    grid-template-columns: 14px minmax(0, 1fr);
+    grid-template-columns: 26px minmax(0, 1fr);
     gap: 0.75rem;
     align-items: baseline;
   }
@@ -475,6 +485,44 @@ const einleitungHtml = einleitung
 
   .es__legende-eintrag--wahl .es__legende-zeichen {
     background: var(--akzent);
+  }
+
+  .es__legende-eintrag--pegel .es__legende-zeichen {
+    width: auto;
+    height: auto;
+    background: transparent;
+    align-self: center;
+  }
+
+  /* Füllstand als Batterie mit fünf Balken: am Speicher und in der Legende */
+  .es-batterie {
+    position: relative;
+    display: inline-flex;
+    gap: 1px;
+    padding: 2px;
+    border: 1px solid var(--hell);
+    border-radius: 2px;
+  }
+
+  .es-batterie::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -4px;
+    width: 3px;
+    height: 5px;
+    transform: translateY(-50%);
+    background: var(--hell);
+    border-radius: 0 1px 1px 0;
+  }
+
+  .es-batterie i {
+    width: 3px;
+    height: 7px;
+  }
+
+  .es-batterie i.is-voll {
+    background: var(--hell);
   }
 
   /* Grafik */
@@ -691,7 +739,7 @@ const einleitungHtml = einleitung
   }
 
   .es-marker[data-seite='links'] .es-marker__pegel {
-    margin: 0 -0.4rem 0 0;
+    margin: 0 0.55rem 0 0;
   }
 
   .es-marker__nr {
@@ -718,21 +766,9 @@ const einleitungHtml = einleitung
   }
 
   .es-marker__pegel {
-    display: inline-flex;
-    gap: 2px;
-    padding: 0.32rem 0.4rem;
-    margin-left: -0.4rem;
+    margin-left: 0.15rem;
     background: rgb(12 26 61 / 0.86);
-  }
-
-  .es-marker__pegel i {
-    width: 6px;
-    height: 6px;
-    border: 1px solid var(--hell);
-  }
-
-  .es-marker__pegel i.is-voll {
-    background: var(--hell);
+    box-shadow: 0 0 0 0.3rem rgb(12 26 61 / 0.86);
   }
 
   .es-marker:hover .es-marker__nr,

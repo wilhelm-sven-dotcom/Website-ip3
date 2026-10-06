@@ -10,10 +10,8 @@ export const partnerGruppen = [
       { name: 'Handwerkskammer Niederbayern-Oberpfalz', datei: 'handwerkskammer', w: 295, h: 59, faktor: 1.12 },
       { name: 'VDI', datei: 'vdi', w: 167, h: 109 },
       { name: 'Energieeffizienz-Experte für Förderprogramme des Bundes', datei: 'energieeffizienz-experte', w: 275, h: 74, faktor: 1.12 },
-      { name: 'BE-ON eG Bürgerenergie Oberpfalz Nord', datei: 'be-on', w: 222, h: 97, faktor: 1.08 },
       { name: 'ZENO ZukunftsEnergieNordoberpfalz', datei: 'zeno', w: 260, h: 81 },
       { name: 'Maschinenring', datei: 'maschinenring', w: 287, h: 90, faktor: 1.3 },
-      { name: 'installRES', datei: 'installres', w: 283, h: 77 },
     ],
   },
   {
@@ -22,7 +20,6 @@ export const partnerGruppen = [
       { name: 'BYD', datei: 'byd', w: 217, h: 133 },
       { name: 'Jinko Solar', datei: 'jinko-solar', w: 257, h: 93 },
       { name: 'Sigenergy', datei: 'sigenergy', w: 773, h: 154 },
-      { name: 'Siemens', datei: 'siemens', w: 272, h: 51 },
       { name: 'SMA', datei: 'sma', w: 194, h: 123 },
       { name: 'Tesla', datei: 'tesla', w: 273, h: 39 },
       { name: 'Trina Solar', datei: 'trina-solar', w: 252, h: 66 },

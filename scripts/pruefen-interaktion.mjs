@@ -3,6 +3,7 @@
 // für den Formularversand mit umgeleitetem sendmail (siehe README).
 import { chromium } from 'playwright';
 import { seiten } from '../src/data/seiten.js';
+import { partnerGruppen } from '../src/data/partner.js';
 
 const base = process.argv[2] || 'http://127.0.0.1:8080';
 // Geschützte Testumgebung: PRUEF_LOGIN=benutzer:passwort
@@ -509,7 +510,8 @@ const browser = await chromium.launch({ args: gl });
   await page.evaluate(() => document.querySelector('.partner').scrollIntoView());
   await page.waitForTimeout(1500);
   const logos = await page.$$eval('.partner img', (imgs) => imgs.map((i) => i.complete && i.naturalWidth > 0 && i.alt.length > 1));
-  note(logos.length === 15 && logos.every(Boolean), `Partnerlogos: ${logos.filter(Boolean).length} von 15 geladen, mit Namen`);
+  const sollLogos = partnerGruppen.reduce((n, g) => n + g.logos.length, 0);
+  note(logos.length === sollLogos && logos.every(Boolean), `Partnerlogos: ${logos.filter(Boolean).length} von ${sollLogos} geladen, mit Namen`);
   note((await page.$$eval('.partner__gruppe', (g) => g.length)) === 2, 'Partnerlogos in zwei Gruppen');
   note((await page.$$eval('.refs .sheet--photo', (s) => s.length)) === 6, 'Startseite: sechs Referenzen mit Foto');
   const blattLinks = await page.$$eval('.refs .sheet__link', (as) => as.map((a) => a.getAttribute('href')));
@@ -528,22 +530,22 @@ const browser = await chromium.launch({ args: gl });
   }));
   note(team.n === 12 && team.fotos === 11 && team.monogramm === 1, `Team: ${team.n} Ansprechpartner, ${team.fotos} Porträts, ${team.monogramm} Monogramm`);
   const vb = await page.evaluate(() => {
-    const enmag = document.querySelector('.partnerspalte--enmag .partnerspalte__name');
+    const logos = [...document.querySelectorAll('.partnerspalte__name img')];
     const link = document.querySelector('.partnerspalte--enmag a[href^="https://www.enmag-naturstrom.de"]');
     const gruen = [...document.querySelectorAll('body *')].filter((el) => getComputedStyle(el).color === 'rgb(76, 155, 59)' && !el.closest('.partnerspalte--enmag'));
     return {
       kette: document.querySelectorAll('.kette__teil').length,
       jahre: /\b(19|20)\d\d\b/.test(document.querySelector('.herkunft').textContent),
       anker: !!document.querySelector('.kette a[href="#verbund"]') && !!document.getElementById('verbund'),
-      farbe: enmag && getComputedStyle(enmag).color,
-      groesse: enmag && parseFloat(getComputedStyle(enmag).fontSize),
+      logos: logos.map((i) => (i.complete && i.naturalWidth > 0 ? i.alt : '')).join(' / '),
+      breiten: logos.map((i) => Math.round(i.getBoundingClientRect().width)).join(' / '),
       link: link ? link.target === '_blank' && link.relList.contains('noopener') : false,
       gruenAusserhalb: gruen.length,
       spalten: document.querySelectorAll('.partnerspalte').length,
     };
   });
   note(vb.kette === 3 && !vb.jahre && vb.anker, `Über uns: Herkunft in drei Abschnitten ohne Jahreszahlen, Anker zum Verbund (${vb.kette})`);
-  note(vb.spalten === 2 && vb.farbe === 'rgb(76, 155, 59)' && vb.groesse >= 24 && vb.link && vb.gruenAusserhalb === 0, `Über uns: Verbund mit zwei gleichwertigen Spalten, ENMAG-Grün nur bei ENMAG (${vb.groesse} px), Link in neuem Fenster`);
+  note(vb.spalten === 2 && vb.logos === 'ip³ Energietechnik / ENMAG' && vb.link && vb.gruenAusserhalb === 0, `Über uns: Verbund mit zwei gleichwertigen Spalten, Wortmarken geladen (${vb.logos}, ${vb.breiten} px), ENMAG-Grün nur bei ENMAG, Link in neuem Fenster`);
   await page.close();
 }
 

@@ -4,6 +4,7 @@ import PageHero from '../components/PageHero.astro';
 import Arrow from '../components/Arrow.astro';
 import Foto from '../components/Foto.astro';
 import { team, verbund } from '../data/site.js';
+import { logoBreite } from '../data/partner.js';
 
 const kurzname = (name) => name.split(',')[0];
 const initialen = (name) => kurzname(name).split(' ').map((t) => t[0]).join('');
@@ -19,7 +20,7 @@ const herkunft = [
   {
     mass: 'Ausführung',
     titel: 'Beim Bayernwerk eingetragener Installateurbetrieb',
-    text: 'Aus dem Ingenieurbüro wurde ein Installateurbetrieb, der beim Bayernwerk eingetragen ist. Wir planen Ihre Anlage nicht nur, wir errichten sie auch und nehmen sie in Betrieb.',
+    text: 'Aus dem Ingenieurbüro wurde ein Installateurbetrieb: die ip³ Energietechnik GmbH, eingetragen beim Bayernwerk. Wir planen Ihre Anlage nicht nur, wir errichten sie auch und nehmen sie in Betrieb.',
     fuerSie: 'ein Ansprechpartner von der Planung bis zur Inbetriebnahme.',
   },
   {
@@ -93,7 +94,7 @@ const werte = [
       <p class="kicker verbund__claim">{verbund.claim}</p>
       <h2 id="verbund-title" class="display verbund__title" data-split>{verbund.titel}<span class="dot">.</span></h2>
       <p class="lead verbund__lead" data-reveal>
-        Mit ENMAG aus Weiden haben wir eine gemeinsame Gesellschaft gegründet, die ENMAG ip³ GmbH. Beide Unternehmen bleiben eigenständig, die Aufgaben sind klar verteilt.
+        Mit ENMAG aus Weiden haben wir die ENMAG ip³ GmbH gegründet. In ihr vereinen sich die Stärken beider Unternehmen: ENMAG entwickelt Projekte gemeinsam mit Flächeneigentümern, ip³ plant und baut die Anlagen und nimmt sie in Betrieb.
       </p>
 
       <div class="verbund__partner">
@@ -102,7 +103,7 @@ const werte = [
             <article class:list={['partnerspalte', { 'partnerspalte--enmag': i === 1 }]} aria-labelledby={`partner-${i}`} data-reveal>
               <p class="partnerspalte__rolle tech">{pt.rolle}</p>
               <h3 id={`partner-${i}`} class="partnerspalte__name">
-                {pt.name}
+                <img class="partnerspalte__logo" src={pt.logo.src} alt={pt.name} width={pt.logo.w} height={pt.logo.h} style={`--logo-b:${logoBreite(pt.logo, 13500)}px`} loading="lazy" decoding="async" />
               </h3>
               <ul class="partnerspalte__aufgaben" role="list">
                 {pt.aufgaben.map((a) => (
@@ -326,17 +327,18 @@ const werte = [
     color: var(--on-navy-sec);
   }
 
+  /* Wortmarken weiß auf Navy, gleiche optische Fläche; unten bündig, damit beide auf einer Linie stehen */
   .partnerspalte__name {
-    margin-top: 0.6rem;
-    font-size: clamp(2rem, 1.4rem + 2.2vw, 3.25rem);
-    line-height: 1.05;
-    letter-spacing: -0.03em;
-    color: var(--weiss);
+    display: flex;
+    align-items: flex-end;
+    min-height: 4.5rem;
+    margin-top: 1rem;
   }
 
-  /* ENMAG-Name in ENMAG-Grün, ab 24 px: 4,9:1 auf Navy */
-  .partnerspalte--enmag .partnerspalte__name {
-    color: var(--enmag);
+  .partnerspalte__logo {
+    display: block;
+    width: min(var(--logo-b), 100%);
+    height: auto;
   }
 
   .partnerspalte__aufgaben {

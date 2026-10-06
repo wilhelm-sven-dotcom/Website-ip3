@@ -43,6 +43,8 @@ export const verbund = {
     {
       name: 'ip³ Energietechnik',
       rolle: 'Energietechnik',
+      // Wortmarke weiß für Navy; w und h für gleiche optische Fläche (logoBreite)
+      logo: { src: '/brand/ip3-energietechnik-weiss.svg', w: 850, h: 128 },
       aufgaben: [
         'Planung von Anlagen für erneuerbare Energien',
         'Mittel- und Niederspannung, Netzanschluss',
@@ -55,6 +57,8 @@ export const verbund = {
     {
       name: 'ENMAG',
       rolle: 'Naturstrom',
+      // weiße Fassung, pixelgenau aus dem farbigen Logo von ENMAG abgeleitet (Transparenz unverändert)
+      logo: { src: '/brand/partner/enmag-weiss.png', w: 500, h: 158 },
       aufgaben: [
         'Inhabergeführtes Familienunternehmen aus Weiden',
         'Projektentwicklung gemeinsam mit Flächeneigentümern',

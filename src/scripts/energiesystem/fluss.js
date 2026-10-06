@@ -3,7 +3,7 @@
 // Dreiecke die Flussrichtung.
 import { linienzug, punktBei, quadrat, pfeil } from '../../lib/linienzug.js';
 
-const ABSTAND = 30; // px zwischen zwei Teilchen
+const ABSTAND = 36; // px zwischen zwei Teilchen
 const GROESSE = 5; // px Kantenlänge
 const PFEIL = 9; // px Pfeillänge
 const PFEIL_ABSTAND = 110; // px zwischen Pfeilen
@@ -48,7 +48,8 @@ export class Fluss {
       if (!ri || L <= 0) continue;
       const n = Math.max(1, Math.round((L * this.k) / ABSTAND));
       const A = L / n;
-      const v = (16 + 74 * Math.min(1, m.staerke[z.id])) / this.k;
+      // ruhig: 8 bis 42 px/s je nach Stärke des Flusses
+      const v = (8 + 34 * Math.min(1, m.staerke[z.id])) / this.k;
       // Phase als Anteil des Teilchenabstands, damit ein Wechsel des Maßstabs nichts springen lässt
       z.phase = (((z.phase + (ri * v * dt) / A) % 1) + 1) % 1;
       const art = m.art[z.id] + (wahl.has(z.id) ? '-wahl' : '');

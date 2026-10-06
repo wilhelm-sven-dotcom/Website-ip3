@@ -72,22 +72,26 @@ const gitter = (mitInstalliert = true) =>
 
 const stunden = [6, 12, 18].map((h) => ({ text: `${h} Uhr`, x: prozentX(h), art: 'achse' }));
 
-/** 1. Wer begrenzt: Einspeisung und mögliche Erzeugung, Vorgaben als Deckel über ihrem Zeitfenster.
- *  Ragt die mögliche Erzeugung in den Deckel, ist die Vorgabe wirksam. */
+/** 1. Wer begrenzt: Zeitband der Vorgaben (wann, von wem; als HTML über dem Diagramm), darunter
+ *  Einspeisung und mögliche Erzeugung. Die Obergrenze steht als Linie in ihrem Zeitfenster, die
+ *  dadurch entgangene Energie als Fläche in der Farbe der Vorgabe. Bleibt die mögliche Erzeugung
+ *  unter der Obergrenze (Wolke), entsteht keine Fläche: Die Vorgabe liegt an, wirkt aber nicht. */
 export function diagrammBegrenzung(tag) {
   const dv = abschnitte(tag, (x) => x.dvAktiv)[0];
-  const deckel = (von, bis, grenze, muster, farbe) => {
-    const x0 = f(xVon(von));
-    const x1 = f(xVon(bis));
-    const yG = f(yVon(grenze));
-    const flaeche = `<path d="M${x0} ${f(yVon(1))}H${x1}V${yG}H${x0}Z" fill="url(#${muster})"/>`;
-    // Unterkante als Linie, außer bei vollständiger Abregelung (dort liegt sie auf der Achse)
-    return grenze > 0 ? flaeche + `<path d="M${x0} ${yG}H${x1}" fill="none" stroke="${farbe}" stroke-width="2.5"/>` : flaeche;
-  };
+  const spuren = [
+    { art: 'nb', name: 'Netzbetreiber', was: 'Obergrenze', von: NB.von, bis: NB.bis },
+    { art: 'dv', name: 'Direktvermarkter', was: 'Abregelung', von: dv.von, bis: dv.bis },
+  ];
+  // Kanten der Zeitfenster als feine Hilfslinien vom Zeitband bis zur Achse
+  const kanten = [...new Set(spuren.flatMap((sp) => [sp.von, sp.bis]))].map((t) => `M${f(xVon(t))} 0V${UNTEN}`).join('');
   const svg = [
     gitter(),
-    deckel(NB.von, NB.bis, NB.grenze, 'ea-muster-nb', FARBEN.nb),
-    deckel(dv.von, dv.bis, 0, 'ea-muster-dv', FARBEN.dv),
+    `<path class="ea-fensterkante" d="${kanten}"/>`,
+    `<path d="${flaechen(tag, (x) => x.verfuegbar, (x) => x.einspeisung, (x) => x.wirksam === 'nb')}" fill="${FARBEN.nb}" fill-opacity=".2"/>`,
+    `<path d="${flaechen(tag, (x) => x.verfuegbar, (x) => x.einspeisung, (x) => x.wirksam === 'dv')}" fill="${FARBEN.dv}" fill-opacity=".18"/>`,
+    // Obergrenzen als helle Bänder unter den Kurven: Die Einspeisung liegt sichtbar an
+    `<path d="M${f(xVon(NB.von))} ${f(yVon(NB.grenze))}H${f(xVon(NB.bis))}" fill="none" stroke="${FARBEN.nb}" stroke-opacity=".45" stroke-width="6"/>`,
+    `<path d="M${f(xVon(dv.von))} ${f(yVon(0))}H${f(xVon(dv.bis))}" fill="none" stroke="${FARBEN.dv}" stroke-opacity=".55" stroke-width="6"/>`,
     `<path d="${linie(tag, (x) => x.moeglich)}" fill="none" stroke="${FARBEN.moeglich}" stroke-width="2" stroke-dasharray="5 4"/>`,
     `<path d="${linie(tag, (x) => x.einspeisung)}" fill="none" stroke="${FARBEN.einspeisung}" stroke-width="2.25" stroke-linejoin="round"/>`,
   ].join('');
@@ -97,7 +101,12 @@ export function diagrammBegrenzung(tag) {
     { text: 'mögliche Erzeugung', x: prozentX(16.1), y: prozentY(yVon(0.8)), art: 'moeglich' },
     { text: 'Einspeisung', x: prozentX(18.9), y: prozentY(yVon(0.34)), art: 'einspeisung' },
   ];
-  return { svg, labels, hoehe: H };
+  return {
+    svg,
+    labels,
+    hoehe: H,
+    spuren: spuren.map((sp) => ({ ...sp, links: prozentX(sp.von), breite: `${(((sp.bis - sp.von) / 24) * 100).toFixed(2)}%` })),
+  };
 }
 
 /** 2. Potenzial und entgangene Energie, getrennt nach Netzbetreiber, Direktvermarkter, Technik */

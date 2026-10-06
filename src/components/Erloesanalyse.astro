@@ -113,7 +113,17 @@ const stunden = [0, 6, 12, 18, 24];
               <div class="ea-platz" data-ea-platz={i + 1}>
                 {i === 0 && (
                   <figure class="ea-grafik" data-in="1">
-                    <div class="ea-zeitbild">
+                    <div class="ea-zeitbild ea-zeitbild--spuren">
+                    <div class="ea-spuren" aria-hidden="true">
+                      {d.begrenzung.spuren.map((sp) => (
+                        <div class={`ea-spur ea-spur--${sp.art}`}>
+                          <span class="ea-spur__name">{sp.name}</span>
+                          <span class="ea-spur__balken" style={`left:${sp.links};width:${sp.breite}`}>
+                            <span class="ea-spur__was">{sp.was}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                     <div class="ea-diagramm" style={`aspect-ratio: 600 / ${d.begrenzung.hoehe}`}>
                       <svg viewBox={`0 0 600 ${d.begrenzung.hoehe}`} aria-hidden="true" focusable="false" set:html={d.begrenzung.svg} />
                       <div class="ea-labels" aria-hidden="true">
@@ -127,11 +137,11 @@ const stunden = [0, 6, 12, 18, 24];
                     <ul class="ea-legende" role="list" aria-hidden="true">
                       <li class="ea-legende--einspeisung">Einspeisung</li>
                       <li class="ea-legende--moeglich">mögliche Erzeugung</li>
-                      <li class="ea-legende--nb">Vorgabe Netzbetreiber</li>
-                      <li class="ea-legende--dv">Vorgabe Direktvermarkter</li>
+                      <li class="ea-legende--grenze">Obergrenze laut Vorgabe</li>
+                      <li class="ea-legende--entgangen">dadurch nicht eingespeist</li>
                     </ul>
                     <figcaption id="ea-cap-1" class="ea-grafik__text">
-                      Einspeisung durchgezogen, mögliche Erzeugung gestrichelt. Die schraffierten Deckel zeigen, wann eine Vorgabe anliegt: am späten Vormittag die des Netzbetreibers, am frühen Nachmittag bei negativen Preisen die des Direktvermarkters. Wo die mögliche Erzeugung in einen Deckel ragt, ist die Vorgabe wirksam. Gegen Mittag hält eine Wolke die Erzeugung darunter: Die Vorgabe liegt an, begrenzt aber nicht.
+                      Oben steht, wer wann eine Vorgabe macht: Der Netzbetreiber setzt am späten Vormittag eine Obergrenze, der Direktvermarkter regelt die Anlage am frühen Nachmittag bei negativen Preisen ab. Darunter Einspeisung (durchgezogen) und mögliche Erzeugung (gestrichelt). Die farbige Fläche ist die Energie, die wegen der jeweiligen Vorgabe nicht eingespeist wurde. Gegen Mittag zieht eine Wolke durch: Die Vorgabe liegt an, die Erzeugung bleibt darunter, es geht nichts verloren.
                     </figcaption>
                   </figure>
                 )}
@@ -565,6 +575,90 @@ const stunden = [0, 6, 12, 18, 24];
     background: repeating-linear-gradient(90deg, var(--moeglich) 0 4px, transparent 4px 7px);
   }
 
+  .ea-legende--grenze::before {
+    height: 5px;
+    background: linear-gradient(90deg, rgb(47 36 130 / 0.45) 50%, rgb(200 60 48 / 0.55) 50%);
+  }
+
+  .ea-legende--entgangen::before {
+    background: linear-gradient(90deg, rgb(47 36 130 / 0.2) 50%, rgb(200 60 48 / 0.18) 50%);
+  }
+
+  /* Zeitband der Vorgaben über dem Diagramm: wer, wann, was */
+  .ea-spuren {
+    position: relative;
+    display: grid;
+    gap: 0.3rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .ea-spur {
+    position: relative;
+    height: 1.35rem;
+  }
+
+  .ea-spur::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--linie);
+  }
+
+  .ea-spur__name {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-right: 0.4rem;
+    font-family: var(--font-tech);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-sec);
+    background: var(--weiss);
+  }
+
+  .ea-spur__balken {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    background: var(--farbe);
+  }
+
+  .ea-spur--nb {
+    --farbe: var(--nb);
+  }
+
+  .ea-spur--dv {
+    --farbe: var(--dv);
+  }
+
+  /* was die Vorgabe bewirkt, rechts neben dem Balken (die Balken sind zu schmal für Text) */
+  .ea-spur__was {
+    position: absolute;
+    left: calc(100% + 0.4rem);
+    font-family: var(--font-tech);
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--farbe);
+    white-space: nowrap;
+  }
+
+  .ea-diagramm :global(.ea-fensterkante) {
+    fill: none;
+    stroke: #b9bacb;
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+    vector-effect: non-scaling-stroke;
+  }
+
   .ea-grafik__text {
     margin-top: 1rem;
     font-size: 0.92rem;
@@ -612,6 +706,24 @@ const stunden = [0, 6, 12, 18, 24];
   }
 
   .ea--lineal .ea__buehne .ea-diagramm:not(.ea-diagramm--bilanz)::after {
+    opacity: 1;
+  }
+
+  .ea-spuren::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: -0.35rem;
+    left: calc(var(--ea-t, 0.5) * 100%);
+    z-index: 1;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--akzent);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ea--lineal .ea__buehne .ea-spuren::after {
     opacity: 1;
   }
 
@@ -766,6 +878,11 @@ const stunden = [0, 6, 12, 18, 24];
 
     .ea__buehne :global(.ea-zeitbild--doppelt) {
       width: min(100%, calc((100svh - 26rem) * 1.76));
+    }
+
+    /* Zeitband über dem Diagramm braucht rund drei Zeilen Höhe */
+    .ea__buehne :global(.ea-zeitbild--spuren) {
+      width: min(100%, calc((100svh - 22.5rem) * 2.3));
     }
   }
 
