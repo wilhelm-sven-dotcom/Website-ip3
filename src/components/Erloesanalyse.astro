@@ -126,13 +126,12 @@ const stunden = [0, 6, 12, 18, 24];
                     </div>
                     <ul class="ea-legende" role="list" aria-hidden="true">
                       <li class="ea-legende--einspeisung">Einspeisung</li>
-                      <li class="ea-legende--vorgabe-nb">Vorgabe Netzbetreiber</li>
-                      <li class="ea-legende--vorgabe-dv">Vorgabe Direktvermarkter</li>
-                      <li class="ea-legende--nb">wirksam: Netzbetreiber</li>
-                      <li class="ea-legende--dv">wirksam: Direktvermarkter</li>
+                      <li class="ea-legende--moeglich">mögliche Erzeugung</li>
+                      <li class="ea-legende--nb">Vorgabe Netzbetreiber</li>
+                      <li class="ea-legende--dv">Vorgabe Direktvermarkter</li>
                     </ul>
                     <figcaption id="ea-cap-1" class="ea-grafik__text">
-                      Einspeisung und Leistungsvorgaben über den Tag. Die Leiste unten zeigt, wann eine Vorgabe wirksam ist: am späten Vormittag die des Netzbetreibers, am frühen Nachmittag die des Direktvermarkters. Kurz vor Mittag liegt die Vorgabe des Netzbetreibers an, eine Wolke hält die Erzeugung aber darunter.
+                      Einspeisung durchgezogen, mögliche Erzeugung gestrichelt. Die schraffierten Deckel zeigen, wann eine Vorgabe anliegt: am späten Vormittag die des Netzbetreibers, am frühen Nachmittag bei negativen Preisen die des Direktvermarkters. Wo die mögliche Erzeugung in einen Deckel ragt, ist die Vorgabe wirksam. Gegen Mittag hält eine Wolke die Erzeugung darunter: Die Vorgabe liegt an, begrenzt aber nicht.
                     </figcaption>
                   </figure>
                 )}
@@ -440,9 +439,11 @@ const stunden = [0, 6, 12, 18, 24];
     stroke-width: 1;
   }
 
+  /* Beschriftungen über dem Zeitzeiger, mit hellem Grund */
   .ea-labels {
     position: absolute;
     inset: 0;
+    z-index: 2;
     pointer-events: none;
   }
 
@@ -457,6 +458,8 @@ const stunden = [0, 6, 12, 18, 24];
     line-height: 1.2;
     white-space: nowrap;
     color: var(--text);
+    padding: 0.05rem 0.3rem 0.1rem 0;
+    background: rgb(255 255 255 / 0.9);
   }
 
   .ea-label::before {
@@ -465,10 +468,6 @@ const stunden = [0, 6, 12, 18, 24];
     height: 10px;
     flex: none;
     background: var(--farbe, transparent);
-  }
-
-  .ea-label--nb {
-    --farbe: var(--nb);
   }
 
   .ea-label--dv {
@@ -483,18 +482,12 @@ const stunden = [0, 6, 12, 18, 24];
     --farbe: var(--moeglich);
   }
 
-  .ea-label--bezug,
-  .ea-label--leiste {
+  .ea-label--bezug {
     color: var(--text-sec);
   }
 
-  .ea-label--bezug::before,
-  .ea-label--leiste::before {
+  .ea-label--bezug::before {
     display: none;
-  }
-
-  .ea-label--leiste {
-    transform: none;
   }
 
   .ea-stunden {
@@ -562,15 +555,8 @@ const stunden = [0, 6, 12, 18, 24];
     background: var(--einspeisung);
   }
 
-  .ea-legende--vorgabe-nb::before,
-  .ea-legende--vorgabe-dv::before,
   .ea-legende--abgeregelt::before {
     height: 3px;
-    background: var(--nb);
-  }
-
-  .ea-legende--vorgabe-dv::before,
-  .ea-legende--abgeregelt::before {
     background: var(--dv);
   }
 
@@ -617,6 +603,7 @@ const stunden = [0, 6, 12, 18, 24];
     top: 0;
     bottom: 0;
     left: calc(var(--ea-t, 0.5) * 100%);
+    z-index: 1;
     width: 2px;
     margin-left: -1px;
     background: var(--akzent);
@@ -802,7 +789,6 @@ const stunden = [0, 6, 12, 18, 24];
       font-size: 0.7rem;
     }
 
-    .ea-label--nb,
     .ea-label--dv,
     .ea-label--einspeisung,
     .ea-label--moeglich {

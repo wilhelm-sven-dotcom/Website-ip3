@@ -1,6 +1,7 @@
 // Die Gesamtanlage als technisches Modell: PV-Generator auf Freiflächentischen,
 // String-Wechselrichter, Trafostation, Batteriespeicher, Übergabestation (NVP)
-// und Anschluss an eine 20-kV-Freileitung. Einheit: Meter, Süden = +Z.
+// und Anschluss an eine 20-kV-Freileitung, dazu der Ortsrand mit Einfamilienhaus und
+// Gewerbehalle. Einheit: Meter, Süden = +Z.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MODULE } from './cellMaterial.js';
@@ -80,6 +81,7 @@ function modelMaterials() {
     trafo: new THREE.MeshStandardMaterial({ color: '#8f97a6', roughness: 0.5, metalness: 0.5 }),
     inverter: new THREE.MeshStandardMaterial({ color: '#eceef3', roughness: 0.45, metalness: 0.05 }),
     accent: new THREE.MeshStandardMaterial({ color: '#c83c30', roughness: 0.5, metalness: 0 }),
+    roof: new THREE.MeshStandardMaterial({ color: '#737b8c', roughness: 0.8, metalness: 0.05 }),
   };
 }
 
@@ -198,6 +200,164 @@ function inverterUnit(mats) {
   stripe.userData.noEdges = true;
   g.add(stripe);
   return withEdges(g);
+}
+
+/* ---------- Ortsrand: Einfamilienhaus und Gewerbehalle mit PV, Speicher und Ladepunkten ---------- */
+const flat = (g) => (g.index ? g.toNonIndexed() : g);
+
+/** Teile gleichen Materials zu einem Mesh zusammenführen (wenige Draw-Calls) */
+function mergedMesh(parts, mat, edges = true) {
+  const mesh = new THREE.Mesh(mergeGeometries(parts.map(flat), false), mat);
+  mesh.userData.noEdges = !edges;
+  return mesh;
+}
+
+/** dünne Fläche auf einer Fassade (Fenster, Tor, Tür); Normale in ±x oder ±z */
+function facadePanel(w, h, x, y, z, normal = 'z') {
+  return normal === 'z' ? new THREE.BoxGeometry(w, h, 0.02).translate(x, y + h / 2, z) : new THREE.BoxGeometry(0.02, h, w).translate(x, y + h / 2, z);
+}
+
+/** Modulplätze auf einer nach Süden geneigten Ebene: Mitte der Modulreihe, Neigung, Spalten */
+function moduleRow(slots, { x0, y, z, tilt, cols }) {
+  const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2 + tilt, 0, 0));
+  const step = mm(MODULE.w) + 0.02;
+  for (let c = 0; c < cols; c++) slots.push({ position: new THREE.Vector3(x0 + c * step, y, z), quaternion: quat });
+}
+
+function einfamilienhaus(mats) {
+  const W = 10;
+  const D = 9;
+  const HW = 5.4;
+  const a = THREE.MathUtils.degToRad(35);
+  const HF = HW + (D / 2) * Math.tan(a);
+  const g = new THREE.Group();
+
+  // Baukörper mit Giebeln: Hausquerschnitt in z/y, entlang x extrudiert (First Ost-West)
+  const profil = new THREE.Shape();
+  profil.moveTo(-D / 2, 0);
+  profil.lineTo(D / 2, 0);
+  profil.lineTo(D / 2, HW);
+  profil.lineTo(0, HF);
+  profil.lineTo(-D / 2, HW);
+  profil.closePath();
+  const body = new THREE.ExtrudeGeometry(profil, { depth: W, bevelEnabled: false, curveSegments: 1 });
+  body.rotateY(-Math.PI / 2).translate(W / 2, 0, 0);
+
+  // Carport an der Ostseite
+  const cx = W / 2 + 1.8;
+  const carport = [groundBox(3.6, 0.15, 5.9).translate(cx, 2.6, 1.6)];
+  for (const z of [-1.1, 4.3]) carport.push(groundBox(0.14, 2.6, 0.14).translate(W / 2 + 3.4, 0, z));
+  g.add(mergedMesh([body], mats.container));
+  g.add(mergedMesh(carport, mats.steel));
+
+  // Dachflächen mit Überstand
+  const t = 0.25;
+  const L = D / 2 / Math.cos(a) + 0.55;
+  const ridge = new THREE.Vector3(0, HF, 0);
+  const slabs = [1, -1].map((s) => {
+    const dir = new THREE.Vector3(0, -Math.sin(a), s * Math.cos(a));
+    const n = new THREE.Vector3(0, Math.cos(a), s * Math.sin(a));
+    const c = ridge.clone().addScaledVector(dir, L / 2).addScaledVector(n, t / 2);
+    return new THREE.BoxGeometry(W + 0.8, t, L).rotateX(s * a).translate(c.x, c.y, c.z);
+  });
+  g.add(mergedMesh(slabs, mats.roof));
+
+  // Fenster und Haustür (Süd- und Westseite), dunkel ohne Kanten
+  const zS = D / 2 + 0.01;
+  const xW = -W / 2 - 0.01;
+  const dunkel = [
+    facadePanel(1.5, 1.35, -3, 0.9, zS),
+    facadePanel(2.4, 2.25, 2.6, 0, zS),
+    facadePanel(1.1, 2.2, -0.6, 0, zS),
+    facadePanel(1.2, 1.2, -3, 3.4, zS),
+    facadePanel(1.2, 1.2, 0, 3.4, zS),
+    facadePanel(1.2, 1.2, 3, 3.4, zS),
+    facadePanel(1.3, 1.3, xW, 0.9, -1.6, 'x'),
+    facadePanel(1.3, 1.3, xW, 0.9, 1.9, 'x'),
+    facadePanel(1.0, 1.0, xW, 3.5, 0, 'x'),
+    facadePanel(0.8, 0.8, xW, 6.0, 0, 'x'),
+  ];
+  g.add(mergedMesh(dunkel, mats.dark, false));
+
+  // Heimspeicher und Wallbox an der Hauswand unter dem Carport
+  const xO = W / 2;
+  g.add(mergedMesh([groundBox(0.3, 1.25, 0.75).translate(xO + 0.15, 0.15, 0.4), groundBox(0.16, 0.48, 0.34).translate(xO + 0.08, 1.05, 2.9)], mats.inverter));
+  g.add(mergedMesh([new THREE.BoxGeometry(0.02, 0.05, 0.75).translate(xO + 0.31, 1.3, 0.4), new THREE.BoxGeometry(0.02, 0.05, 0.34).translate(xO + 0.17, 1.47, 2.9)], mats.accent, false));
+
+  // PV auf der Südseite: 2 Reihen mit je 6 Modulen hochkant
+  const slots = [];
+  const lift = t + 0.09;
+  const n = new THREE.Vector3(0, Math.cos(a), Math.sin(a));
+  const down = new THREE.Vector3(0, -Math.sin(a), Math.cos(a));
+  const mH = mm(MODULE.h) + 0.02;
+  for (const r of [0, 1]) {
+    const c = ridge.clone().addScaledVector(down, 0.5 + mH / 2 + r * mH).addScaledVector(n, lift);
+    moduleRow(slots, { x0: -2.5 * (mm(MODULE.w) + 0.02), y: c.y, z: c.z, tilt: a, cols: 6 });
+  }
+
+  return { group: withEdges(g), slots, anchor: new THREE.Vector3(-0.4, HF + 0.6, 0) };
+}
+
+function gewerbehalle(mats) {
+  const W = 24;
+  const D = 13;
+  const H = 6.5;
+  const g = new THREE.Group();
+
+  // Halle mit Attika
+  const at = 0.6;
+  const th = 0.3;
+  const halle = [
+    groundBox(W, H, D),
+    groundBox(W, at, th).translate(0, H, D / 2 - th / 2),
+    groundBox(W, at, th).translate(0, H, -D / 2 + th / 2),
+    groundBox(th, at, D - 2 * th).translate(W / 2 - th / 2, H, 0),
+    groundBox(th, at, D - 2 * th).translate(-W / 2 + th / 2, H, 0),
+  ];
+  g.add(mergedMesh(halle, mats.container));
+
+  // Tore, Fensterband und Eingang (Süd), Fensterband (West), Türen der Speicherschränke (Ost)
+  const zS = D / 2 + 0.01;
+  const xS = W / 2 + 1.4;
+  const dunkel = [
+    facadePanel(4, 4.2, 4.5, 0, zS),
+    facadePanel(4, 4.2, 9.2, 0, zS),
+    facadePanel(12.5, 1.1, -5, 4.1, zS),
+    facadePanel(1.3, 2.4, -9, 0, zS),
+    facadePanel(D - 4, 1.1, -W / 2 - 0.01, 4.1, 0, 'x'),
+    facadePanel(1.15, 1.9, xS + 0.66, 0.2, -0.6, 'x'),
+    facadePanel(1.15, 1.9, xS + 0.66, 0.2, 1.2, 'x'),
+  ];
+  g.add(mergedMesh(dunkel, mats.dark, false));
+
+  // Gewerbespeicher: zwei Außenschränke an der Ostseite; drei Ladesäulen vor der Halle
+  const lade = [-9, -5.5, -2];
+  const zL = D / 2 + 4.2;
+  const geraete = [groundBox(1.3, 2.3, 1.6).translate(xS, 0, -0.6), groundBox(1.3, 2.3, 1.6).translate(xS, 0, 1.2)];
+  lade.forEach((x) => geraete.push(groundBox(0.45, 1.75, 0.3).translate(x, 0, zL)));
+  g.add(mergedMesh(geraete, mats.inverter));
+  const akzent = [new THREE.BoxGeometry(0.02, 0.06, 1.6).translate(xS + 0.66, 2.15, -0.6), new THREE.BoxGeometry(0.02, 0.06, 1.6).translate(xS + 0.66, 2.15, 1.2)];
+  lade.forEach((x) => akzent.push(new THREE.BoxGeometry(0.46, 0.08, 0.31).translate(x, 1.5, zL)));
+  g.add(mergedMesh(akzent, mats.accent, false));
+
+  // Stellplätze vor den Ladesäulen
+  const linien = [];
+  for (const x of [-10.75, -7.25, -3.75, -0.25]) linien.push(x, 0.03, zL + 0.5, x, 0.03, zL + 5.5);
+  linien.push(-10.75, 0.03, zL + 5.5, -0.25, 0.03, zL + 5.5);
+  const lg = new THREE.BufferGeometry();
+  lg.setAttribute('position', new THREE.Float32BufferAttribute(linien, 3));
+  g.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: '#e8e7ef', transparent: true, opacity: 0.5 })));
+
+  // PV auf dem Flachdach: 3 Reihen nach Süden, 15° aufgeständert, je 2 Felder mit 8 Modulen
+  const slots = [];
+  const tilt = THREE.MathUtils.degToRad(15);
+  const yM = H + 0.25 + (mm(MODULE.h) / 2) * Math.sin(tilt);
+  const feld = 8 * (mm(MODULE.w) + 0.02) - 0.02;
+  for (const z of [-3.7, -0.1, 3.5]) {
+    for (const s of [-1, 1]) moduleRow(slots, { x0: s * (feld / 2 + 0.6) - feld / 2 + mm(MODULE.w) / 2, y: yM, z, tilt, cols: 8 });
+  }
+
+  return { group: withEdges(g), slots, anchor: new THREE.Vector3(-2.5, H + 1.4, -1) };
 }
 
 /* ---------- Energiefluss-Bänder auf Kabeltrassen ---------- */
@@ -545,6 +705,34 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
   conductorMat.uniforms.uLength.value = Math.max(...conductors.children.map((c) => c.userData.length));
   group.add(conductors);
 
+  // Ortsrand südlich des Zauns: Einfamilienhaus und Gewerbehalle, versorgt über eine
+  // Ortsnetzstation am selben 20-kV-Netz
+  const ortZ = site.z1 + 16;
+  const haus = einfamilienhaus(mats);
+  haus.group.position.set(site.x1 - 40, 0, ortZ - 1);
+  haus.group.userData.delay = 0;
+  const halle = gewerbehalle(mats);
+  halle.group.position.set(site.x1 - 11, 0, ortZ - 1);
+  halle.group.userData.delay = 0.3;
+  const ons = station(mats, 3.3, 2.4, 2.4);
+  ons.position.set(lineStart.x, 0, site.z1 + 5);
+  ons.userData.delay = 0.15;
+  const ort = [haus.group, ons, halle.group];
+  ort.forEach((o) => group.add(o));
+
+  // Dachmodule beider Gebäude als ein instanziertes Objekt
+  const dachSlots = [];
+  for (const b of [haus, halle]) {
+    b.group.updateMatrix();
+    b.slots.forEach((sl, k) =>
+      dachSlots.push({ position: sl.position.clone().applyMatrix4(b.group.matrix), quaternion: sl.quaternion, delay: b.group.userData.delay, k })
+    );
+  }
+  const dach = new THREE.InstancedMesh(moduleGeometry, moduleMaterials, dachSlots.length);
+  dach.frustumCulled = false;
+  dach.visible = false;
+  group.add(dach);
+
   // Kabeltrassen
   const routes = [];
   const flow = (pts, opts) => {
@@ -594,6 +782,21 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
     { key: 'grid', width: 1.0 }
   );
 
+  // 20-kV-Netz → Ortsnetzstation → Gewerbehalle und Einfamilienhaus
+  const zO = ons.position.z;
+  const xAbzweig = halle.group.position.x + 7;
+  flow([new THREE.Vector3(lineStart.x, 0, nvp.position.z + 0.6), new THREE.Vector3(lineStart.x, 0, zO - 1.3)], { key: 'ort', width: 1.0 });
+  const nsp = { key: 'ort', width: 0.6, base: 0.32, spacing: 8, speed: 5 };
+  flow(
+    [
+      new THREE.Vector3(ons.position.x - 1.75, 0, zO),
+      new THREE.Vector3(haus.group.position.x + 2, 0, zO),
+      new THREE.Vector3(haus.group.position.x + 2, 0, haus.group.position.z - 4.6),
+    ],
+    nsp
+  );
+  flow([new THREE.Vector3(xAbzweig, 0, zO), new THREE.Vector3(xAbzweig, 0, halle.group.position.z - 6.6)], nsp);
+
   // Boden
   const grid = groundGrid();
   grid.material.uniforms.uSite.value.set(site.x0, site.z0, site.x1, site.z1);
@@ -618,7 +821,9 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
     trafo: new THREE.Vector3(trafo.position.x, 2.8, trafo.position.z),
     bess: new THREE.Vector3(bx0 + 10.5, 3.1, -5.2),
     nvp: new THREE.Vector3(nvp.position.x, 3.1, nvp.position.z),
-    grid: lineStart.clone().addScaledVector(lineDir, span).setY(poleH - 0.4),
+    grid: lineStart.clone().addScaledVector(lineDir, span * 0.62).setY(poleH - 1.6),
+    haus: haus.anchor.clone().add(haus.group.position),
+    gewerbe: halle.anchor.clone().add(halle.group.position),
   };
 
   const center = new THREE.Vector3((site.x0 + site.x1) / 2, 0, (site.z0 + site.z1) / 2);
@@ -636,13 +841,18 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
   const clamp01 = (x) => Math.min(1, Math.max(0, x));
   const tableQuat = new THREE.Quaternion();
 
+  // Reihe des Hauptmoduls: steht schon im Einstieg, der Aufbau wächst später um sie herum
+  const heroRow = L.modules[heroIndex].r;
   let lastBuild = -1;
-  function setBuild(build, hideHero) {
-    if (Math.abs(build - lastBuild) < 1e-5 && !hideHero.changed) return;
+  let lastRow = -1;
+  function setBuild(build, hideHero, row = 0) {
+    if (Math.abs(build - lastBuild) < 1e-5 && Math.abs(row - lastRow) < 1e-5 && !hideHero.changed) return;
     lastBuild = build;
+    lastRow = row;
     for (let i = 0; i < count; i++) {
       const md = L.modules[i];
       let k = i === heroIndex ? 0 : easeOut(clamp01((build - delays[i]) / 0.14));
+      if (md.r === heroRow && i !== heroIndex) k = Math.max(k, row);
       if (i === heroIndex && hideHero.value) k = 0;
       s.setScalar(Math.max(k, 1e-4));
       p.copy(md.position);
@@ -652,13 +862,33 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
     }
     modules.instanceMatrix.needsUpdate = true;
     L.tables.forEach((t, i) => {
-      const k = easeOut(clamp01((build - tableDelays[i] + 0.04) / 0.16));
-      s.set(1, Math.max(k, 1e-4), 1);
+      let k = easeOut(clamp01((build - tableDelays[i] + 0.04) / 0.16));
+      if (t.r === heroRow) k = Math.max(k, row);
+      // noch nicht begonnene Tische ganz ausblenden (sonst liegen sie flach auf dem Boden)
+      const xz = k > 0.001 ? 1 : 1e-4;
+      s.set(xz, Math.max(k, 1e-4), xz);
       p.set(t.center.x, 0, t.center.z);
       m4.compose(p, tableQuat, s);
       tables.setMatrixAt(i, m4);
     });
     tables.instanceMatrix.needsUpdate = true;
+  }
+
+  // Dachmodule setzen sich nach dem Gebäude von oben auf das Dach
+  let lastOrt = -1;
+  function setOrt(k) {
+    if (Math.abs(k - lastOrt) < 1e-5) return;
+    lastOrt = k;
+    dachSlots.forEach((d, i) => {
+      const kk = easeOut(clamp01((k - d.delay * 0.5 - 0.45 - (d.k % 12) * 0.008) / 0.22));
+      s.setScalar(Math.max(kk, 1e-4));
+      p.copy(d.position);
+      p.y += (1 - kk) * 0.9;
+      m4.compose(p, d.quaternion, s);
+      dach.setMatrixAt(i, m4);
+    });
+    dach.instanceMatrix.needsUpdate = true;
+    dach.visible = k > 0.45;
   }
 
   const grow = (obj, k) => {
@@ -667,20 +897,23 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, heroIndex
   };
 
   function setStage(st) {
-    // st: { grid, inverters, trafo, bess, nvp, line, pvRoute, bessRoute, gridRoute, flow, time }
+    // st: { grid, inverters, trafo, bess, nvp, ort, line, pvRoute, bessRoute, gridRoute, ortRoute, flow…, time }
     grid.material.uniforms.uOpacity.value = st.grid;
+    grid.visible = st.grid > 0.001;
     inverters.forEach((inv) => grow(inv, (st.inverters - inv.userData.delay * 0.6) / 0.4));
     grow(trafo, st.trafo);
     bess.children.forEach((c) => grow(c, (st.bess - c.userData.delay * 0.55) / 0.45));
     grow(nvp, st.nvp);
+    ort.forEach((o) => grow(o, (st.ort - o.userData.delay * 0.5) / 0.5));
+    setOrt(st.ort);
     poles.children.forEach((pl) => grow(pl, (st.line - pl.userData.delay * 0.5) / 0.5));
     conductors.visible = st.line > 0.02;
     conductorMat.uniforms.uDraw.value = clamp01((st.line - 0.2) / 0.8);
     conductorMat.uniforms.uFlow.value = st.flowGrid;
     conductorMat.uniforms.uTime.value = st.time;
     for (const r of routes) {
-      const d = r.key === 'pv' ? st.pvRoute : r.key === 'bess' ? st.bessRoute : st.gridRoute;
-      const f = r.key === 'pv' ? st.flowPv : r.key === 'bess' ? st.flowBess : st.flowGrid;
+      const d = r.key === 'pv' ? st.pvRoute : r.key === 'bess' ? st.bessRoute : r.key === 'ort' ? st.ortRoute : st.gridRoute;
+      const f = r.key === 'pv' ? st.flowPv : r.key === 'bess' ? st.flowBess : r.key === 'ort' ? st.flowOrt : st.flowGrid;
       r.mat.uniforms.uDraw.value = d;
       r.mat.uniforms.uFlow.value = f;
       r.mat.uniforms.uTime.value = st.time;

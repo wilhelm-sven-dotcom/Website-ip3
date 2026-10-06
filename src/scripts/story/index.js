@@ -30,24 +30,30 @@ function pickQuality() {
 
   const desktopKeys = {
     p: [0.0, 0.1, 0.27, 0.42, 0.52, 0.6, 0.66, 0.745, 0.87, 1.0],
-    dist: [6.2, 5.8, 2.4, 0.34, 0.06, 0.042, 0.05, 6.5, 70, 128],
-    az: [-50, -46, -16, -4, 6, 13, 10, 2, -14, -18],
-    el: [22, 24, 50, 54, 33, 27, 30, 58, 34, 27],
+    dist: [6.2, 5.8, 2.4, 0.34, 0.06, 0.042, 0.05, 6.5, 70, 160],
+    az: [-50, -46, -16, -4, 6, 13, 10, 2, -14, -16],
+    el: [22, 24, 50, 54, 33, 27, 30, 58, 34, 32],
     fov: [28, 28, 30, 34, 40, 42, 42, 36, 31, 30],
     toFocus: [0, 0, 0.25, 1, 1, 1, 1, 0, 0, 0],
     toPlant: [0, 0, 0, 0, 0, 0, 0, 0.04, 0.8, 1],
-    shiftX: [0.21, 0.21, 0.13, 0.05, 0, 0, 0, 0.02, 0.06, 0.04],
-    shiftY: [0, 0, 0, 0, 0, 0, 0, 0, 0.03, 0.04],
+    shiftX: [0.21, 0.21, 0.13, 0.05, 0, 0, 0, 0.02, 0.06, 0.06],
+    shiftY: [0, 0, 0, 0, 0, 0, 0, 0, 0.03, 0.02],
+    // Zielpunkt zum Schluss nach Süden: Ortsrand mit Haus und Gewerbehalle im Bild
+    offX: [0, 0, 0, 0, 0, 0, 0, 0, 0, -4],
+    offZ: [0, 0, 0, 0, 0, 0, 0, 0, 4, 20],
   };
-  // Hochformat: Modul im oberen Bilddrittel, Anlage zum Schluss von Osten gesehen
+  // Hochformat: Modul im oberen Bilddrittel, Anlage im Aufbau von Osten, zum Schluss aus Süd-Südost gesehen
   const mobileKeys = {
     ...desktopKeys,
-    dist: [13, 12.2, 3.4, 0.42, 0.07, 0.05, 0.06, 9, 100, 170],
-    az: [-46, -42, -14, -4, 6, 13, 10, 2, 40, 70],
-    el: [24, 26, 50, 54, 33, 27, 30, 58, 40, 36],
+    dist: [13, 12.2, 3.4, 0.42, 0.07, 0.05, 0.06, 9, 100, 200],
+    az: [-46, -42, -14, -4, 6, 13, 10, 2, 40, 15],
+    el: [24, 26, 50, 54, 33, 27, 30, 58, 40, 54],
     fov: [28, 28, 34, 38, 44, 46, 46, 40, 38, 38],
     shiftX: [0.03, 0.03, 0, 0, 0, 0, 0, 0, 0, 0],
-    shiftY: [0.33, 0.33, 0.16, 0.08, 0.06, 0.06, 0.06, 0.08, 0.12, 0.12],
+    shiftY: [0.33, 0.33, 0.16, 0.08, 0.06, 0.06, 0.06, 0.08, 0.12, -0.24],
+    // zum Schluss steil aus Süd-Südost: Ortsrand im unteren Bilddrittel, unter dem Textfeld frei
+    offX: [0, 0, 0, 0, 0, 0, 0, 0, 0, 13],
+    offZ: [0, 0, 0, 0, 0, 0, 0, 0, 6, 29],
   };
 
   return {
@@ -58,17 +64,19 @@ function pickQuality() {
     shadowSize: strong ? 4096 : 2048,
     photons: mobile ? 50 : 90,
     layout: mobile ? { rows: 6, tablesPerRow: 3, modulesPerTable: 12 } : { rows: 8, tablesPerRow: 3, modulesPerTable: 14 },
-    hero: mobile ? { r: 1, t: 1, c: 5 } : { r: 1, t: 1, c: 6 },
+    // Hauptmodul am Westende seiner Reihe: im Einstieg verläuft die Reihe nach hinten ins Navy
+    hero: { r: 1, t: 0, c: 0 },
     keys: mobile ? mobileKeys : desktopKeys,
     preserveDrawingBuffer: params.has('capture'),
   };
 }
 
-function setupLabels(root) {
+function setupLabels(root, mobile) {
   const items = [...root.querySelectorAll('[data-label]')].map((el) => ({
     el,
     key: el.dataset.label,
-    range: el.dataset.range.split(',').map(Number),
+    // im Hochformat eigener Bereich, wenn angegeben (Textfeld verdeckt dort die Bildmitte)
+    range: ((mobile && el.dataset.rangeM) || el.dataset.range).split(',').map(Number),
     side: el.dataset.side || 'right',
     text: el.querySelector('.story-label__text'),
     textW: 0,
@@ -151,7 +159,7 @@ export async function initStory() {
     return;
   }
 
-  const labels = setupLabels(labelsRoot);
+  const labels = setupLabels(labelsRoot, quality.mobile);
   let target = 0;
   let current = 0;
   let pointer = { x: 0, y: 0 };
@@ -333,6 +341,7 @@ export async function initStory() {
       story.update(p, t, { x: 0, y: 0 });
       story.render();
       placeLabels(p);
+      section.style.setProperty('--story-p', p.toFixed(4));
     },
     resume: start,
     // rendert genau ein Bild passend zur aktuellen Scrollposition (für Aufnahmen)
@@ -345,6 +354,7 @@ export async function initStory() {
       story.update(current, time, { x: 0, y: 0 });
       story.render();
       placeLabels(current);
+      section.style.setProperty('--story-p', current.toFixed(4));
       return current;
     },
     setStrip: (st) => story.setStrip(st),

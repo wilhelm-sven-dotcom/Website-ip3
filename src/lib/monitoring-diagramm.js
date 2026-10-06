@@ -72,27 +72,32 @@ const gitter = (mitInstalliert = true) =>
 
 const stunden = [6, 12, 18].map((h) => ({ text: `${h} Uhr`, x: prozentX(h), art: 'achse' }));
 
-/** 1. Wer begrenzt: Einspeisung, Vorgaben als Stufenlinien, wirksame Vorgabe als Leiste */
+/** 1. Wer begrenzt: Einspeisung und mögliche Erzeugung, Vorgaben als Deckel über ihrem Zeitfenster.
+ *  Ragt die mögliche Erzeugung in den Deckel, ist die Vorgabe wirksam. */
 export function diagrammBegrenzung(tag) {
   const dv = abschnitte(tag, (x) => x.dvAktiv)[0];
-  const wirksamNb = abschnitte(tag, (x) => x.wirksam === 'nb');
-  const wirksamDv = abschnitte(tag, (x) => x.wirksam === 'dv');
-  const leiste = (liste, farbe) => liste.map((a) => `<rect x="${f(xVon(a.von))}" y="${UNTEN + 10}" width="${f(xVon(a.bis) - xVon(a.von))}" height="8" fill="${farbe}"/>`).join('');
+  const deckel = (von, bis, grenze, muster, farbe) => {
+    const x0 = f(xVon(von));
+    const x1 = f(xVon(bis));
+    const yG = f(yVon(grenze));
+    const flaeche = `<path d="M${x0} ${f(yVon(1))}H${x1}V${yG}H${x0}Z" fill="url(#${muster})"/>`;
+    // Unterkante als Linie, außer bei vollständiger Abregelung (dort liegt sie auf der Achse)
+    return grenze > 0 ? flaeche + `<path d="M${x0} ${yG}H${x1}" fill="none" stroke="${farbe}" stroke-width="2.5"/>` : flaeche;
+  };
   const svg = [
     gitter(),
-    `<path d="M${f(xVon(NB.von))} ${f(yVon(NB.grenze) - 6)}v6H${f(xVon(NB.bis))}v-6" fill="none" stroke="${FARBEN.nb}" stroke-width="2.5"/>`,
-    `<path d="M${f(xVon(dv.von))} ${f(UNTEN - 8)}v6H${f(xVon(dv.bis))}v-6" fill="none" stroke="${FARBEN.dv}" stroke-width="2.5"/>`,
+    deckel(NB.von, NB.bis, NB.grenze, 'ea-muster-nb', FARBEN.nb),
+    deckel(dv.von, dv.bis, 0, 'ea-muster-dv', FARBEN.dv),
+    `<path d="${linie(tag, (x) => x.moeglich)}" fill="none" stroke="${FARBEN.moeglich}" stroke-width="2" stroke-dasharray="5 4"/>`,
     `<path d="${linie(tag, (x) => x.einspeisung)}" fill="none" stroke="${FARBEN.einspeisung}" stroke-width="2.25" stroke-linejoin="round"/>`,
-    leiste(wirksamNb, 'url(#ea-muster-nb)'),
-    leiste(wirksamDv, 'url(#ea-muster-dv)'),
   ].join('');
   const labels = [
     ...stunden,
     { text: 'installierte Leistung', x: '0%', y: prozentY(yVon(1) - 4), art: 'bezug' },
+    { text: 'mögliche Erzeugung', x: prozentX(16.1), y: prozentY(yVon(0.8)), art: 'moeglich' },
     { text: 'Einspeisung', x: prozentX(18.9), y: prozentY(yVon(0.34)), art: 'einspeisung' },
-    { text: 'wirksam', x: '0%', y: prozentY(UNTEN + 14), art: 'leiste' },
   ];
-  return { svg, labels, hoehe: H + 20 };
+  return { svg, labels, hoehe: H };
 }
 
 /** 2. Potenzial und entgangene Energie, getrennt nach Netzbetreiber, Direktvermarkter, Technik */

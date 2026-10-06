@@ -31,15 +31,6 @@ const herkunft = [
   },
 ];
 
-const g = verbund.gesellschaft;
-const gesellschaftsDaten = [
-  ['Sitz', g.sitz],
-  ['Gegründet', g.gegruendet],
-  ['Geschäftsführung', g.geschaeftsfuehrung.join(', ')],
-  ['Register', g.registernummer],
-  ['Gegenstand', g.gegenstand],
-].filter(([, v]) => v);
-
 const werte = [
   {
     titel: 'Ganzheitliche Beratung',
@@ -129,21 +120,6 @@ const werte = [
             </article>
           ))
         }
-      </div>
-
-      <div class="verbund__blatt" data-reveal>
-        <p class="verbund__blatt-kopf tech">Gemeinsame Gesellschaft</p>
-        <p class="verbund__firma">{g.name}</p>
-        <dl class="verbund__daten">
-          {
-            gesellschaftsDaten.map(([k, v]) => (
-              <div class:list={['verbund__feld', { 'verbund__feld--breit': k === 'Gegenstand' }]}>
-                <dt>{k}</dt>
-                <dd>{v}</dd>
-              </div>
-            ))
-          }
-        </dl>
       </div>
     </div>
   </section>
@@ -410,65 +386,6 @@ const werte = [
     text-decoration-thickness: 2px;
   }
 
-  .verbund__blatt {
-    margin-top: clamp(2.5rem, 5vw, 4rem);
-    border: 1px solid var(--on-navy-line-strong);
-  }
-
-  .verbund__blatt-kopf {
-    padding: 0.9rem 1.25rem 0;
-    font-size: var(--fs-label);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--on-navy-sec);
-  }
-
-  .verbund__firma {
-    padding: 0.35rem 1.25rem 1rem;
-    font-family: var(--font-head);
-    font-weight: 800;
-    font-size: clamp(1.4rem, 1.15rem + 0.9vw, 2rem);
-    letter-spacing: -0.02em;
-    color: var(--weiss);
-  }
-
-  .verbund__daten {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin: 0;
-    border-top: 1px solid var(--on-navy-line-strong);
-  }
-
-  .verbund__feld {
-    padding: 0.8rem 1.25rem 0.95rem;
-    border-right: 1px solid var(--on-navy-line-strong);
-  }
-
-  .verbund__feld:nth-child(3n) {
-    border-right: 0;
-  }
-
-  .verbund__feld--breit {
-    grid-column: 1 / -1;
-    border-top: 1px solid var(--on-navy-line-strong);
-    border-right: 0;
-  }
-
-  .verbund__feld dt {
-    font-family: var(--font-tech);
-    font-size: 0.7rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--on-navy-sec);
-  }
-
-  .verbund__feld dd {
-    margin: 0.25rem 0 0;
-    font-family: var(--font-tech);
-    font-weight: 500;
-    color: var(--weiss);
-  }
-
   .werte__title {
     margin-top: clamp(2rem, 4vw, 3.5rem);
     max-width: 16ch;
@@ -696,19 +613,6 @@ const werte = [
 
     .partnerspalte + .partnerspalte {
       border-top: 1px solid var(--on-navy-line-strong);
-    }
-
-    .verbund__daten {
-      grid-template-columns: 1fr;
-    }
-
-    .verbund__feld {
-      border-right: 0;
-      border-top: 1px solid var(--on-navy-line-strong);
-    }
-
-    .verbund__feld:first-child {
-      border-top: 0;
     }
   }
 

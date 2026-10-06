@@ -19,8 +19,8 @@ const glocke = (t) => {
   return Math.cos((x * Math.PI) / 2) ** 1.6;
 };
 const gauss = (t, mitte, breite) => Math.exp(-((t - mitte) ** 2) / (2 * breite * breite));
-// Wolke kurz vor Mittag: mögliche Erzeugung fällt zeitweise unter die Vorgabe des Netzbetreibers
-const wolke = (t) => 1 - 0.36 * gauss(t, 11.6, 0.22);
+// Wolke gegen Mittag: mögliche Erzeugung fällt zeitweise unter die Vorgabe des Netzbetreibers
+const wolke = (t) => 1 - 0.4 * gauss(t, 11.95, 0.3);
 // Preis mit Morgen- und Abendspitze und negativen Stunden am frühen Nachmittag
 const preisKurve = (t) => 0.62 + 0.3 * gauss(t, 8, 1.2) + 0.55 * gauss(t, 19.5, 1.4) - 1.05 * gauss(t, 14.3, 1.45);
 

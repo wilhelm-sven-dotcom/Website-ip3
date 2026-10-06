@@ -187,6 +187,9 @@ export function createStoryScene(canvas, quality) {
   const fB = monotone(P, K.toPlant);
   const fSX = monotone(P, K.shiftX);
   const fSY = monotone(P, K.shiftY);
+  // Verschiebung des Zielpunkts im Anlagenmodell (Meter), damit der Ortsrand ins Schlussbild passt
+  const fOX = monotone(P, K.offX ?? P.map(() => 0));
+  const fOZ = monotone(P, K.offZ ?? P.map(() => 0));
 
   const HP = [0, 0.1, 0.27, 0.4];
   const fRx = monotone(HP, [0.45, 0.42, 0.1, 0]);
@@ -194,6 +197,7 @@ export function createStoryScene(canvas, quality) {
   const fRz = monotone(HP, [0.1, 0.09, 0.02, 0]);
 
   const slotQuat = layout.moduleQuat.clone();
+  const slotNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(slotQuat);
   const offsetQuat = new THREE.Quaternion();
   const offsetEuler = new THREE.Euler();
   const tmpV = new THREE.Vector3();
@@ -240,7 +244,9 @@ export function createStoryScene(canvas, quality) {
     );
     offsetQuat.setFromEuler(offsetEuler);
     hero.quaternion.copy(offsetQuat).multiply(slotQuat);
-    hero.position.copy(heroSlot);
+    // im Einstieg über seinem Platz in der Reihe, damit die Präsentationslage die Nachbarn nicht schneidet
+    const lift = 0.7 * (1 - THREE.MathUtils.smoothstep(p, 0.1, 0.27));
+    hero.position.copy(heroSlot).addScaledVector(slotNormal, lift);
     hero.updateMatrixWorld(true);
 
     moduleCenter.copy(hero.position);
@@ -250,6 +256,8 @@ export function createStoryScene(canvas, quality) {
     const a = clamp01(fA(p));
     const b = clamp01(fB(p));
     target.copy(moduleCenter).lerp(focusWorld, a).lerp(plantCenter, b);
+    target.x += fOX(p);
+    target.z += fOZ(p);
 
     const dist = tune.dist ?? Math.exp(fDist(p));
     const az = (tune.az ?? fAz(p)) * DEG + (b > 0.98 ? Math.sin(time * 0.05) * 0.03 : 0);
@@ -267,12 +275,16 @@ export function createStoryScene(canvas, quality) {
     camera.setViewOffset(width, height, -sx * width, sy * height, width, height);
     camera.updateProjectionMatrix();
 
-    // Umgebungsreflexe: im Studio kräftig, im Anlagenmodell zurückgenommen
+    // Umgebungsreflexe: im Studio kräftig, im Anlagenmodell zurückgenommen. Im Einstieg dreht
+    // die Umgebung langsam hin und her, der helle Streifen wandert als Sonnenreflex über die Reihe.
     scene.environmentIntensity = 1 - 0.58 * range(p, 0.7, 0.86);
+    scene.environmentRotation.y = Math.sin(time * 0.32) * 0.26 * (1 - range(p, 0.04, 0.12));
 
-    // Nebel skaliert mit dem Kameraabstand: Tiefe ohne Verlauf im Bild
-    scene.fog.near = dist * 1.6 + 40;
-    scene.fog.far = dist * 5.5 + 260;
+    // Nebel skaliert mit dem Kameraabstand: Tiefe ohne Verlauf im Bild. Im Einstieg kurz,
+    // die Reihe verläuft hinter dem Hauptmodul ins Navy.
+    const nah = 1 - range(p, 0.27, 0.42);
+    scene.fog.near = THREE.MathUtils.lerp(dist * 1.6 + 40, dist, nah);
+    scene.fog.far = THREE.MathUtils.lerp(dist * 5.5 + 260, dist + 24, nah);
 
     // Sonne folgt dem Bildausschnitt, damit Schatten scharf bleiben
     const sunTarget = b > 0.01 ? plantCenter : moduleCenter;
@@ -288,10 +300,11 @@ export function createStoryScene(canvas, quality) {
     photons.uniforms.uPixelRatio.value = renderer.getPixelRatio();
     photons.uniforms.uScale.value = height / 900;
 
-    // Aufbau der Anlage
+    // Aufbau der Anlage; die Reihe des Hauptmoduls steht von Anfang an. Schatten erst mit dem
+    // Aufbau (im Einstieg gibt es noch keinen Boden, der sie aufnimmt)
     const build = range(p, 0.655, 0.865);
-    plant.group.visible = build > 0.0005;
-    plant.setBuild(build, { value: true, changed: false });
+    plant.setBuild(build, { value: true, changed: false }, 1);
+    plant.modules.castShadow = plant.tables.castShadow = quality.shadows && build > 0;
     plant.setStage({
       grid: range(p, 0.69, 0.8),
       inverters: range(p, 0.775, 0.85),
@@ -302,9 +315,12 @@ export function createStoryScene(canvas, quality) {
       nvp: range(p, 0.875, 0.915),
       gridRoute: range(p, 0.895, 0.94),
       line: range(p, 0.9, 0.975),
+      ort: range(p, 0.915, 0.975),
+      ortRoute: range(p, 0.95, 0.995),
       flowPv: range(p, 0.84, 0.9),
       flowBess: range(p, 0.915, 0.955),
       flowGrid: range(p, 0.935, 0.985),
+      flowOrt: range(p, 0.96, 1),
       time,
     });
     heroMesh.castShadow = quality.shadows && build > 0;

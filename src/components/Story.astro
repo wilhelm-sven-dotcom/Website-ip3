@@ -15,12 +15,16 @@ const labels = [
   { key: 'licht', text: 'Lichteinfall', range: '0.49,0.535,0.625,0.66', side: 'left' },
   { key: 'finger', text: 'Kontaktfinger', range: '0.505,0.55,0.625,0.66' },
   { key: 'busbar', text: 'Busbar', range: '0.515,0.56,0.625,0.66', side: 'left' },
-  { key: 'generator', text: 'PV-Generator', range: '0.79,0.84,2,3' },
-  { key: 'inverter', text: 'Wechselrichter', range: '0.815,0.86,2,3', side: 'left' },
-  { key: 'trafo', text: 'Trafostation', range: '0.835,0.875,2,3', side: 'left' },
-  { key: 'bess', text: 'Batteriespeicher', range: '0.875,0.915,2,3' },
-  { key: 'nvp', text: 'Übergabestation · NVP', range: '0.9,0.935,2,3' },
+  // rangeM: am Handy blenden die Anlagenlabels zum Schluss aus, unter dem Textfeld bleibt der Ortsrand
+  { key: 'generator', text: 'PV-Generator', range: '0.79,0.84,2,3', rangeM: '0.79,0.84,0.95,0.97' },
+  { key: 'inverter', text: 'Wechselrichter', range: '0.815,0.86,2,3', rangeM: '0.815,0.86,0.95,0.97', side: 'left' },
+  { key: 'trafo', text: 'Trafostation', range: '0.835,0.875,2,3', rangeM: '0.835,0.875,0.95,0.97', side: 'left' },
+  { key: 'bess', text: 'Batteriespeicher', range: '0.875,0.915,2,3', rangeM: '0.875,0.915,0.95,0.97' },
+  { key: 'nvp', text: 'Übergabestation · NVP', range: '0.9,0.935,2,3', rangeM: '0.9,0.935,0.95,0.97' },
   { key: 'grid', text: '20-kV-Netz', range: '0.94,0.97,2,3', side: 'left' },
+  // Zusatz nach dem Punkt nur ab Tabletbreite, am Handy reicht die Breite nicht
+  { key: 'haus', text: 'Einfamilienhaus', extra: ' · PV und Speicher', range: '0.94,0.965,2,3', side: 'left' },
+  { key: 'gewerbe', text: 'Gewerbe', extra: ' · PV-Dach, Speicher, Ladepunkte', range: '0.955,0.98,2,3' },
 ];
 ---
 
@@ -30,16 +34,22 @@ const labels = [
       <source media="(orientation: portrait)" srcset={stills.modul.m} />
       <img src={stills.modul.d} alt="" width="1600" height="900" fetchpriority="high" decoding="async" />
     </picture>
+    <div class="story__zeichen">
+      <img src="/brand/zeichen-3-kontur-akzent.png" alt="" width="808" height="1052" loading="lazy" decoding="async" />
+    </div>
     <canvas class="story__canvas" data-story-canvas></canvas>
     <div class="story__labels" data-story-labels>
       {
         labels.map((l) => (
-          <div class:list={['story-label', `story-label--${l.side ?? 'right'}`, { 'story-label--dim': l.dim }]} data-label={l.key} data-range={l.range} data-side={l.dim ? 'none' : l.side ?? 'right'}>
+          <div class:list={['story-label', `story-label--${l.side ?? 'right'}`, { 'story-label--dim': l.dim }]} data-label={l.key} data-range={l.range} data-range-m={l.rangeM} data-side={l.dim ? 'none' : l.side ?? 'right'}>
             <span class="story-label__dot" />
             <svg class="story-label__leader" viewBox="0 0 48 32" preserveAspectRatio="none">
               <path d="M0 32 L18 6 L48 6" fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke" />
             </svg>
-            <span class="story-label__text">{l.text}</span>
+            <span class="story-label__text">
+              {l.text}
+              {l.extra && <span class="story-label__extra">{l.extra}</span>}
+            </span>
           </div>
         ))
       }
@@ -99,14 +109,14 @@ const labels = [
       <figure class="story__still">
         <picture>
           <source media="(max-width: 759px)" srcset={stills.system.m} />
-          <img src={stills.system.d} alt="Visualisierung einer Freiflächenanlage mit Batteriespeicher, Trafostation, Übergabestation und Anschluss an das 20-kV-Netz" width="1600" height="900" loading="lazy" decoding="async" />
+          <img src={stills.system.d} alt="Visualisierung einer Freiflächenanlage mit Batteriespeicher, Trafostation, Übergabestation und Anschluss an das 20-kV-Netz, daneben ein Einfamilienhaus und eine Gewerbehalle mit Photovoltaik auf dem Dach" width="1600" height="900" loading="lazy" decoding="async" />
         </picture>
       </figure>
       <div class="story__panel">
         <p class="kicker"><span class="num">03</span>System</p>
         <h2 id="step-3" class="h2">Erzeugen. Speichern. Einspeisen<span class="dot">.</span></h2>
         <p>
-          PV-Generator, Batteriespeicher und Netzanschluss bilden ein System. Wir planen es als Ganzes: von der Auslegung über Netzanschlussverfahren und Anlagenzertifikat bis zur Inbetriebnahme.
+          Ob Hausdach, Gewerbehalle oder Freifläche: PV-Generator, Batteriespeicher und Netzanschluss bilden ein System. Wir planen es als Ganzes, von der Auslegung über Netzanschlussverfahren und Anlagenzertifikat bis zur Inbetriebnahme.
         </p>
         <a class="arrow-link" href="#ablauf">So arbeiten wir <span class="line"></span></a>
       </div>
@@ -159,6 +169,29 @@ const labels = [
   .story.is-live .story__poster {
     opacity: 0;
     transition: opacity 350ms linear;
+  }
+
+  /* Zeichen 3 groß und leise hinter der Leinwand, Sonnenpunkt rechts über dem Modul. Erscheint
+     mit der Inszenierung und blendet beim ersten Scrollen aus (--story-p setzt die Steuerung). */
+  .story__zeichen {
+    position: absolute;
+    left: calc(71vw + 11vh);
+    top: 1vh;
+    width: 78vh;
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .story.is-live .story__zeichen {
+    opacity: 1;
+    transition: opacity 600ms var(--ease-out);
+  }
+
+  .story__zeichen img {
+    width: 100%;
+    height: auto;
+    opacity: calc(0.3 * (1 - min(1, var(--story-p, 0) * 12)));
   }
 
   html:not(.js) .story__canvas {
@@ -546,6 +579,15 @@ const labels = [
 
     .story-label--left .story-label__text {
       right: 44px;
+    }
+
+    .story-label__extra {
+      display: none;
+    }
+
+    /* am Handy stünde der Sonnenpunkt neben dem Logo der Kopfzeile */
+    .story__zeichen {
+      display: none;
     }
 
     .story-label__leader {

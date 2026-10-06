@@ -207,7 +207,7 @@ await tippen('#mobile-menu a[href="/ueber-uns"]', { seitenwechsel: true });
 await halten(1.2);
 await insBild('.kette', 2.4, 0.45);
 await halten(1.4);
-for (const selektor of ['.verbund__title', '.partnerspalte--enmag', '.verbund__blatt']) {
+for (const selektor of ['.verbund__title', '.partnerspalte--enmag']) {
   await insBild(selektor, 2.2, 0.45);
   await halten(1.4);
 }
@@ -234,5 +234,5 @@ await insBild('[data-status]', 1, 0.5);
 await halten(3);
 
 await browser.close();
-execFileSync(ffmpeg, ['-y', '-framerate', String(fps), '-i', path.join(dir, 'f%05d.jpg'), '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '22', '-movflags', '+faststart', out], { stdio: 'ignore' });
+execFileSync(ffmpeg, ['-y', '-framerate', String(fps), '-i', path.join(dir, 'f%05d.jpg'), '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '26', '-movflags', '+faststart', out], { stdio: 'ignore' });
 console.log(`Video ${out}: ${nr} Bilder, ${(nr / fps).toFixed(1)} s`);

@@ -33,20 +33,12 @@ export const firma = {
 };
 
 // Verbund mit ENMAG (Co-Branding nach CD: beide Marken gleichwertig, ENMAG-Grün nur für
-// ENMAG-Elemente, beide Domains). Quellen: Angaben ip³ (06.10.2026), Handelsregister
-// (Amtsgericht Weiden, Eintragung 10.02.2026), Selbstdarstellung ENMAG auf enmag-naturstrom.de.
-// Die Registernummer erscheint erst nach Freigabe (registernummer: null).
+// ENMAG-Elemente, beide Domains). Quellen: Angaben ip³ (06.10.2026), Selbstdarstellung ENMAG auf
+// enmag-naturstrom.de. Registerangaben der gemeinsamen Gesellschaft auf Wunsch von ip³ nicht auf der Website.
 export const verbund = {
   claim: 'Energietechnik von ip³ · Naturstrom von ENMAG.',
   titel: 'Zwei Firmen. Eine Energie',
-  gesellschaft: {
-    name: 'ENMAG ip³ GmbH',
-    sitz: 'Weiden i.d.OPf.',
-    gegruendet: 2026,
-    geschaeftsfuehrung: ['Maximilian Burger', 'Sven Wilhelm'],
-    gegenstand: 'Planung, Errichtung und Betrieb von Anlagen zur Erzeugung von regenerativem Strom, insbesondere Solar-, Wind- und Speicherprojekten',
-    registernummer: null, // freigegeben: 'HRB 6711, Amtsgericht Weiden i.d.OPf.'
-  },
+  gesellschaft: { name: 'ENMAG ip³ GmbH' },
   partner: [
     {
       name: 'ip³ Energietechnik',
