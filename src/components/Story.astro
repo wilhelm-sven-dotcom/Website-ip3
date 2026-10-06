@@ -22,7 +22,7 @@ const labels = [
   { key: 'bess', text: 'Batteriespeicher', range: '0.875,0.915,2,3', rangeM: '0.875,0.915,0.95,0.97' },
   { key: 'nvp', text: 'Übergabestation · NVP', range: '0.9,0.935,2,3', rangeM: '0.9,0.935,0.95,0.97' },
   { key: 'grid', text: '20-kV-Netz', range: '0.94,0.97,2,3', side: 'left' },
-  // Zusatz nach dem Punkt nur ab Tabletbreite, am Handy reicht die Breite nicht
+  // Zusatz nach dem Punkt nur mit Querformat-Kamera, im Hochformat reicht die Breite nicht
   { key: 'haus', text: 'Einfamilienhaus', extra: ' · PV und Speicher', range: '0.94,0.965,2,3', side: 'left' },
   { key: 'gewerbe', text: 'Gewerbe', extra: ' · PV-Dach, Speicher, Ladepunkte', range: '0.955,0.98,2,3' },
 ];
@@ -408,6 +408,10 @@ const labels = [
     }
   }
 
+  .story--hoch .story-label__extra {
+    display: none;
+  }
+
   .story-label--left .story-label__leader {
     left: auto;
     right: 0;
@@ -579,10 +583,6 @@ const labels = [
 
     .story-label--left .story-label__text {
       right: 44px;
-    }
-
-    .story-label__extra {
-      display: none;
     }
 
     /* am Handy stünde der Sonnenpunkt neben dem Logo der Kopfzeile */

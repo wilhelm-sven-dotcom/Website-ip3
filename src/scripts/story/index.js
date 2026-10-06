@@ -159,6 +159,8 @@ export async function initStory() {
     return;
   }
 
+  // Hochformat-Kamera: Labels in Kurzform (Zusatz nach dem Punkt hätte keinen Platz)
+  section.classList.toggle('story--hoch', quality.mobile);
   const labels = setupLabels(labelsRoot, quality.mobile);
   let target = 0;
   let current = 0;
