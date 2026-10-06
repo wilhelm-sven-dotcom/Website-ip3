@@ -693,12 +693,3 @@ sup {
 .iso-dot {
   fill: var(--akzent);
 }
-
-/* Linienzeichnungen vor dem Zeichnen: Flächen und Fluss noch verborgen */
-.js-motion [data-draw-svg]:not(.is-drawn) .sld__flow {
-  opacity: 0;
-}
-
-[data-draw-svg] .sld__flow {
-  transition: opacity 600ms var(--ease-out);
-}

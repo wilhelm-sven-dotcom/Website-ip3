@@ -1,5 +1,5 @@
-// Rundgang durch die mobile Fassung als Video: Startseite mit Inszenierung, Menü, Referenzen mit
-// Filter und Bildstrecke, Kontaktformular mit Versand. Bild für Bild mit angehaltener Seitenuhr aufgenommen,
+// Rundgang durch die mobile Fassung als Video: Startseite mit Inszenierung und Energiesystem, Menü,
+// Referenzen mit Filter und Bildstrecke, Kontaktformular mit Versand. Bild für Bild mit angehaltener Seitenuhr aufgenommen,
 // dadurch flüssig auch auf langsamen Rechnern. Entwicklungswerkzeug.
 // Voraussetzung: Vorschau mit PHP läuft (npm run vorschau), für den Formularversand mit
 // umgeleitetem sendmail (siehe README). Aufruf: node scripts/video-rundgang.mjs [basisUrl] [ausgabe.mp4]
@@ -138,10 +138,25 @@ const storyEnde = await page.evaluate(() => {
 await scrollen(storyEnde, 2.5);
 await halten(0.6);
 
-// Rest der Startseite: Leistungen, Systemverständnis, Projekte, Ablauf
-for (const selektor of ['.svc', '[data-sld], .sld', '.sheet', '#ablauf', '.partner__liste']) {
-  const da = await page.evaluate((s) => !!document.querySelector(s), selektor);
-  if (!da) continue;
+// Rest der Startseite: Leistungen, Energiesystem, Projekte, Ablauf
+await insBild('.svc', 2.2, 0.42);
+await halten(1.1);
+if (await page.evaluate(() => !!document.querySelector('[data-es-ebene]'))) {
+  // Grafik einzeichnen lassen, Flüsse zeigen, Grünstromspeicher antippen, auf Abend springen
+  await insBild('[data-es-ebene]', 2.2, 0.4);
+  for (let i = 0; i < 240 && !(await page.evaluate(() => document.querySelector('[data-es-ebene]').classList.contains('is-gezeichnet'))); i++) await bild();
+  await halten(2.6);
+  await tippen('.es-marker[data-element="gruenspeicher"]');
+  await halten(1.2);
+  await insBild('[data-es-karte]', 1.4, 0.55);
+  await halten(2.4);
+  await insBild('.es__phasen', 1.2, 0.62);
+  await tippen('.es__phase-taste[data-phase="abend"]');
+  await halten(0.6);
+  await insBild('[data-es-ebene]', 1.2, 0.42);
+  await halten(3);
+}
+for (const selektor of ['.sheet', '#ablauf', '.partner__liste']) {
   await insBild(selektor, 2.2, 0.42);
   await halten(1.1);
 }

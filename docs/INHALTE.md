@@ -29,6 +29,11 @@ Die bisherige Website www.ip3-energie.de ist aus der Arbeitsumgebung nicht direk
 - **Impressum:** Sitz der Gesellschaft Theisseil. Der Haftungsausschluss nennt nur noch die ip³ | Energietechnik GmbH.
 - **Datenschutz:** neue Fassung ohne Analyse- und Drittanbieterdienste, Datenschutzbeauftragter übernommen.
 
+## Entscheidungen von ip³ (06.10.2026)
+
+- **Energiesystem:** Die Grafik „Ein Tag im Energiesystem“ ersetzt das Übersichtsschaltbild auf der Startseite (Abschnitt 03) und der Leistungsübersicht (Abschnitt 02). Texte in `src/data/energiesystem.js`.
+- **Leistungen in der Grafik:** zusätzlich bestätigt sind Netzanschluss und Speicher für Windparks, Planung und Bau von Mieterstromanlagen, Energiemanagement mit dynamischem Tarif sowie die Vermarktung von Großspeichern über Stromhandel und Regelenergie. Die übrigen Leistungsangaben stammen von der bisherigen Website (PV, Heim-, Gewerbe- und Großspeicher, Netzanschluss, Anlagenzertifikat nach VDE-AR-N 4110 oder 4120, Anbindung an die Direktvermarktung, Speicher von Tesla und BYD).
+
 ## Bewusst geändert
 
 - **Schreibweise:** In der Stellenanzeige stand „IP3 Energie“, übernommen als „ip³“ (Corporate Design). Emojis entfernt. Tippfehler aus Galerietiteln („Powewall“, „Photvovoltaik“) korrigiert.
@@ -49,3 +54,5 @@ Die bisherige Website www.ip3-energie.de ist aus der Arbeitsumgebung nicht direk
 7. **Partnerlogos:** Die Logos liegen nur in der Auflösung der bisherigen Website vor (rund 300 px breit). Für gestochen scharfe Darstellung auf hochauflösenden Bildschirmen die Originaldateien der Partner einsetzen, gleicher Dateiname in `public/img/partner/`.
 8. **Kennzahlen:** Stand 05.10.2026, bei Änderungen in `src/data/site.js` anpassen.
 9. **Neue Seite** `/unsere-leistungen/batteriespeicher` auf Basis der Angaben zu Heim-, Gewerbe- und Großspeichern.
+10. **Energiesystem, Fachaussagen:** Die Erklärtexte nennen bewusst keine Paragrafen und keine Zahlen. Bitte fachlich gegenlesen, vor allem: Grünstromspeicher „lädt ausschließlich mit Solarstrom der eigenen Freifläche, nie aus dem Netz“, Graustromspeicher „kann auch Regelleistung bereitstellen“, Mieterstrom „ohne Umweg über das öffentliche Netz“, dynamischer Tarif „der Arbeitspreis folgt dem Börsenstrompreis“ und „Voraussetzung ist ein intelligentes Messsystem“. Der Tagesverlauf (sonniger Frühlingstag, Börsenpreis, Lasten, Speichergrößen) ist schematisch und frei gewählt, die Bildunterschrift sagt das.
+11. **MiSpeL (Vorschlag, nicht eingebaut):** Laut Pressemitteilung der Bundesnetzagentur vom 01.10.2026 zur Festlegung MiSpeL dürfen Speicher und bidirektionale Ladepunkte Netz- und Solarstrom gemeinsam speichern, ohne dass der gespeicherte Solarstrom die EEG-Förderung verliert; Netz- und Messstellenbetreiber haben für die Umsetzung bis Ende September 2027 Zeit, die Pauschaloption wartet noch auf die beihilferechtliche Genehmigung der EU-Kommission. Geprüft nur über Suchergebnisse, die Primärquelle war aus der Arbeitsumgebung nicht abrufbar. Möglicher Satz für die Karte Grünstromspeicher: „Seit der Festlegung der Bundesnetzagentur vom Oktober 2026 dürfen Speicher auch Netzstrom aufnehmen, ohne dass gespeicherter Solarstrom seine Förderung verliert.“ Erst nach Prüfung durch ip³ einsetzen.

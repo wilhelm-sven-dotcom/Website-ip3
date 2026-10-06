@@ -14,28 +14,87 @@ const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a
 export class IsoScene {
   constructor() {
     this.items = [];
+    this.grenzen = [];
+    this.koerper = [];
+    this.kontext = null;
+  }
+
+  // Versatz des aktuellen Kontexts (siehe mit) auf einen Punkt anwenden
+  _v(p) {
+    const k = this.kontext;
+    return k && k.versatz ? add(p, k.versatz) : p;
+  }
+
+  _push(item) {
+    const k = this.kontext;
+    if (k) {
+      if (k.gruppe != null) item.gruppe = k.gruppe;
+      if (k.ebene) item.ebene = k.ebene;
+      if (k.klasse) item.klasse = k.klasse;
+      if (k.attrs) item.attrs = k.attrs;
+    }
+    this.items.push(item);
+    return this;
+  }
+
+  /**
+   * Zeichnet mit Versatz (Weltkoordinaten) in eine Gruppe, Ebene, Zusatzklasse oder mit
+   * Zusatzattributen. Kontexte lassen sich schachteln, Versätze addieren sich.
+   */
+  mit({ versatz = null, gruppe, ebene, klasse, attrs } = {}, zeichnen) {
+    const vorher = this.kontext;
+    const v0 = vorher && vorher.versatz;
+    this.kontext = {
+      versatz: versatz ? (v0 ? add(v0, versatz) : versatz) : v0 || null,
+      gruppe: gruppe !== undefined ? gruppe : vorher ? vorher.gruppe : null,
+      ebene: ebene !== undefined ? ebene : vorher ? vorher.ebene : 0,
+      klasse: klasse !== undefined ? klasse : vorher ? vorher.klasse : null,
+      attrs: attrs !== undefined ? attrs : vorher ? vorher.attrs : null,
+    };
+    try {
+      zeichnen(this);
+    } finally {
+      this.kontext = vorher;
+    }
+    return this;
+  }
+
+  /** Verdeckender Körper ohne eigene Zeichnung (z. B. Dach), für Sichtbarkeitsprüfungen */
+  koerperHinzu(lo, hi) {
+    this.koerper.push({ lo: this._v(lo), hi: this._v(hi), gruppe: this.kontext ? this.kontext.gruppe : null });
+    return this;
+  }
+
+  /** Punkt, der in die Bildgrenzen eingeht, ohne gezeichnet zu werden (z. B. für Overlays) */
+  grenze(p) {
+    this.grenzen.push(this._v(p));
+    return this;
   }
 
   /** Polygon mit optionalen Detaillinien. kind: 'face' | 'panel' | 'dark' | 'accent' | 'ground' */
   poly(pts, kind = 'face', details = [], bias = 0) {
-    this.items.push({ type: 'poly', pts, kind, details, depth: depthOf(pts) + bias });
-    return this;
+    if (this.kontext && this.kontext.versatz) {
+      pts = pts.map((p) => this._v(p));
+      details = details.map((d) => (Array.isArray(d) ? d.map((p) => this._v(p)) : { ...d, seg: d.seg.map((p) => this._v(p)) }));
+    }
+    return this._push({ type: 'poly', pts, kind, details, depth: depthOf(pts) + bias });
   }
 
   line(a, b, kind = 'line', bias = 0) {
-    this.items.push({ type: 'line', pts: [a, b], kind, depth: depthOf([a, b]) + bias });
-    return this;
+    const pts = [this._v(a), this._v(b)];
+    return this._push({ type: 'line', pts, kind, depth: depthOf(pts) + bias });
   }
 
   dot(p, r = 6.5, bias = 50) {
-    this.items.push({ type: 'dot', pts: [p], r, depth: depthOf([p]) + bias });
-    return this;
+    const pts = [this._v(p)];
+    return this._push({ type: 'dot', pts, r, depth: depthOf(pts) + bias });
   }
 
   /** Quader: Ursprung (x, y, z) = Ecke unten hinten links, sichtbar sind Oberseite, +X- und +Z-Seite */
   box(x, y, z, w, h, d, opts = {}) {
     const { kind = 'face', top = kind, details = {} } = opts;
     const p = (dx, dy, dz) => [x + dx, y + dy, z + dz];
+    this.koerper.push({ lo: this._v(p(0, 0, 0)), hi: this._v(p(w, h, d)), gruppe: this.kontext ? this.kontext.gruppe : null });
     this.poly([p(0, h, 0), p(w, h, 0), p(w, h, d), p(0, h, d)], top, details.top || []);
     this.poly([p(w, 0, 0), p(w, h, 0), p(w, h, d), p(w, 0, d)], kind, details.right || []);
     this.poly([p(0, 0, d), p(w, 0, d), p(w, h, d), p(0, h, d)], kind, details.front || []);
@@ -63,8 +122,25 @@ export class IsoScene {
     return this;
   }
 
-  render({ pad = 18, width = null, stroke = 1.25, title = '', scale = 22, animate = true } = {}) {
-    const sorted = [...this.items].sort((a, b) => a.depth - b.depth);
+  /**
+   * SVG ausgeben. Ohne `gruppen` wird alles nach Tiefe sortiert (Maleralgorithmus). Mit
+   * `gruppen` (Reihenfolge von hinten nach vorn, z. B. [{ id, attrs }]) zeichnet jede Ebene
+   * zuerst die Teile ohne Gruppe, dann die Gruppen als <g data-node>, jeweils nach Tiefe sortiert.
+   * `teile: true` liefert Inhalt und viewBox getrennt, `stellen` die Nachkommastellen.
+   */
+  render({ pad = 18, width = null, stroke = 1.25, title = '', scale = 22, animate = true, gruppen = null, teile = false, stellen = 2 } = {}) {
+    let sorted;
+    if (gruppen) {
+      const rang = new Map(gruppen.map((g, i) => [g.id, i]));
+      const schluessel = (it) => [it.ebene || 0, it.gruppe == null ? -1 : rang.has(it.gruppe) ? rang.get(it.gruppe) : gruppen.length];
+      sorted = [...this.items].sort((a, b) => {
+        const [ea, ga] = schluessel(a);
+        const [eb, gb] = schluessel(b);
+        return ea - eb || ga - gb || a.depth - b.depth;
+      });
+    } else {
+      sorted = [...this.items].sort((a, b) => a.depth - b.depth);
+    }
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
@@ -79,12 +155,36 @@ export class IsoScene {
       maxY = Math.max(maxY, sy);
       return [sx, sy];
     };
-    const f = (n) => n.toFixed(2);
+    const f = (n) => n.toFixed(stellen);
+    const zusatz = (it) => [it.klasse ? ` ${it.klasse}` : '', it.attrs ? ` ${it.attrs}` : ''];
     const parts = [];
+    const ebenen = {};
+    const gruppeAttrs = new Map((gruppen || []).map((g) => [g.id, g.attrs || '']));
+    let offen = undefined;
+    let ebeneStart = 0;
+    let ebeneJetzt = null;
+    const ebeneAbschliessen = () => {
+      if (ebeneJetzt !== null) ebenen[ebeneJetzt] = parts.slice(ebeneStart).join('');
+    };
     for (const it of sorted) {
+      if (gruppen) {
+        const g = it.gruppe == null ? null : it.gruppe;
+        const schl = `${it.ebene || 0}|${g}`;
+        if (schl !== offen) {
+          if (offen !== undefined && !offen.endsWith('|null')) parts.push('</g>');
+          if ((it.ebene || 0) !== ebeneJetzt) {
+            ebeneAbschliessen();
+            ebeneStart = parts.length;
+            ebeneJetzt = it.ebene || 0;
+          }
+          if (g != null) parts.push(`<g data-node="${g}"${gruppeAttrs.get(g) ? ` ${gruppeAttrs.get(g)}` : ''}>`);
+          offen = schl;
+        }
+      }
+      const [kl, at] = zusatz(it);
       if (it.type === 'poly') {
         const d = 'M' + it.pts.map((p) => P(p).map(f).join(' ')).join('L') + 'Z';
-        parts.push(`<path class="iso-${it.kind}" d="${d}" data-stroke data-fill />`);
+        parts.push(`<path class="iso-${it.kind}${kl}" d="${d}"${at} data-stroke data-fill />`);
         for (const det of it.details) {
           const seg = Array.isArray(det) ? det : det.seg;
           const fine = !Array.isArray(det) && det.fine;
@@ -93,13 +193,17 @@ export class IsoScene {
         }
       } else if (it.type === 'line') {
         const [a, b] = it.pts.map(P);
-        parts.push(`<path class="iso-${it.kind}" d="M${f(a[0])} ${f(a[1])}L${f(b[0])} ${f(b[1])}" data-stroke />`);
+        parts.push(`<path class="iso-${it.kind}${kl}" d="M${f(a[0])} ${f(a[1])}L${f(b[0])} ${f(b[1])}"${at} data-stroke />`);
       } else if (it.type === 'dot') {
         const [c] = it.pts.map(P);
-        parts.push(`<circle class="iso-dot" cx="${f(c[0])}" cy="${f(c[1])}" r="${it.r}" data-fill />`);
+        parts.push(`<circle class="iso-dot${kl}" cx="${f(c[0])}" cy="${f(c[1])}" r="${it.r}"${at} data-fill />`);
       }
     }
+    if (gruppen && offen !== undefined && !offen.endsWith('|null')) parts.push('</g>');
+    if (gruppen) ebeneAbschliessen();
+    for (const p of this.grenzen) P(p);
     const vb = [minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2].map(f).join(' ');
+    if (teile) return { inhalt: parts.join(''), ebenen, viewBox: vb, x: minX - pad, y: minY - pad, breite: maxX - minX + pad * 2, hoehe: maxY - minY + pad * 2 };
     const w = width ? ` width="${width}"` : '';
     const t = title ? `<title>${title}</title>` : '';
     const anim = animate ? ' data-draw-svg' : '';
@@ -107,9 +211,15 @@ export class IsoScene {
   }
 }
 
+/** Weltpunkt in SVG-Koordinaten derselben Skala wie render() */
+export const projiziere = (p, scale = 22) => {
+  const [x, y] = proj(p);
+  return [x * scale, y * scale];
+};
+
 /* ---------- Bausteine ---------- */
 
-function gableHouse(sc, x, z, w, d, wallH, roofH, opts = {}) {
+export function gableHouse(sc, x, z, w, d, wallH, roofH, opts = {}) {
   // Satteldach, First entlang X
   sc.box(x, 0, z, w, wallH, d);
   const ridgeZ = z + d / 2;
@@ -137,7 +247,7 @@ function gableHouse(sc, x, z, w, d, wallH, roofH, opts = {}) {
   return { ridge: D, eave: E };
 }
 
-function windowRow(sc, x0, y, z, n, gap, w, h) {
+export function windowRow(sc, x0, y, z, n, gap, w, h) {
   for (let i = 0; i < n; i++) {
     const x = x0 + i * gap;
     sc.poly([[x, y, z], [x + w, y, z], [x + w, y + h, z], [x, y + h, z]], 'dark', [], 0.6);

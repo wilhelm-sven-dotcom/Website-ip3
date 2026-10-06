@@ -44,6 +44,10 @@ Ohne PHP genügt `npm run build && npm run preview`. Das Formular meldet dann eh
 | `src/components/Story.astro` | Scroll-Inszenierung der Startseite (HTML-Inhalte, Beschriftungen, Fallback) |
 | `src/scripts/story/` | Three.js-Szene: Modul, prozeduraler Zellshader, Lichteinfall, Gesamtanlage, Kamerafahrt |
 | `src/lib/iso.js` | Generator für die isometrischen Linienzeichnungen |
+| `src/components/Energiesystem.astro` | Grafik „Ein Tag im Energiesystem“ (Startseite und Leistungsübersicht) |
+| `src/lib/energiesystem-modell.js` | Tagesmodell: Profile, Speicherregeln, Flüsse auf allen Leitungen, deterministisch |
+| `src/lib/energiesystem-szene.js` | Isometrische Landschaft, Leitungen mit sichtbaren Abschnitten, Marker, Zustand um 13:00 Uhr |
+| `src/scripts/energiesystem/` | Laufzeit im Browser: Uhr und Zeitleiste, Teilchen, Auswahl und Infokarte |
 | `src/data/` | Unternehmensdaten, Team, Leistungen, Referenzen, Bildstrecken, Partnerlogos |
 | `src/assets/fotos/` | Projektfotos und Porträts (JPEG), beim Build in WebP-Dateien mehrerer Breiten umgerechnet |
 | `public/img/partner/` | Partnerlogos (WebP, weißer Rand entfernt) |
@@ -61,6 +65,11 @@ Ohne PHP genügt `npm run build && npm run preview`. Das Formular meldet dann eh
 - **Team:** `src/data/site.js`, Porträts quadratisch in `src/assets/fotos/team/`. Ohne Foto erscheint ein Monogramm.
 - **Partnerlogos:** `src/data/partner.js`, Dateien in `public/img/partner/`.
 - **Leistungstexte:** `src/data/leistungen.js` und die Seiten in `src/pages/unsere-leistungen/`
+- **Energiesystem:** Texte, Begriffe der Einleitung, Lagesätze und Leistungen in `src/data/energiesystem.js`. Für jeden Zustandsschlüssel des Tagesmodells muss ein Lagesatz vorhanden sein, das prüft `node scripts/pruefen-energiesystem.mjs`.
+
+## Energiesystem
+
+Ein deterministisches Tagesmodell (96 Viertelstunden, schematischer Frühlingstag) berechnet Erzeugung, Speicher und die Flüsse auf 17 Leitungen. Beim Build entstehen daraus die Landschaft und der Zustand um 13:00 Uhr mit Richtungspfeilen, damit die Grafik auch ohne JavaScript verständlich ist. Im Browser läuft der Tag in rund 32 Sekunden: Quadrate wandern über die sichtbaren Abschnitte der Leitungen (gefüllt Grünstrom, hohl Netzstrom, rot das gewählte Element), Speicher füllen sich, Fenster leuchten abends. Die Uhr läuft nur, solange die Grafik im Bild ist; bei reduzierter Bewegung, Pause oder ohne JavaScript zeigen Pfeile die Richtung. Marker, Elemente der Grafik und die Begriffe im Text öffnen eine Infokarte, beim Überfahren als Vorschau, per Klick, Antippen oder Enter angeheftet. Zum Testen stellt `/?debug` die Steuerung unter `window.__energiesystem` bereit.
 
 ## Inszenierung auf der Startseite
 
@@ -76,11 +85,13 @@ npm run bilder       # Standbilder, Favicons, Social-Media-Bild (benötigt Playw
 ## Prüfen
 
 ```bash
-npm run vorschau                 # in einem Terminal
-node scripts/pruefen.mjs         # Browserprüfung aller Seiten in drei Gerätegrößen
+node scripts/pruefen-energiesystem.mjs   # Tagesmodell, Texte und Geometrie der Grafik, ohne Browser
+npm run vorschau                         # in einem Terminal
+node scripts/pruefen.mjs                 # Browserprüfung aller Seiten in drei Gerätegrößen
+node scripts/pruefen-interaktion.mjs     # Tastatur, Menüs, Formular, Filter, Energiesystem, Fallbacks
 ```
 
-Geprüft werden Statuscodes, Konsole, fehlerhafte Ressourcen, horizontaler Überlauf, Überschriftenstruktur, Alternativtexte, Meta-Angaben und alle internen Links.
+Geprüft werden Statuscodes, Konsole, fehlerhafte Ressourcen, horizontaler Überlauf, Überschriftenstruktur, Alternativtexte, Meta-Angaben und alle internen Links, dazu die Bedienung per Maus, Tastatur und Touch.
 
 ## Testumgebung
 

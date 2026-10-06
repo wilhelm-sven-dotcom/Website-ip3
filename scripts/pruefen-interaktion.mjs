@@ -91,14 +91,157 @@ const browser = await chromium.launch({ args: gl });
   await ctx.close();
 }
 
-/* 4. Schaltbild: Legende hebt Positionen hervor */
+/* 4. Energiesystem: Autoplay nur im Bild, Karte bei Marker und Begriff, Tastatur, Pause, Phasen */
+{
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
+  const fehlerKonsole = [];
+  page.on('pageerror', (e) => fehlerKonsole.push(e.message));
+  await page.goto(base + '/?debug', { waitUntil: 'load' });
+  const es = () => page.evaluate(() => window.__energiesystem.zustand());
+  note((await es()).schleife === false, 'Energiesystem: außerhalb des Bildes läuft keine Schleife');
+  await page.evaluate(() => document.querySelector('.es__buehne').scrollIntoView({ block: 'start', behavior: 'instant' }));
+  await page.evaluate(() => window.scrollBy(0, -90));
+  // Software-Grafik der Testumgebung: Einzeichnen kann dauern
+  await page.waitForFunction(() => window.__energiesystem.zustand().gezeichnet, null, { timeout: 60000 }).catch(() => {});
+  await page.waitForTimeout(800);
+  const t1 = (await es()).t;
+  await page.waitForTimeout(1000);
+  const z1 = await es();
+  note(z1.schleife && z1.laeuft && Math.abs(z1.t - t1) > 0.05, `Energiesystem: läuft im Bild von selbst (${t1.toFixed(2)} → ${z1.t.toFixed(2)} h)`);
+  const teilchen = await page.$$eval('.es-t', (ps) => ps.reduce((n, p) => n + (p.getAttribute('d') || '').split('M').length - 1, 0));
+  note(teilchen > 10, `Energiesystem: Teilchen auf den Leitungen (${teilchen})`);
+
+  const rahmen = await page.$eval('[data-es-rahmen]', (el) => el.getBoundingClientRect().toJSON());
+  const imRahmen = (r) => r.left >= rahmen.left - 1 && r.right <= rahmen.right + 1 && r.top >= rahmen.top - 1 && r.bottom <= rahmen.bottom + 40;
+  await page.hover('.es-marker[data-element="gruenspeicher"]');
+  await page.waitForFunction(() => !document.querySelector('[data-es-karte]').hidden, null, { timeout: 6000 }).catch(() => {});
+  let karte = await page.evaluate(() => ({ offen: !document.querySelector('[data-es-karte]').hidden, titel: document.querySelector('[data-es-karte-titel]').textContent, r: document.querySelector('[data-es-karte]').getBoundingClientRect().toJSON(), expanded: document.querySelector('.es-marker[data-element="gruenspeicher"]').getAttribute('aria-expanded'), wahl: document.querySelectorAll('.es-kabel.is-wahl').length }));
+  note(karte.offen && karte.titel === 'Grünstromspeicher' && karte.expanded === 'true' && imRahmen(karte.r), 'Energiesystem: Überfahren des Markers öffnet die Karte an der Grafik');
+  note(karte.wahl >= 2, `Energiesystem: Leitungen des Elements hervorgehoben (${karte.wahl})`);
+  // Zeitabhängiges in der langsamen Testgrafik per Warten auf den Zustand prüfen
+  const warte = (fn, arg) => page.waitForFunction(fn, arg, { timeout: 6000 }).then(() => true, () => false);
+  await page.mouse.move(karte.r.left + karte.r.width / 2, karte.r.top + 30);
+  await page.waitForTimeout(700);
+  note((await page.isVisible('[data-es-karte]')) && (await page.textContent('[data-es-karte-titel]')) === 'Grünstromspeicher', 'Energiesystem: Karte bleibt beim Überfahren offen');
+  await page.mouse.move(200, 880);
+  note(await warte(() => document.querySelector('[data-es-karte]').hidden), 'Energiesystem: Karte schließt beim Verlassen');
+  await page.hover('.es-begriff[data-element="mfh"]');
+  await warte(() => !document.querySelector('[data-es-karte]').hidden);
+  karte = await page.evaluate(() => ({ offen: !document.querySelector('[data-es-karte]').hidden, titel: document.querySelector('[data-es-karte-titel]').textContent, r: document.querySelector('[data-es-karte]').getBoundingClientRect().toJSON(), lage: document.querySelector('[data-es-karte-lage]').textContent }));
+  note(karte.offen && karte.titel.includes('Mieterstrom') && imRahmen(karte.r) && karte.lage.length > 10, 'Energiesystem: Überfahren des Begriffs im Text öffnet die Karte an der Grafik');
+  await page.mouse.move(200, 880);
+  await warte(() => document.querySelector('[data-es-karte]').hidden);
+
+  // Tastatur: Fokus zeigt die Vorschau, Pfeiltaste wechselt, Enter heftet an, Escape führt zurück
+  await page.focus('[data-es-play]');
+  await page.keyboard.press('Tab');
+  await page.waitForTimeout(200);
+  let fokus = await page.evaluate(() => ({ el: document.activeElement.dataset.element, titel: document.querySelector('[data-es-karte-titel]').textContent, offen: !document.querySelector('[data-es-karte]').hidden }));
+  note(fokus.el === 'wind' && fokus.offen && fokus.titel === 'Windpark', 'Energiesystem: Tab erreicht die Marker, Fokus zeigt die Karte');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(200);
+  fokus = await page.evaluate(() => ({ el: document.activeElement.dataset.element, titel: document.querySelector('[data-es-karte-titel]').textContent }));
+  note(fokus.el === 'pvfrei' && fokus.titel === 'PV-Freifläche', 'Energiesystem: Pfeiltaste wechselt zum nächsten Element');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(200);
+  note(await page.evaluate(() => document.activeElement.matches('[data-es-karte]') && window.__energiesystem.zustand().fest === 'pvfrei'), 'Energiesystem: Enter heftet die Karte an und setzt den Fokus hinein');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+  note(await page.evaluate(() => document.querySelector('[data-es-karte]').hidden && document.activeElement.dataset.element === 'pvfrei'), 'Energiesystem: Escape schließt und führt zum Marker zurück');
+
+  // Pause, Phasen, Regler
+  await page.click('[data-es-play]');
+  const tp = (await es()).t;
+  await page.waitForTimeout(900);
+  const zp = await es();
+  const pfeile = await page.$$eval('.es-pf', (ps) => ps.some((p) => (p.getAttribute('d') || '').length > 10));
+  note(!zp.laeuft && !zp.schleife && Math.abs(zp.t - tp) < 1e-6 && pfeile && !(await page.evaluate(() => document.querySelector('[data-energiesystem]').hasAttribute('data-bewegt'))), 'Energiesystem: Anhalten stoppt Uhr und Teilchen, Pfeile zeigen die Richtung');
+  note((await page.getAttribute('[data-es-play]', 'aria-pressed')) === 'false', 'Energiesystem: Abspielknopf meldet aria-pressed');
+  await page.click('.es__phase-taste[data-phase="abend"]');
+  await page.waitForTimeout(200);
+  let z = await es();
+  note(z.phase === 'abend' && z.m.fluss['gruen-nvp'] > 0 && z.m.fluss['grau-uw'] > 0, `Energiesystem: Abend, Grün- und Graustromspeicher speisen ein (${await page.textContent('[data-es-uhr]')} Uhr)`);
+  note((await page.textContent('[data-es-satz]')).includes('Preisspitze'), 'Energiesystem: Lagesatz zur Phase im Schriftfeld');
+  await page.click('.es__phase-taste[data-phase="nacht"]');
+  await page.waitForTimeout(200);
+  z = await es();
+  note(z.phase === 'nacht' && z.m.fluss['grau-uw'] < 0 && z.m.fluss['haus-auto'] > 0, 'Energiesystem: Nacht, Graustromspeicher und E-Auto laden');
+  await page.focus('[data-es-regler]');
+  await page.keyboard.press('Home');
+  await page.waitForTimeout(200);
+  const regler = await page.evaluate(() => ({ uhr: document.querySelector('[data-es-uhr]').textContent, text: document.querySelector('[data-es-regler]').getAttribute('aria-valuetext') }));
+  note(regler.uhr === '00:00' && regler.text === '00:00 Uhr, Nacht', `Energiesystem: Regler per Tastatur auf 0 (${regler.text})`);
+  await page.click('[data-es-play]');
+  const weiter = await warte(() => window.__energiesystem.zustand().schleife);
+  // ans Seitenende statt nach oben: dort rendert keine 3D-Szene, die die Testgrafik ausbremst
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+  const angehalten = await warte(() => !window.__energiesystem.zustand().schleife);
+  const zEnde = await es();
+  note(weiter && angehalten && zEnde.laeuft, `Energiesystem: außer Sicht hält die Schleife an, Abspielen bleibt gewählt (${weiter}/${angehalten}/${zEnde.laeuft})`);
+  note(fehlerKonsole.length === 0, `Energiesystem: keine Skriptfehler ${fehlerKonsole.join(' | ')}`);
+  await page.close();
+}
+
+/* 4b. Energiesystem am Handy: Antippen dockt die Karte unter der Grafik an, Seite bleibt scrollbar */
+{
+  const ctx = await browser.newContext({ ...zugang, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage();
+  await page.goto(base + '/?debug', { waitUntil: 'load' });
+  await page.evaluate(() => document.querySelector('[data-es-ebene]').scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await page.waitForFunction(() => window.__energiesystem.zustand().gezeichnet, null, { timeout: 60000 }).catch(() => {});
+  await page.waitForTimeout(800);
+  const ziele = await page.$$eval('.es-marker', (ms) => ms.map((m) => Math.min(m.getBoundingClientRect().width, m.getBoundingClientRect().height)));
+  note(ziele.every((h) => h >= 32), `Energiesystem Handy: Marker mindestens 32 px (${Math.min(...ziele).toFixed(0)} px)`);
+  await page.tap('.es-marker[data-element="gruenspeicher"]');
+  await page.waitForTimeout(1200);
+  const lage = await page.evaluate(() => {
+    const k = document.querySelector('[data-es-karte]');
+    const e = document.querySelector('[data-es-ebene]').getBoundingClientRect();
+    return { offen: !k.hidden, pos: getComputedStyle(k).position, oben: k.getBoundingClientRect().top - e.bottom, titel: document.querySelector('[data-es-karte-titel]').textContent };
+  });
+  note(lage.offen && lage.pos !== 'absolute' && lage.oben >= -1 && lage.titel === 'Grünstromspeicher', 'Energiesystem Handy: Antippen dockt die Karte unter der Grafik an');
+  const y0 = await page.evaluate(() => scrollY);
+  await page.evaluate(() => window.scrollBy({ top: 300, behavior: 'instant' }));
+  await page.waitForTimeout(300);
+  note((await page.evaluate(() => scrollY)) > y0 + 200, 'Energiesystem Handy: Seite bleibt frei scrollbar');
+  note((await page.evaluate(() => document.documentElement.scrollWidth)) <= 390, 'Energiesystem Handy: kein waagerechter Überlauf');
+  await ctx.close();
+}
+
+/* 4c. Energiesystem auf der Leistungsseite, mit reduzierter Bewegung und ohne JavaScript */
 {
   const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
   await page.goto(base + '/unsere-leistungen', { waitUntil: 'load' });
-  await page.hover('.legend__item[data-pos="4"]');
-  const aktiv = await page.$$eval('.sld__svg--wide [data-pos="4"].is-active', (els) => els.length);
-  note(aktiv >= 1, 'Legende hebt Position 4 im Schaltbild hervor');
+  const nr = await page.$eval('[data-energiesystem] .dim__num', (el) => el.textContent.trim());
+  note(nr === '02', `Energiesystem auf der Leistungsübersicht als Abschnitt ${nr}`);
   await page.close();
+
+  const ctx = await browser.newContext({ ...zugang, viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  const p2 = await ctx.newPage();
+  await p2.goto(base + '/?debug', { waitUntil: 'load' });
+  await p2.evaluate(() => document.querySelector('[data-es-ebene]').scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await p2.waitForTimeout(800);
+  const rm = await p2.evaluate(() => ({
+    bewegt: document.querySelector('[data-energiesystem]').hasAttribute('data-bewegt'),
+    pfeile: [...document.querySelectorAll('.es-pf')].some((p) => (p.getAttribute('d') || '').length > 10),
+    pfeileSichtbar: getComputedStyle(document.querySelector('.es-pfeile')).display !== 'none',
+    laeuft: window.__energiesystem.zustand().laeuft,
+  }));
+  note(!rm.bewegt && rm.pfeile && rm.pfeileSichtbar && !rm.laeuft, 'Energiesystem bei reduzierter Bewegung: kein Autoplay, statische Pfeile');
+  await ctx.close();
+
+  const ctx2 = await browser.newContext({ ...zugang, viewport: { width: 1440, height: 900 }, javaScriptEnabled: false });
+  const p3 = await ctx2.newPage();
+  await p3.goto(base + '/', { waitUntil: 'load' });
+  const ohne = await p3.evaluate(() => ({
+    liste: document.querySelector('[data-es-liste]').open,
+    eintraege: [...document.querySelectorAll('.es__eintrag')].filter((e) => e.getClientRects().length && e.querySelector('.es__eintrag-text').textContent.length > 40).length,
+    pfeile: (document.querySelector('.es-pf--gruen').getAttribute('d') || '').length > 10,
+    hinweis: getComputedStyle(document.querySelector('.es__ohne-js')).display !== 'none',
+    marker: document.querySelectorAll('.es-marker').length,
+  }));
+  note(ohne.liste && ohne.eintraege === 9 && ohne.pfeile && ohne.hinweis, `Energiesystem ohne JavaScript: alle ${ohne.eintraege} Texte offen, Pfeile für 13:00 Uhr`);
+  await ctx2.close();
 }
 
 /* 5. Kontaktformular */
