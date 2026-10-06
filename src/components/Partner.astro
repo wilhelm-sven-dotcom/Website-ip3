@@ -61,9 +61,10 @@ const { nr = '06' } = Astro.props;
     color: var(--text-sec);
   }
 
+  /* drei Spalten: je Gruppe sechs Logos in zwei vollen Reihen */
   .partner__liste {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .partner__eintrag {
