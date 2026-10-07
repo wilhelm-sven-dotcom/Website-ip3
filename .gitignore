@@ -2,6 +2,7 @@ node_modules/
 dist/
 vorschau-offline/
 testumgebung/
+livegang/
 .astro/
 .DS_Store
 *.log

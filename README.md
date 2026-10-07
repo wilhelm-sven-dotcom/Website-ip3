@@ -122,7 +122,15 @@ Der Ordner enthält die komplette Website. Eine vorangestellte `.htaccess`-Sperr
 
 ## Veröffentlichung
 
-Der Ordner `dist/` nach `npm run build` ist die vollständige Website. Für Apache liegt eine `.htaccess` bei. Die Weiterleitungen auf https und www sind darin auskommentiert und erst auf der produktiven Domain zu aktivieren. Für nginx entspricht das `try_files $uri $uri.html $uri/ =404;`. Das Formular-Skript benötigt PHP mit funktionierender `mail()`-Funktion, alternativ lässt sich über `PUBLIC_FORM_ENDPOINT` beim Build ein anderer Empfänger-Endpunkt setzen.
+```bash
+npm run livegang       # baut die Seite und legt livegang/ an: das Paket für www.ip3-energie.de
+```
+
+Der Ordner `dist/` nach `npm run build` ist die vollständige Website mit `.htaccess` für Apache. Die Weiterleitungen auf https und www sind darin auskommentiert, damit Vorschau und Testadressen ohne Zertifikat funktionieren. `npm run livegang` kopiert den Build nach `livegang/` und schaltet sie dort ein. Auf die produktive Domain deshalb immer `livegang/` hochladen, nicht `dist/`.
+
+Für nginx liegen in `docs/server/` die Server-Blöcke `ip3-energie.conf`, die Regeln `ip3-regeln.conf` (entsprechen der `.htaccess`) und `test-ip3-energie.conf` für eine Testumgebung mit Passwort, weil nginx die `.htaccess` des Testpakets nicht liest. `docs/server/pruefen-livegang.sh` prüft eine hochgeladene Website von außen, nur mit bash und curl (`--help` zeigt die Optionen). Die Anleitung für die IT mit allen Schritten steht in `docs/UEBERGABE-IT.md`.
+
+Das Formular-Skript benötigt PHP mit funktionierender `mail()`-Funktion, alternativ lässt sich über `PUBLIC_FORM_ENDPOINT` beim Build ein anderer Empfänger-Endpunkt setzen.
 
 ## Lizenzen
 
