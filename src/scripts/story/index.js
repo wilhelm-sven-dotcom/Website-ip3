@@ -28,32 +28,31 @@ function pickQuality() {
   const dprRaw = window.devicePixelRatio || 1;
   const strong = cores >= 6 && mem >= 8 && !mobile;
 
+  // Schritt 03: aus dem Modul steil nach oben in die Draufsicht auf den Lageplan (p 0,8), dann
+  // kippt die Kamera in die Schrägsicht, während die Anlage aus dem Plan wächst
   const desktopKeys = {
-    p: [0.0, 0.1, 0.27, 0.42, 0.52, 0.6, 0.66, 0.745, 0.87, 1.0],
-    dist: [6.2, 5.8, 2.4, 0.34, 0.06, 0.042, 0.05, 6.5, 70, 160],
-    az: [-50, -46, -16, -4, 6, 13, 10, 2, -14, -16],
-    el: [22, 24, 50, 54, 33, 27, 30, 58, 34, 32],
-    fov: [28, 28, 30, 34, 40, 42, 42, 36, 31, 30],
-    toFocus: [0, 0, 0.25, 1, 1, 1, 1, 0, 0, 0],
-    toPlant: [0, 0, 0, 0, 0, 0, 0, 0.04, 0.8, 1],
-    shiftX: [0.21, 0.21, 0.13, 0.05, 0, 0, 0, 0.02, 0.06, 0.06],
-    shiftY: [0, 0, 0, 0, 0, 0, 0, 0, 0.03, 0.02],
-    // Zielpunkt zum Schluss nach Süden: Ortsrand mit Haus und Gewerbehalle im Bild
-    offX: [0, 0, 0, 0, 0, 0, 0, 0, 0, -4],
-    offZ: [0, 0, 0, 0, 0, 0, 0, 0, 4, 20],
+    p: [0.0, 0.1, 0.27, 0.42, 0.52, 0.6, 0.66, 0.72, 0.8, 0.88, 1.0],
+    dist: [6.2, 5.8, 2.4, 0.34, 0.06, 0.042, 0.05, 10, 70, 140, 128],
+    az: [-50, -46, -16, -4, 6, 13, 10, 0, 0, -6, -18],
+    el: [22, 24, 50, 54, 33, 27, 30, 70, 84, 58, 27],
+    fov: [28, 28, 30, 34, 40, 42, 42, 34, 30, 30, 30],
+    toFocus: [0, 0, 0.25, 1, 1, 1, 1, 0, 0, 0, 0],
+    toPlant: [0, 0, 0, 0, 0, 0, 0, 0.02, 0.2, 0.7, 1],
+    shiftX: [0.21, 0.21, 0.13, 0.05, 0, 0, 0, 0.02, 0.08, 0.06, 0.04],
+    shiftY: [0, 0, 0, 0, 0, 0, 0, 0, 0.02, 0.03, 0.04],
+    offX: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    offZ: [0, 0, 0, 0, 0, 0, 0, 0, -2, -4, 0],
   };
-  // Hochformat: Modul im oberen Bilddrittel, Anlage im Aufbau von Osten, zum Schluss aus Süd-Südost gesehen
+  // Hochformat: Modul im oberen Bilddrittel; der Lageplan liegt quer im Bild (Osten unten, der
+  // Nordpfeil zeigt nach rechts), zum Schluss liegt die Anlage unter dem Textfeld
   const mobileKeys = {
     ...desktopKeys,
-    dist: [13, 12.2, 3.4, 0.42, 0.07, 0.05, 0.06, 9, 100, 200],
-    az: [-46, -42, -14, -4, 6, 13, 10, 2, 40, 15],
-    el: [24, 26, 50, 54, 33, 27, 30, 58, 40, 54],
-    fov: [28, 28, 34, 38, 44, 46, 46, 40, 38, 38],
-    shiftX: [0.03, 0.03, 0, 0, 0, 0, 0, 0, 0, 0],
-    shiftY: [0.33, 0.33, 0.16, 0.08, 0.06, 0.06, 0.06, 0.08, 0.12, -0.24],
-    // zum Schluss steil aus Süd-Südost: Ortsrand im unteren Bilddrittel, unter dem Textfeld frei
-    offX: [0, 0, 0, 0, 0, 0, 0, 0, 0, 13],
-    offZ: [0, 0, 0, 0, 0, 0, 0, 0, 6, 29],
+    dist: [13, 12.2, 3.4, 0.42, 0.07, 0.05, 0.06, 14, 95, 175, 210],
+    az: [-46, -42, -14, -4, 6, 13, 10, 20, 90, 60, 50],
+    el: [24, 26, 50, 54, 33, 27, 30, 68, 84, 62, 52],
+    fov: [28, 28, 34, 38, 44, 46, 46, 40, 38, 38, 38],
+    shiftX: [0.03, 0.03, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    shiftY: [0.33, 0.33, 0.16, 0.08, 0.06, 0.06, 0.06, 0.08, 0.06, 0.1, -0.26],
   };
 
   return {
@@ -149,34 +148,21 @@ export async function initStory() {
   }
 
   const quality = pickQuality();
-
-  // Vorschläge für Schritt 03 (vorübergehend, bis ip³ entschieden hat): ?schritt3=a|b|c|d
-  let variante = null;
-  const vorschlag = params.get('schritt3');
-  if (vorschlag && /^[abcd]$/.test(vorschlag)) {
-    try {
-      const { waehleVariante } = await import('./vorschlaege.js');
-      variante = waehleVariante(vorschlag);
-      quality.keys = variante.keys(quality.keys, quality.mobile);
-      variante.dom?.(section, quality.mobile);
-    } catch (err) {
-      console.warn('Vorschlag für Schritt 03 nicht verfügbar.', err);
-      variante = null;
-    }
-  }
-
   let story;
   try {
     const mod = await import('./scene.js');
-    story = mod.createStoryScene(canvas, quality, variante);
+    story = mod.createStoryScene(canvas, quality);
   } catch (err) {
     console.warn('Inszenierung nicht verfügbar, statische Darstellung aktiv.', err);
     goStatic('error');
     return;
   }
 
-  // Hochformat-Kamera: Labels in Kurzform (Zusatz nach dem Punkt hätte keinen Platz)
-  section.classList.toggle('story--hoch', quality.mobile);
+  // Maßzahlen des Lageplans aus dem Modell (am Handy sind die Tische kürzer)
+  for (const [key, text] of Object.entries(story.planTexte)) {
+    const el = labelsRoot.querySelector(`[data-label="${key}"] .story-label__text`);
+    if (el) el.textContent = text;
+  }
   const labels = setupLabels(labelsRoot, quality.mobile);
   let target = 0;
   let current = 0;

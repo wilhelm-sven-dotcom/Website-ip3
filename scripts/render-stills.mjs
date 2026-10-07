@@ -11,8 +11,9 @@ fs.mkdirSync(out, { recursive: true });
 const shots = [
   { name: 'modul', p: 0, t: 1.2 },
   { name: 'zelle', p: 0.585, t: 2.4 },
-  // Hochformat: Schlussbild mittig statt über dem Textfeld der Live-Fassung (statische Fassung ohne Textfeld)
-  { name: 'system', p: 1, t: 3.0, tuneHoch: { sy: -0.06 } },
+  // Schritt 03: Die Anlage ist fast fertig aus dem Lageplan gewachsen, der Plan ist noch gut zu sehen.
+  // Hochformat mittig statt über dem Textfeld der Live-Fassung (statische Fassung ohne Textfeld)
+  { name: 'system', p: 0.935, t: 3.0, tuneHoch: { sy: -0.06 } },
 ];
 const sizes = [
   { suffix: '1600', w: 1600, h: 900 },
@@ -24,8 +25,9 @@ for (const size of sizes) {
   const page = await browser.newPage({ viewport: { width: size.w, height: size.h }, deviceScaleFactor: 1.5 });
   await page.goto(url + '?capture', { waitUntil: 'load' });
   await page.waitForFunction(() => window.__story, null, { timeout: 120000 });
-  // ohne Zeichen 3: Seitenelement der Live-Fassung, das Social-Media-Bild setzt sein eigenes
-  await page.addStyleTag({ content: '.story__flow,.story__poster,.story__zeichen,.site-header,.skip-link{display:none !important}' });
+  // ohne Zeichen 3: Seitenelement der Live-Fassung, das Social-Media-Bild setzt sein eigenes.
+  // Sichtbare Labels voll deckend, damit im Standbild keines halb eingeblendet ist.
+  await page.addStyleTag({ content: '.story__flow,.story__poster,.story__zeichen,.site-header,.skip-link{display:none !important} .story-label{opacity:1 !important}' });
   for (const s of shots) {
     await page.evaluate(
       ([s, hoch]) => {

@@ -3,7 +3,8 @@
 import * as THREE from 'three';
 import { createCellMaterial, createCellMaterialLite, cellCenterMM, MODULE } from './cellMaterial.js';
 import { createModuleGeometry, createModuleMaterials, GLASS_Z } from './module.js';
-import { createLayout, createPlant, createFlowMaterial, ribbonGeometry } from './plant.js';
+import { createLayout, createPlant } from './plant.js';
+import { createLageplan } from './lageplan.js';
 import { createPhotons } from './photons.js';
 import { monotone, range, win, clamp01 } from './spline.js';
 
@@ -62,7 +63,7 @@ function buildEnvironment(renderer, heroStrip) {
   return tex;
 }
 
-export function createStoryScene(canvas, quality, variante = null) {
+export function createStoryScene(canvas, quality) {
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: quality.antialias,
@@ -130,18 +131,9 @@ export function createStoryScene(canvas, quality, variante = null) {
   hero.add(heroMesh);
   scene.add(hero);
 
-  // Vorschläge für Schritt 03 (vorübergehend): zusätzliche Objekte, Kameraziel, Aufbaustufen
-  const zusatz =
-    variante?.szene?.({
-      THREE,
-      createFlowMaterial,
-      ribbonGeometry,
-      scene,
-      plant,
-      layout,
-      quality,
-      heroSlot: layout.modules[heroIndex].position.clone(),
-    }) || {};
+  // Lageplan für Schritt 03: zeichnet sich vor dem Aufbau auf den Boden, die Anlage wächst daraus
+  const plan = createLageplan({ layout, plant, heroSlot });
+  scene.add(plan.mesh);
 
   if (quality.shadows) {
     sun.castShadow = true;
@@ -208,7 +200,7 @@ export function createStoryScene(canvas, quality, variante = null) {
   const fB = monotone(P, K.toPlant);
   const fSX = monotone(P, K.shiftX);
   const fSY = monotone(P, K.shiftY);
-  // Verschiebung des Zielpunkts im Anlagenmodell (Meter), damit der Ortsrand ins Schlussbild passt
+  // Verschiebung des Zielpunkts im Anlagenmodell (Meter), etwa für die Draufsicht auf den Lageplan
   const fOX = monotone(P, K.offX ?? P.map(() => 0));
   const fOZ = monotone(P, K.offZ ?? P.map(() => 0));
 
@@ -239,29 +231,28 @@ export function createStoryScene(canvas, quality, variante = null) {
     ...plant.anchors,
   };
 
-  Object.assign(labelAnchors, zusatz.anchors || {});
+  Object.assign(labelAnchors, plan.anchors);
 
-  // Aufbaustufen der Anlage: Bereiche des Scrollfortschritts, null schaltet eine Stufe ab
+  // Aufbaustufen: Bereiche des Scrollfortschritts. Erst zeichnet sich der Lageplan (Draufsicht),
+  // dann wächst die Anlage aus dem Plan, zum Schluss bleibt der Plan leise am Boden.
   const stufen = {
-    build: [0.655, 0.865],
-    grid: [0.69, 0.8],
-    inverters: [0.775, 0.85],
-    trafo: [0.81, 0.86],
-    pvRoute: [0.8, 0.87],
-    bess: [0.845, 0.92],
-    bessRoute: [0.88, 0.93],
-    nvp: [0.875, 0.915],
-    gridRoute: [0.895, 0.94],
-    line: [0.9, 0.975],
-    ort: [0.915, 0.975],
-    ortRoute: [0.95, 0.995],
-    flowPv: [0.84, 0.9],
-    flowBess: [0.915, 0.955],
-    flowGrid: [0.935, 0.985],
-    flowOrt: [0.96, 1],
-    ...(variante?.stufen || {}),
+    plan: [0.69, 0.82],
+    planAus: [0.88, 0.98],
+    grid: [0.69, 0.78],
+    build: [0.8, 0.93],
+    inverters: [0.84, 0.9],
+    trafo: [0.86, 0.9],
+    pvRoute: [0.86, 0.92],
+    bess: [0.87, 0.93],
+    bessRoute: [0.9, 0.94],
+    nvp: [0.89, 0.93],
+    gridRoute: [0.91, 0.95],
+    line: [0.92, 0.98],
+    flowPv: [0.9, 0.95],
+    flowBess: [0.93, 0.96],
+    flowGrid: [0.95, 0.99],
   };
-  const stufe = (p, k) => (stufen[k] ? range(p, stufen[k][0], stufen[k][1]) : 0);
+  const stufe = (p, k) => range(p, stufen[k][0], stufen[k][1]);
 
   // lokale Ankerpunkte der Makrobeschriftungen
   const bbPitch = MODULE.cellW / MODULE.busbars;
@@ -303,7 +294,6 @@ export function createStoryScene(canvas, quality, variante = null) {
     target.copy(moduleCenter).lerp(focusWorld, a).lerp(plantCenter, b);
     target.x += fOX(p);
     target.z += fOZ(p);
-    zusatz.ziel?.(p, target);
 
     const dist = tune.dist ?? Math.exp(fDist(p));
     const az = (tune.az ?? fAz(p)) * DEG + (b > 0.98 ? Math.sin(time * 0.05) * 0.03 : 0);
@@ -364,16 +354,13 @@ export function createStoryScene(canvas, quality, variante = null) {
       nvp: stufe(p, 'nvp'),
       gridRoute: stufe(p, 'gridRoute'),
       line: stufe(p, 'line'),
-      ort: stufe(p, 'ort'),
-      ortRoute: stufe(p, 'ortRoute'),
       flowPv: stufe(p, 'flowPv'),
       flowBess: stufe(p, 'flowBess'),
       flowGrid: stufe(p, 'flowGrid'),
-      flowOrt: stufe(p, 'flowOrt'),
       time,
     });
+    plan.update(stufe(p, 'plan'), 1 - 0.65 * stufe(p, 'planAus'));
     heroMesh.castShadow = quality.shadows && build > 0;
-    zusatz.update?.(p, time);
 
     // Beschriftungen
     labelAnchors.busbar.copy(macroLocal.busbar).applyMatrix4(hero.matrixWorld);
@@ -412,6 +399,7 @@ export function createStoryScene(canvas, quality, variante = null) {
   function warmup() {
     plant.group.visible = true;
     plant.reihe.visible = true;
+    plan.mesh.visible = true;
     photons.group.visible = true;
     renderer.compile(scene, camera);
   }
@@ -432,5 +420,5 @@ export function createStoryScene(canvas, quality, variante = null) {
     old && old.dispose();
   }
 
-  return { renderer, scene, camera, update, render, resize, project, warmup, dispose, labelAnchors, setStrip };
+  return { renderer, scene, camera, update, render, resize, project, warmup, dispose, labelAnchors, planTexte: plan.texte, setStrip };
 }
