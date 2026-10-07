@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { createCellMaterial, createCellMaterialLite, cellCenterMM, MODULE } from './cellMaterial.js';
 import { createModuleGeometry, createModuleMaterials, GLASS_Z } from './module.js';
-import { createLayout, createPlant } from './plant.js';
+import { createLayout, createPlant, createFlowMaterial, ribbonGeometry } from './plant.js';
 import { createPhotons } from './photons.js';
 import { monotone, range, win, clamp01 } from './spline.js';
 
@@ -62,7 +62,7 @@ function buildEnvironment(renderer, heroStrip) {
   return tex;
 }
 
-export function createStoryScene(canvas, quality) {
+export function createStoryScene(canvas, quality, variante = null) {
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: quality.antialias,
@@ -129,6 +129,19 @@ export function createStoryScene(canvas, quality) {
   heroMesh.receiveShadow = quality.shadows;
   hero.add(heroMesh);
   scene.add(hero);
+
+  // Vorschläge für Schritt 03 (vorübergehend): zusätzliche Objekte, Kameraziel, Aufbaustufen
+  const zusatz =
+    variante?.szene?.({
+      THREE,
+      createFlowMaterial,
+      ribbonGeometry,
+      scene,
+      plant,
+      layout,
+      quality,
+      heroSlot: layout.modules[heroIndex].position.clone(),
+    }) || {};
 
   if (quality.shadows) {
     sun.castShadow = true;
@@ -226,6 +239,30 @@ export function createStoryScene(canvas, quality) {
     ...plant.anchors,
   };
 
+  Object.assign(labelAnchors, zusatz.anchors || {});
+
+  // Aufbaustufen der Anlage: Bereiche des Scrollfortschritts, null schaltet eine Stufe ab
+  const stufen = {
+    build: [0.655, 0.865],
+    grid: [0.69, 0.8],
+    inverters: [0.775, 0.85],
+    trafo: [0.81, 0.86],
+    pvRoute: [0.8, 0.87],
+    bess: [0.845, 0.92],
+    bessRoute: [0.88, 0.93],
+    nvp: [0.875, 0.915],
+    gridRoute: [0.895, 0.94],
+    line: [0.9, 0.975],
+    ort: [0.915, 0.975],
+    ortRoute: [0.95, 0.995],
+    flowPv: [0.84, 0.9],
+    flowBess: [0.915, 0.955],
+    flowGrid: [0.935, 0.985],
+    flowOrt: [0.96, 1],
+    ...(variante?.stufen || {}),
+  };
+  const stufe = (p, k) => (stufen[k] ? range(p, stufen[k][0], stufen[k][1]) : 0);
+
   // lokale Ankerpunkte der Makrobeschriftungen
   const bbPitch = MODULE.cellW / MODULE.busbars;
   const cc = cellCenterMM(2, 17);
@@ -266,6 +303,7 @@ export function createStoryScene(canvas, quality) {
     target.copy(moduleCenter).lerp(focusWorld, a).lerp(plantCenter, b);
     target.x += fOX(p);
     target.z += fOZ(p);
+    zusatz.ziel?.(p, target);
 
     const dist = tune.dist ?? Math.exp(fDist(p));
     const az = (tune.az ?? fAz(p)) * DEG + (b > 0.98 ? Math.sin(time * 0.05) * 0.03 : 0);
@@ -312,28 +350,30 @@ export function createStoryScene(canvas, quality) {
     // Reihe des Hauptmoduls im Einstieg; verschwindet, bevor die Kamera in die Zelle taucht
     // (dann ist nur noch das Hauptmodul im Bild). Danach baut sich die Anlage um das Modul auf.
     plant.reihe.visible = p < 0.41;
-    const build = range(p, 0.655, 0.865);
-    plant.group.visible = build > 0.0005;
+    const build = stufe(p, 'build');
+    const grid = stufe(p, 'grid');
+    plant.group.visible = build > 0.0005 || grid > 0.001;
     plant.setBuild(build, { value: true, changed: false });
     plant.setStage({
-      grid: range(p, 0.69, 0.8),
-      inverters: range(p, 0.775, 0.85),
-      trafo: range(p, 0.81, 0.86),
-      pvRoute: range(p, 0.8, 0.87),
-      bess: range(p, 0.845, 0.92),
-      bessRoute: range(p, 0.88, 0.93),
-      nvp: range(p, 0.875, 0.915),
-      gridRoute: range(p, 0.895, 0.94),
-      line: range(p, 0.9, 0.975),
-      ort: range(p, 0.915, 0.975),
-      ortRoute: range(p, 0.95, 0.995),
-      flowPv: range(p, 0.84, 0.9),
-      flowBess: range(p, 0.915, 0.955),
-      flowGrid: range(p, 0.935, 0.985),
-      flowOrt: range(p, 0.96, 1),
+      grid,
+      inverters: stufe(p, 'inverters'),
+      trafo: stufe(p, 'trafo'),
+      pvRoute: stufe(p, 'pvRoute'),
+      bess: stufe(p, 'bess'),
+      bessRoute: stufe(p, 'bessRoute'),
+      nvp: stufe(p, 'nvp'),
+      gridRoute: stufe(p, 'gridRoute'),
+      line: stufe(p, 'line'),
+      ort: stufe(p, 'ort'),
+      ortRoute: stufe(p, 'ortRoute'),
+      flowPv: stufe(p, 'flowPv'),
+      flowBess: stufe(p, 'flowBess'),
+      flowGrid: stufe(p, 'flowGrid'),
+      flowOrt: stufe(p, 'flowOrt'),
       time,
     });
     heroMesh.castShadow = quality.shadows && build > 0;
+    zusatz.update?.(p, time);
 
     // Beschriftungen
     labelAnchors.busbar.copy(macroLocal.busbar).applyMatrix4(hero.matrixWorld);

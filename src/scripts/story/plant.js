@@ -742,7 +742,7 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, rowMateri
     const mesh = new THREE.Mesh(g, m);
     mesh.renderOrder = 2;
     group.add(mesh);
-    routes.push({ mesh, mat: m, ...opts });
+    routes.push({ mesh, mat: m, pts, ...opts });
     return mesh;
   };
 
@@ -944,5 +944,7 @@ export function createPlant({ layout, moduleGeometry, moduleMaterials, rowMateri
     setStage,
     reihe,
     heroPosition: heroPos.clone(),
+    // Bauteile für die Vorschläge zu Schritt 03 (vorübergehend, siehe vorschlaege.js)
+    teile: { inverters, trafo, bess, bessX: bx0, nvp, poles, conductors, conductorMat, lineStart, lineDir, span, poleH, collectorX, routes },
   };
 }

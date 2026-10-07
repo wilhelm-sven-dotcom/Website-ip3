@@ -149,10 +149,26 @@ export async function initStory() {
   }
 
   const quality = pickQuality();
+
+  // Vorschläge für Schritt 03 (vorübergehend, bis ip³ entschieden hat): ?schritt3=a|b|c|d
+  let variante = null;
+  const vorschlag = params.get('schritt3');
+  if (vorschlag && /^[abcd]$/.test(vorschlag)) {
+    try {
+      const { waehleVariante } = await import('./vorschlaege.js');
+      variante = waehleVariante(vorschlag);
+      quality.keys = variante.keys(quality.keys, quality.mobile);
+      variante.dom?.(section, quality.mobile);
+    } catch (err) {
+      console.warn('Vorschlag für Schritt 03 nicht verfügbar.', err);
+      variante = null;
+    }
+  }
+
   let story;
   try {
     const mod = await import('./scene.js');
-    story = mod.createStoryScene(canvas, quality);
+    story = mod.createStoryScene(canvas, quality, variante);
   } catch (err) {
     console.warn('Inszenierung nicht verfügbar, statische Darstellung aktiv.', err);
     goStatic('error');

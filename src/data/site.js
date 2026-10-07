@@ -46,7 +46,7 @@ export const verbund = {
       // Wortmarke weiß für Navy; w und h für gleiche optische Fläche (logoBreite)
       logo: { src: '/brand/ip3-energietechnik-weiss.svg', w: 850, h: 128 },
       aufgaben: [
-        'Planung von Anlagen für erneuerbare Energien',
+        'Ingenieurbüro: Planung von Anlagen für erneuerbare Energien',
         'Mittel- und Niederspannung, Netzanschluss',
         'Bau und Inbetriebnahme als beim Bayernwerk eingetragener Installateurbetrieb',
         'Batteriespeicher vom Heimspeicher bis zum Großspeicher',
@@ -63,7 +63,7 @@ export const verbund = {
         'Inhabergeführtes Familienunternehmen aus Weiden',
         'Projektentwicklung gemeinsam mit Flächeneigentümern',
         'Verträge, Bauleitplanung und Netzverknüpfungspunkt',
-        'Betrieb von Solaranlagen',
+        'Betrieb eigener Solaranlagen',
       ],
       web: 'www.enmag-naturstrom.de',
       url: 'https://www.enmag-naturstrom.de',

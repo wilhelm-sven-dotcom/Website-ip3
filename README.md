@@ -89,6 +89,8 @@ Ablauf: Im Einstieg steht das Hauptmodul angehoben am Westende seiner Reihe, die
 
 Die Szene wird erst geladen, wenn WebGL verfügbar ist, und rendert nur, solange sie im Bild ist. Bei `prefers-reduced-motion`, fehlendem WebGL oder schwacher Hardware zeigt die Seite eine statische Bildfolge mit denselben Texten. Ist die Darstellung zu langsam, bleibt das letzte Bild stehen und der Wechsel auf die statische Fassung geschieht erst, wenn die Inszenierung aus dem Bild gescrollt ist; die Leseposition bleibt dabei erhalten. Zum Testen: `/?static`.
 
+Vorübergehend: Vorschläge für Schritt 03 ohne Haus und Halle unter `/?schritt3=a` bis `/?schritt3=d` (`src/scripts/story/vorschlaege.js`, nur mit Parameter geladen). Nach der Entscheidung von ip³ wird die gewählte Variante regulär eingebaut und die Datei entfernt.
+
 Die Standbilder für Poster und statische Variante werden aus der Szene gerendert:
 
 ```bash
