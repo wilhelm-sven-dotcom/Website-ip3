@@ -10,13 +10,22 @@ gsap.registerPlugin(ScrollTrigger);
 
 const params = new URLSearchParams(location.search);
 
-function webglAvailable() {
-  try {
-    const c = document.createElement('canvas');
-    return !!(window.WebGL2RenderingContext && c.getContext('webgl2'));
-  } catch {
-    return false;
-  }
+// WebGL2 mit Grafikbeschleunigung: Mit failIfMajorPerformanceCaveat lehnt der Browser den
+// Kontext ab, wenn er nur in Software rechnen könnte (virtuelle Desktops, Remote-Desktop,
+// abgeschaltete Hardwarebeschleunigung). Ergebnis 'ok', 'software' oder 'no-webgl'.
+function webglStatus() {
+  const probe = (attrs) => {
+    try {
+      const gl = document.createElement('canvas').getContext('webgl2', attrs);
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
+      return !!gl;
+    } catch {
+      return false;
+    }
+  };
+  if (!window.WebGL2RenderingContext) return 'no-webgl';
+  if (probe({ failIfMajorPerformanceCaveat: true })) return 'ok';
+  return probe() ? 'software' : 'no-webgl';
 }
 
 function pickQuality() {
@@ -92,6 +101,8 @@ export async function initStory() {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const lowPower = (navigator.hardwareConcurrency || 4) <= 2 || (navigator.deviceMemory && navigator.deviceMemory <= 2) || navigator.connection?.saveData;
   const forceStatic = params.has('static');
+  // Aufnahmen (?live, ?capture): Inszenierung auch in Software-Darstellung, ohne Laufzeitprüfung
+  const erzwingen = params.has('live') || params.has('capture');
 
   // Der Wechsel auf die statische Fassung verkürzt den Abschnitt um mehrere Bildschirmhöhen.
   // Damit die Leseposition erhalten bleibt, steht nach dem Umbau derselbe Inhalt an derselben
@@ -142,8 +153,9 @@ export async function initStory() {
     halten(a);
   };
 
-  if (forceStatic || reduce || lowPower || !webglAvailable()) {
-    goStatic(forceStatic ? 'param' : reduce ? 'reduced-motion' : lowPower ? 'low-power' : 'no-webgl');
+  const gl = forceStatic || reduce || lowPower ? '' : webglStatus();
+  if (forceStatic || reduce || lowPower || gl === 'no-webgl' || (gl === 'software' && !erzwingen)) {
+    goStatic(forceStatic ? 'param' : reduce ? 'reduced-motion' : lowPower ? 'low-power' : gl);
     return;
   }
 
@@ -173,13 +185,27 @@ export async function initStory() {
   let raf = 0;
   let last = performance.now();
   let time = 0;
-  let slowFrames = 0;
-  let frames = 0;
   let width = 0;
   let height = 0;
   let capturing = false;
   // zu langsam: letztes Bild bleibt stehen, Wechsel auf die statische Fassung außer Sicht
   let langsam = false;
+
+  // Laufzeitprüfung: Schafft die Renderschleife nach einer Sekunde Anlauf in einem Zeitfenster
+  // von 2,5 s weniger als 13 Bilder pro Sekunde, gilt die Darstellung als zu langsam. Gezählt
+  // wird über das Fenster, weil sich in Software-Darstellung lange und kurze Bildabstände
+  // abwechseln; einzelne Hänger bis knapp 2 s lösen nichts aus.
+  let anlaufBis = 0;
+  let messBeginn = 0;
+  let bilder = [];
+  const zuLangsam = (now) => {
+    if (!anlaufBis) anlaufBis = now + 1000;
+    if (now < anlaufBis) return false;
+    if (!messBeginn) messBeginn = now;
+    bilder.push(now);
+    while (now - bilder[0] > 2500) bilder.shift();
+    return now - messBeginn >= 2500 && bilder.length < 33;
+  };
 
   const resize = () => {
     const r = stage.getBoundingClientRect();
@@ -252,7 +278,7 @@ export async function initStory() {
     }
   }
 
-  function frame(now) {
+  function frame(now, messen = false) {
     if (statisch || langsam) return;
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
@@ -269,29 +295,28 @@ export async function initStory() {
     placeLabels(current);
     section.style.setProperty('--story-p', current.toFixed(4));
 
-    // Laufzeitprüfung: bei dauerhaft zu langsamer Darstellung statisch weiter
-    frames++;
-    if (frames > 20 && frames < 140) {
-      if (dt > 0.075) slowFrames++;
-      if (slowFrames > 45 && !params.has('capture')) {
-        stop();
-        langsam = true;
-        if (!visible) goStatic('slow');
-        return;
-      }
+    // gemessen werden nur Bilder der Renderschleife, nicht Einzelbilder aus dem Scrollereignis
+    if (messen && !erzwingen && zuLangsam(now)) {
+      stop();
+      langsam = true;
+      section.dataset.zuLangsam = 'true';
+      if (!visible) goStatic('slow');
     }
   }
 
   function loop(now) {
     if (!running) return;
-    frame(now);
-    raf = requestAnimationFrame(loop);
+    frame(now, true);
+    if (running) raf = requestAnimationFrame(loop);
   }
 
   function start() {
     if (running || statisch || langsam || !visible || document.hidden) return;
     running = true;
     last = performance.now();
+    // nach einer Pause (außer Sicht, Tab im Hintergrund) neu messen
+    messBeginn = 0;
+    bilder = [];
     raf = requestAnimationFrame(loop);
   }
 

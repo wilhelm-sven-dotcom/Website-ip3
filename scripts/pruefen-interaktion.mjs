@@ -460,6 +460,52 @@ const browser = await chromium.launch({ args: gl });
   note(bilder >= 3, `Ohne WebGL: Standbilder geladen (${bilder})`);
   await b2.close();
 }
+{
+  // Chromium ohne GPU-Schalter rechnet in Software und lehnt failIfMajorPerformanceCaveat ab,
+  // wie Rechner ohne Grafikbeschleunigung (virtuelle Desktops, Remote-Desktop)
+  const b3 = await chromium.launch();
+  const page = await b3.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
+  await page.goto(base + '/', { waitUntil: 'load' });
+  await page.waitForTimeout(800);
+  const st = await page.evaluate(() => ({ cls: document.querySelector('.story').className, reason: document.querySelector('.story').dataset.staticReason }));
+  note(st.cls.includes('is-static') && ['software', 'no-webgl'].includes(st.reason), `Ohne Grafikbeschleunigung: sofort statische Bildfolge (${st.reason})`);
+  await b3.close();
+}
+{
+  // Zu langsame Darstellung (SwiftShader ohne Leistungsvorbehalt): nach wenigen Sekunden bleibt
+  // das Bild stehen, außer Sicht folgt die statische Fassung
+  const page = await browser.newPage({ ...zugang, viewport: { width: 1440, height: 900 } });
+  await page.addInitScript(() => {
+    window.__lang = 0;
+    let l = 0;
+    const tick = (n) => {
+      if (l && n - l > 75) window.__lang += n - l;
+      l = n;
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  await page.goto(base + '/', { waitUntil: 'load' });
+  await page.waitForFunction(() => document.querySelector('.story.is-live'), null, { timeout: 60000 });
+  await page.waitForTimeout(1500);
+  await page.evaluate(() => (window.__lang = 0));
+  const hoehe = await page.evaluate(() => document.querySelector('.story').offsetHeight);
+  for (let i = 0; i < 40; i++) {
+    await page.mouse.wheel(0, hoehe / 50);
+    await page.waitForTimeout(200);
+  }
+  const lang = await page.evaluate(() => window.__lang);
+  await page.mouse.wheel(0, hoehe);
+  await page.waitForTimeout(1500);
+  const st = await page.evaluate(() => ({ cls: document.querySelector('.story').className, reason: document.querySelector('.story').dataset.staticReason }));
+  if (lang < 500 && st.cls.includes('is-live')) {
+    note(true, 'Langsame Darstellung: Umgebung rendert flüssig genug, Rückfall nicht ausgelöst');
+  } else {
+    note(lang < 6000, `Langsame Darstellung: höchstens wenige Sekunden zäh (${(lang / 1000).toFixed(1)} s lange Bilder)`);
+    note(st.cls.includes('is-static') && st.reason === 'slow', `Langsame Darstellung: außer Sicht statische Fassung (${st.reason})`);
+  }
+  await page.close();
+}
 
 /* 7. Inszenierung live: Leinwand aktiv, Text als HTML vorhanden */
 {

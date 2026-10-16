@@ -120,7 +120,8 @@ async function tippen2(selektor, text) {
 }
 
 // 1. Startseite mit Inszenierung Modul, Zelle, System
-await page.goto(basis + '/', { waitUntil: 'load' });
+// ?live: Inszenierung auch in der Software-Darstellung ohne Laufzeitprüfung, sonst friert die Aufnahme ein
+await page.goto(basis + '/?live', { waitUntil: 'load' });
 await warten(() => /is-live|is-static/.test(document.querySelector('[data-story]').className));
 await halten(1.6);
 const vh = 844;

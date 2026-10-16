@@ -1,6 +1,6 @@
 # Neue Website www.ip3-energie.de: Übergabe an die IT
 
-ip³ Energietechnik GmbH · Stand 07.10.2026 · Ansprechpartner bei ip³: Sven Wilhelm
+ip³ Energietechnik GmbH · Stand 16.10.2026 · Ansprechpartner bei ip³: Sven Wilhelm
 
 Diese Anleitung beschreibt, wie die neue Website die bisherige TYPO3-Seite unter www.ip3-energie.de ablöst. Im Quellcode liegt sie unter `docs/UEBERGABE-IT.md`, die Serverdateien unter `docs/server/`.
 
@@ -123,6 +123,7 @@ Für die Testumgebung `test-ip3-energie.conf` verwenden; wie die Passwortdatei a
 | Mail kommt nicht an oder landet im Spam | SPF, DKIM und DMARC von ip3-energie.de prüfen; der Webserver muss für `noreply@ip3-energie.de` senden dürfen. |
 | Endlose Weiterleitung | TLS endet an einem vorgeschalteten Proxy, der kein `X-Forwarded-Proto: https` mitschickt. Den Header im Proxy setzen oder die Weiterleitung im Proxy einrichten und `htaccess-ohne-https.txt` verwenden. |
 | Seiten nicht im Suchindex | Prüfskript meldet `robots.txt` oder `X-Robots-Tag`: Es ist das Testpaket statt `01-website` hochgeladen. |
+| Startseite zeigt Standbilder statt 3D | Gewollt ohne Grafikbeschleunigung (virtueller Desktop, Remote-Desktop, abgeschaltete Hardwarebeschleunigung), bei zu langsamer Darstellung, schwacher Hardware, Datensparmodus oder „Bewegung reduzieren“. Den Grund nennt das Attribut `data-static-reason` am Abschnitt `.story`; `/?static` zeigt die Standbildfassung zum Vergleich. |
 
 ## Datenschutz und Betrieb
 
@@ -134,7 +135,7 @@ Für die Testumgebung `test-ip3-energie.conf` verwenden; wie die Passwortdatei a
 ## Geprüft
 
 - Apache 2.4.58 mit PHP 8.3.6 und nginx 1.24.0 mit PHP-FPM 8.3, jeweils mit TLS: Prüfskript ohne Fehler (48 Prüfungen), Testumgebung mit Passwort ohne Fehler (Apache 46, nginx 45 Prüfungen und der erwartete Hinweis), Testmails an info@ip3-energie.de mit und ohne `[Test]` im Mailprotokoll. Gegenproben: fehlende Weiterleitung, hochgeladenes Testpaket, gesperrte robots.txt, alte TYPO3-Dateien und ungültiges Zertifikat erkennt das Skript.
-- Inhaltsdaten (28 Prüfungen) und im Browser mit Chromium an Rechner, Tablet und Handy: Seiten 607, Interaktion 89, Monitoring 27 und Energiesystem 29 Prüfungen, jeweils ohne Fehler. Die 607 Seitenprüfungen liefen zusätzlich gegen Apache mit der `.htaccess` und dem Formular-Skript dieser Lieferung.
+- Inhaltsdaten (28 Prüfungen) und im Browser mit Chromium an Rechner, Tablet und Handy: Seiten 607, Interaktion 92, Monitoring 27 und Energiesystem 29 Prüfungen, jeweils ohne Fehler. Die 607 Seitenprüfungen liefen zusätzlich gegen Apache mit der `.htaccess` und dem Formular-Skript dieser Lieferung.
 - Nicht geprüft: der Zielserver und die Zustellung über den Mailausgang von ip3-energie.de. Beides zeigt das Prüfskript mit `--formular` auf dem Zielserver.
 
 ## Später ändern
