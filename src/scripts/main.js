@@ -2,6 +2,7 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
+import { beimEinblenden } from './einblenden.js';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -175,24 +176,38 @@ function initReveals() {
     return;
   }
 
-  // Überschriften zeilenweise aus einer Maske
+  // Überschriften zeilenweise aus einer Maske. Teilt SplitText nach einem Schriftwechsel neu,
+  // übernimmt die neue Animation den Stand; war die Überschrift schon im Bild, läuft sie weiter.
   document.querySelectorAll('[data-split]').forEach((el) => {
+    let imBild = false;
+    let anim = null;
     document.fonts.ready.then(() => {
       const split = SplitText.create(el, { type: 'lines', mask: 'lines', linesClass: 'split-line', autoSplit: true,
         onSplit(self) {
           // Start unterhalb der Maske samt Luft für Umlautpunkte (siehe .split-line-mask);
           // danach beschneidet die Maske nichts mehr, auch keine weit ausladenden Zeichen
-          return gsap.from(self.lines, {
+          anim = gsap.from(self.lines, {
             yPercent: 145,
             duration: 1.1,
             ease: 'expo.out',
             stagger: 0.08,
+            paused: !imBild,
             onComplete: () => self.masks.forEach((m) => (m.style.overflow = 'visible')),
-            scrollTrigger: { trigger: el, start: 'top 88%', once: true },
           });
+          return anim;
         },
       });
       el.dataset.splitReady = '';
+      beimEinblenden(
+        el,
+        () => {
+          imBild = true;
+          anim?.play();
+          // wie bei den Inhalten: bei stockenden Bildern spätestens nach gut zwei Sekunden fertig
+          setTimeout(() => anim?.progress(1), 2200);
+        },
+        0.88
+      );
       return split;
     });
   });
@@ -203,37 +218,45 @@ function initReveals() {
     els.forEach((el) => el.classList.add('is-sichtbar'));
     gsap.set(els, { clearProps: 'opacity,transform' });
   };
-  ScrollTrigger.batch('[data-reveal]', {
-    start: 'top 90%',
-    once: true,
-    onEnter: (batch) => {
-      // Nach einem Sprung (Anker, gespeicherte Scrollposition) sofort zeigen, was schon
-      // oberhalb liegt; gestaffelt erscheint nur, was im Bild ist
-      const vorbei = batch.filter((el) => el.getBoundingClientRect().bottom <= 0);
-      const imBild = batch.filter((el) => !vorbei.includes(el));
-      if (vorbei.length) sichtbar(vorbei);
-      if (imBild.length) {
-        gsap.to(imBild, {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-          ease: 'expo.out',
-          stagger: 0.08,
-          overwrite: true,
-          onComplete: () => sichtbar(imBild),
-        });
-      }
-    },
-  });
+  // Was im selben Bild die Linie erreicht, erscheint gemeinsam und gestaffelt
+  let sammlung = [];
+  const einblenden = () => {
+    const batch = sammlung;
+    sammlung = [];
+    // Nach einem Sprung (Anker, gespeicherte Scrollposition) sofort zeigen, was schon
+    // oberhalb liegt; gestaffelt erscheint nur, was im Bild ist
+    const vorbei = batch.filter((el) => el.getBoundingClientRect().bottom <= 0);
+    const imBild = batch.filter((el) => !vorbei.includes(el));
+    if (vorbei.length) sichtbar(vorbei);
+    if (imBild.length) {
+      gsap.to(imBild, {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        ease: 'expo.out',
+        stagger: 0.08,
+        overwrite: true,
+        onComplete: () => sichtbar(imBild),
+      });
+      // Laufen die Bilder stockend (GSAP bremst nach langen Bildern), stehen die Inhalte trotzdem
+      // nach knapp zwei Sekunden fertig da
+      setTimeout(() => {
+        gsap.killTweensOf(imBild);
+        sichtbar(imBild);
+      }, 1800 + imBild.length * 80);
+    }
+  };
+  document.querySelectorAll('[data-reveal]').forEach((el) =>
+    beimEinblenden(el, () => {
+      if (!sammlung.length) requestAnimationFrame(einblenden);
+      sammlung.push(el);
+    })
+  );
 
-  // Bemaßungslinien zeichnen sich
+  // Bemaßungslinien zeichnen sich (beobachtet wird die Zeile, die Linie selbst ist anfangs
+  // auf Breite null skaliert)
   document.querySelectorAll('.dim__line[data-draw]').forEach((line) => {
-    gsap.to(line, {
-      scaleX: 1,
-      duration: 1.4,
-      ease: 'expo.out',
-      scrollTrigger: { trigger: line, start: 'top 92%', once: true },
-    });
+    beimEinblenden(line.parentElement, () => gsap.to(line, { scaleX: 1, duration: 1.4, ease: 'expo.out' }), 0.92);
   });
 
   // SVG-Linienzeichnungen: Strichlänge in Bildschirmeinheiten (non-scaling-stroke). Die Längen
@@ -280,11 +303,9 @@ function initReveals() {
       prepare();
       if (fillEls.length) gsap.set(fillEls, { fillOpacity: 0 });
     }
-    ScrollTrigger.create({
-      trigger: svg,
-      start: 'top 85%',
-      once: true,
-      onEnter: () => {
+    beimEinblenden(
+      svg,
+      () => {
         if (!rendered()) {
           done();
           return;
@@ -303,13 +324,14 @@ function initReveals() {
           gsap.to(fillEls, { fillOpacity: 1, duration: 0.9, ease: 'power1.out', delay: 0.8, stagger: { amount: 0.4 }, clearProps: 'fillOpacity' });
         }
       },
-    });
+      0.85
+    );
   });
 
   // Bildenthüllungen: Ein Vorhang (CSS, transform) gibt das Motiv frei. Kein animierter
   // clip-path mehr, den der Browser bei jedem Bild neu zeichnen müsste.
   document.querySelectorAll('[data-clip]').forEach((el) => {
-    ScrollTrigger.create({ trigger: el, start: 'top 85%', once: true, onEnter: () => el.classList.add('is-enthuellt') });
+    beimEinblenden(el, () => el.classList.add('is-enthuellt'), 0.85);
   });
 
   // Dezente Parallaxe (nur Translation, Ausrichtung bleibt); eigene Ebene, damit beim Scrollen
@@ -371,6 +393,21 @@ function init() {
   // Inhalte verschieben sich (z. B. Referenzfilter): Auslöser neu berechnen. Ein künstliches
   // resize-Ereignis reicht nicht, ScrollTrigger übergeht es auf Touchgeräten.
   document.addEventListener('layout:change', () => ScrollTrigger.refresh());
+  // Ändert sich die Seitenhöhe nach dem Start (Schriften, Bilder, Countdown, Wechsel der
+  // Inszenierung), rechnen auch die fortlaufenden Scrollanimationen (Inszenierung, Parallaxe,
+  // Ablauf) ihre Positionen neu. Die Einblendungen hängen davon nicht ab (einblenden.js).
+  let hoehe = document.documentElement.scrollHeight;
+  let warte = 0;
+  new ResizeObserver(() => {
+    const h = document.documentElement.scrollHeight;
+    if (Math.abs(h - hoehe) < 2) return;
+    hoehe = h;
+    clearTimeout(warte);
+    warte = setTimeout(() => ScrollTrigger.refresh(), 200);
+  }).observe(document.body);
+
+  // Fehlersuche auf Geräten, die hier nicht zum Testen bereitstehen: /?diagnose
+  if (new URLSearchParams(location.search).has('diagnose')) import('./diagnose.js');
 }
 
 if (document.readyState === 'loading') {

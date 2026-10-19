@@ -612,6 +612,66 @@ for (const vp of [{ width: 1440, height: 900 }, { width: 390, height: 844, mobil
   await ctx.close();
 }
 
+/* 13. Einblendungen folgen dem tatsächlichen Layout: Wird die Seite nach dem Start oberhalb
+   kürzer (Schriftwechsel, Countdown, Bilder, Wechsel der Inszenierung), erscheinen Überschrift
+   und Inhalte darunter trotzdem, sobald sie im Bild sind. Handygröße wie iPhone Pro Max. */
+const versteckteImBild = (page, auswahl = 'main') =>
+  page.evaluate((auswahl) => {
+    const vh = innerHeight;
+    const oben = (el) => { const r = el.getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.top < vh * 0.85; };
+    const inhalte = [...document.querySelectorAll(`${auswahl} [data-reveal]`)].filter((el) => oben(el) && parseFloat(getComputedStyle(el).opacity) < 0.5);
+    const titel = [...document.querySelectorAll(`${auswahl} [data-split-ready]`)].filter((el) => {
+      const z = el.querySelector('.split-line');
+      if (!z || !oben(el)) return false;
+      const t = getComputedStyle(z).transform;
+      return t !== 'none' && t !== 'matrix(1, 0, 0, 1, 0, 0)';
+    });
+    const name = (el) => (el.closest('section')?.getAttribute('aria-labelledby') || '?') + ':' + el.tagName.toLowerCase();
+    return [...inhalte, ...titel].map(name);
+  }, auswahl);
+{
+  const ctx = await browser.newContext({ ...zugang, viewport: { width: 440, height: 956 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage();
+  await page.goto(base + '/?static', { waitUntil: 'load' });
+  await page.waitForTimeout(1200);
+  const gekuerzt = await page.evaluate(() => {
+    const h0 = document.documentElement.scrollHeight;
+    document.querySelector('section.es').style.display = 'none';
+    return h0 - document.documentElement.scrollHeight;
+  });
+  await page.evaluate(() => {
+    const r = document.querySelector('section.refs').getBoundingClientRect();
+    window.scrollTo({ top: r.top + scrollY - 100, behavior: 'instant' });
+  });
+  await page.waitForTimeout(1800);
+  const offen = await versteckteImBild(page, 'section.refs');
+  const anzahl = await page.$$eval('section.refs [data-reveal]', (els) => els.length);
+  note(gekuerzt > 800 && anzahl > 0 && offen.length === 0, `Einblendung nach verschobenem Layout (Seite ${gekuerzt} px kürzer): ${offen.length ? 'unsichtbar ' + offen.join(', ') : 'Überschrift und Inhalte der Referenzen sichtbar'}`);
+
+  // Ganze Startseite in Handygröße durchscrollen: nichts im Bild bleibt verborgen
+  await page.goto(base + '/?static', { waitUntil: 'load' });
+  await page.waitForTimeout(1200);
+  const hoehe = await page.evaluate(() => document.documentElement.scrollHeight);
+  const haengt = [];
+  for (let y = 0; y < hoehe; y += Math.round(956 * 0.8)) {
+    await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), y);
+    await page.waitForTimeout(1500);
+    const o = await versteckteImBild(page);
+    if (o.length) haengt.push(`${y} px: ${o.join(', ')}`);
+  }
+  note(haengt.length === 0, `Startseite 440 × 956 durchgescrollt: ${haengt.length ? 'unsichtbar bei ' + haengt.join(' | ') : 'alles im Bild nach 1,5 s sichtbar'}`);
+
+  // Sprung ans Seitenende (schnelles Wischen, Anker): Was dabei übersprungen wurde, ist sichtbar
+  await page.goto(base + '/?static', { waitUntil: 'load' });
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+  await page.waitForTimeout(1500);
+  const uebersprungen = await page.evaluate(() => [...document.querySelectorAll('main [data-reveal]')].filter((el) => el.getBoundingClientRect().bottom <= 0 && parseFloat(getComputedStyle(el).opacity) < 0.5).length);
+  const gesamt = await page.$$eval('main [data-reveal]', (els) => els.length);
+  note(uebersprungen === 0, `Sprung ans Seitenende: übersprungene Einblendungen sichtbar (${gesamt - uebersprungen} von ${gesamt})`);
+  await ctx.close();
+}
+
 /* 11. Keine Kundennamen, kein EFRE-Hinweis */
 {
   const namen = /beierl|netto|fristo|forster/i;

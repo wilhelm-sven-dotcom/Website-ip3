@@ -57,6 +57,7 @@ Ohne PHP genügt `npm run build && npm run preview`. Das Formular meldet dann eh
 | `src/assets/fotos/` | Projektfotos und Porträts (JPEG), beim Build in WebP-Dateien mehrerer Breiten umgerechnet |
 | `public/img/partner/` | Partnerlogos (WebP, weißer Rand entfernt) |
 | `src/styles/` | Designsystem: Farben, Schriften, Raster, Bausteine |
+| `src/scripts/main.js`, `einblenden.js` | Header, Menüs, Einblendungen beim Scrollen, Parallaxe |
 | `public/kontakt-senden.php` | Versand des Kontaktformulars per PHP `mail()` |
 | `public/.htaccess` | Saubere URLs und Caching für Apache |
 | `scripts/` | Prüf- und Renderwerkzeuge (Standbilder, Icons, Browserprüfung, Video) |
@@ -109,6 +110,8 @@ node scripts/messen-scrollen.mjs         # Bildzeiten beim Scrollen mit gedrosse
 ```
 
 Geprüft werden Statuscodes, Konsole, fehlerhafte Ressourcen, horizontaler Überlauf, Überschriftenstruktur, doppelte IDs, Alternativtexte, Meta-Angaben und alle internen Links, dazu dass Einblendungen ohne Restverschiebung enden, und die Bedienung per Maus, Tastatur und Touch. `pruefen.mjs` prüft von den Projektseiten eine Stichprobe, `PRUEF_ALLE=1` alle.
+
+Einblendungen (Überschriften, `[data-reveal]`, Maßlinien, Zeichnungen, Bildvorhänge) lösen über IntersectionObserver aus (`src/scripts/einblenden.js`) und messen damit gegen das tatsächliche Layout. Verschiebt sich die Seite nach dem Start, etwa durch Schriftwechsel, Bilder oder den Wechsel der Inszenierung, erscheinen Inhalte trotzdem, sobald sie im Bild sind; früher blieben sie dann bis zur nächsten Neuberechnung verborgen. Die fortlaufenden Scrollanimationen (Inszenierung, Parallaxe, Ablauf) rechnen ihre Positionen neu, sobald sich die Seitenhöhe ändert. Für Geräte, die hier nicht zum Testen bereitstehen, zeigt `/?diagnose` einen Kasten mit Ladezeitpunkten, Schriften, Zustand der Inszenierung, verborgenen Elementen im Bild und Skriptfehlern.
 
 ## Testumgebung
 
