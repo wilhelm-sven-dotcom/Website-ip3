@@ -623,8 +623,9 @@ const versteckteImBild = (page, auswahl = 'main') =>
     const titel = [...document.querySelectorAll(`${auswahl} [data-split-ready]`)].filter((el) => {
       const z = el.querySelector('.split-line');
       if (!z || !oben(el)) return false;
+      // Zeile noch versetzt; der Rest unter einem Pixel am Ende der Bewegung zählt als sichtbar
       const t = getComputedStyle(z).transform;
-      return t !== 'none' && t !== 'matrix(1, 0, 0, 1, 0, 0)';
+      return t !== 'none' && Math.abs(new DOMMatrix(t).m42) >= 1;
     });
     const name = (el) => (el.closest('section')?.getAttribute('aria-labelledby') || '?') + ':' + el.tagName.toLowerCase();
     return [...inhalte, ...titel].map(name);
